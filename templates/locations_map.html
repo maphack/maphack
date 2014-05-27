@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>maphack | search. trade. play.</title>
+  <style>
+    html, body, #map-canvas {
+      height: 100%;
+      margin: 0px;
+      padding: 0px
+    }
+    #panel {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      margin-left: -180px;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+    }
+  </style>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+  <script>
+    var geocoder;
+    var map;
+    var latitude;
+    var longitude;
+    function initialize() {
+      geocoder = new google.maps.Geocoder();
+      var latlng = new google.maps.LatLng(1.28967, 103.85007);
+      var mapOptions = {
+        zoom: 14,
+        center: latlng
+      }
+      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+    }
+
+    function codeAddress() {
+      var address = document.getElementById('address').value;
+      geocoder.geocode( { 'address': address}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          map.setCenter(results[0].geometry.location);
+          var marker = new google.maps.Marker({
+            map: map,
+            position: results[0].geometry.location
+          });
+          latitude = results[0].geometry.location.lat();
+          longitude = results[0].geometry.location.lng();
+        } else {
+          alert('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    }
+
+    function addLocation() {
+      var name = $('#location_name').val();
+      var address = $('#address').val();
+      $.ajax({
+        type: "POST",
+        url: "/locations/addlocation",
+        data: {name: name, address: address, latitude: latitude, longitude: longitude},
+        success: function(){
+          alert("Location added.");
+        }
+      });
+    }
+
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+  </script>
+</head>
+<body>
+  <div id="panel">
+    <input id="address" type="textbox">
+    <input type="button" value="Geocode" onclick="codeAddress()"><br>
+    <input id="location_name" type="textbox" placeholder="Custom name">
+    <input type="button" value="Add location" onclick="addLocation()"><br>
+    <form action="/locations">
+    <input type="submit" value="Go back">
+</form>
+  </div>
+  <div id="map-canvas"></div>
+</body>
+</html>
