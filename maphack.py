@@ -38,8 +38,12 @@ class Game(ndb.Model):
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
-		template = JINJA_ENVIRONMENT.get_template('front.html')
-		self.response.out.write(template.render())
+		user = users.get_current_user()
+		if user:
+			self.redirect('/dashboard')
+		else:
+			template = JINJA_ENVIRONMENT.get_template('front.html')
+			self.response.out.write(template.render())
 
 class Dashboard(webapp2.RequestHandler):
 	def get(self):
