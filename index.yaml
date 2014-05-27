@@ -15,3 +15,14 @@ indexes:
   properties:
   - name: date
     direction: desc
+
+- kind: Location
+  ancestor: yes
+  properties:
+  - name: location_id
+
+- kind: Location
+  ancestor: yes
+  properties:
+  - name: location_id
+    direction: desc

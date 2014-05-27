@@ -17,7 +17,16 @@ class Person(ndb.Model):
 	display_name = ndb.StringProperty()
 	img_url = ndb.StringProperty()
 	bio = ndb.StringProperty()
+	next_location = ndb.IntegerProperty()
 	setup = ndb.BooleanProperty()   # whether profile is set up
+
+class Location(ndb.Model):
+	#Key: location id
+	location_id = ndb.IntegerProperty()
+	name = ndb.StringProperty()
+	address = ndb.StringProperty()
+	latitude = ndb.GenericProperty()
+	longitude = ndb.GenericProperty()
 
 class Inventory(ndb.Model):
 	# Key: user id
@@ -69,6 +78,7 @@ class Setup(webapp2.RequestHandler):
 			user.email = users.get_current_user().email()
 			user.display_name = users.get_current_user().nickname()
 			user.img_url = "../images/profile_pic.png"
+			user.next_location = 1
 			user.setup = False
 			user.put()
 
@@ -82,7 +92,7 @@ class Setup(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user == None or user.setup == None:
 			self.redirect('/setup')
 		else:
 			user.display_name = self.request.get('display_name')
@@ -137,6 +147,66 @@ class ProfileEdit(webapp2.RequestHandler):
 			if user.display_name.rstrip() != '':    # display name cannot be empty
 				user.put()
 			self.redirect('/profile')
+
+class Locations(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY location_id ASC",
+				ndb.Key('Person', users.get_current_user().user_id()))
+
+			template_values = {
+				'img_url': user.img_url,
+				'display_name': user.display_name,
+				'logout': users.create_logout_url(self.request.host_url),
+				'locations': locations,
+				}
+			template = JINJA_ENVIRONMENT.get_template('locations.html')
+			self.response.out.write(template.render(template_values))
+
+class LocationsMap(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			template = JINJA_ENVIRONMENT.get_template('locations_map.html')
+			self.response.out.write(template.render())
+
+class LocationsDelete(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			location = ndb.Key('Person', users.get_current_user().user_id(),
+				'Location', self.request.get('location_id'))
+			location.delete()
+
+			self.redirect('/locations')
+class LocationsAddLocation(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()),
+				id = str(user.next_location))
+
+			location.location_id = user.next_location
+			location.name = self.request.get('name')
+			location.address = self.request.get('address')
+			location.latitude = self.request.get('latitude')
+			location.longitude = self.request.get('longitude')
+			user.next_location += 1
+
+			user.put()
+			location.put()
 
 class InventoryPage(webapp2.RequestHandler):
 	def show(self):
@@ -280,6 +350,10 @@ application = webapp2.WSGIApplication([
 	('/setup', Setup),
 	('/profile', Profile),
 	('/profile/edit', ProfileEdit),
+	('/locations', Locations),
+	('/locations/map', LocationsMap),
+	('/locations/delete', LocationsDelete),
+	('/locations/addlocation', LocationsAddLocation),
 	('/inventory', InventoryPage),
 	('/inventory/deletegame', InventoryDeleteGame),
 	('/playlist', PlaylistPage),
