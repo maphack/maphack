@@ -10,8 +10,8 @@
 			Please set up your profile before continuing to use maphack.<br>
 			<form action="/setup" method="post">
 				<fieldset>
-					Display name:<br>
-					<input class="input-xlarge" type="text" name="display_name" required><br>
+					Display name: (required)<br>
+					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}"required><br>
 					Profile picture:<br>
 					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
 					<input type="submit" value="Submit">
