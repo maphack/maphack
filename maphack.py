@@ -148,7 +148,7 @@ class InventoryPage(webapp2.RequestHandler):
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
-				ndb.Key('Inventory', users.get_current_user().user_id(), 
+				ndb.Key('Inventory', users.get_current_user().user_id(),
 					parent = ndb.Key('Person', users.get_current_user().user_id())))
 
 			template_values = {
@@ -168,16 +168,17 @@ class InventoryPage(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id(), 
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id(),
 				parent = ndb.Key('Person', users.get_current_user().user_id()))
 			inventory = inventory_key.get()
 
 			if inventory == None:
-				inventory = Inventory(parent = ndb.Key('Person', users.get_current_user().user_id()), 
+				inventory = Inventory(parent = ndb.Key('Person', users.get_current_user().user_id()),
 					id = users.get_current_user().user_id())
 				inventory.next_game = 1
 
-			game = Game(parent = inventory_key, id = str(inventory.next_game))
+			game = Game(parent = inventory_key,
+				id = str(inventory.next_game))
 
 			game.game_id = inventory.next_game
 			game.title = self.request.get('title')
@@ -198,8 +199,8 @@ class InventoryDeleteGame(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			game = ndb.Key('Person', users.get_current_user().user_id(), 
-				'Inventory', users.get_current_user().user_id(), 
+			game = ndb.Key('Person', users.get_current_user().user_id(),
+				'Inventory', users.get_current_user().user_id(),
 				'Game', self.request.get('game_id'))
 			game.delete()
 
@@ -215,7 +216,7 @@ class PlaylistPage(webapp2.RequestHandler):
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
-				ndb.Key('Playlist', users.get_current_user().user_id(), 
+				ndb.Key('Playlist', users.get_current_user().user_id(),
 					parent = ndb.Key('Person', users.get_current_user().user_id())))
 
 			template_values = {
@@ -235,16 +236,17 @@ class PlaylistPage(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id(), 
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id(),
 				parent = ndb.Key('Person', users.get_current_user().user_id()))
 			playlist = playlist_key.get()
 
 			if playlist == None:
-				playlist = Playlist(parent = ndb.Key('Person', users.get_current_user().user_id()), 
+				playlist = Playlist(parent = ndb.Key('Person', users.get_current_user().user_id()),
 					id = users.get_current_user().user_id())
 				playlist.next_game = 1
 
-			game = Game(parent = playlist_key, id = str(playlist.next_game))
+			game = Game(parent = playlist_key,
+				id = str(playlist.next_game))
 
 			game.game_id = playlist.next_game
 			game.title = self.request.get('title')
@@ -265,7 +267,7 @@ class PlaylistDeleteGame(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			game = ndb.Key('Person', users.get_current_user().user_id(), 
+			game = ndb.Key('Person', users.get_current_user().user_id(),
 				'Playlist', users.get_current_user().user_id(), 
 				'Game', self.request.get('game_id'))
 			game.delete()
