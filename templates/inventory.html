@@ -1,0 +1,53 @@
+<!-- Inventory page for logged in maphack user -->
+{% extends "base.html" %}
+{% block content %}
+<form action="/inventory" method="post">
+	<fieldset>
+		<div class="row-fluid">
+			Add game to inventory:<br>
+			Title: <input class="input-xlarge" type="text" name="title" required><br>
+			Platform: <input class="input-xlarge" type="text" name="platform" required><br>
+			Image url: <input class="input-xlarge" type="text" name="img_url"><br>
+		</div>
+		<div class="row-fluid">
+			<div class="span6">
+				Item description: <textarea class="input-block-level" name="description" rows="3"> </textarea><br>
+				<input type="submit" value="Submit">
+			</div>
+		</div>
+	</fieldset>
+</form>
+
+<h4>Inventory</h4>
+<table class="table table-bordered table-striped">
+	<thead>
+		<tr>
+			<th width = "20%">Title</th>
+			<th width = "10%">Platform</th>
+			<th width = "40%">Description</th>
+			<th width = "20%">Image</th>
+			<th width = "10%">Date</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for game in games %}
+			<tr>
+				<td width = "20%">{{ game.title }}</td>
+				<td width = "10%">{{ game.platform }}</td>
+				<td width = "40%">{{ game.description }} </td>
+				<td width = "20%">
+					{% if game.img_url != "" %}
+						<img class="game_img" src="{{ game.img_url }}">
+					{% endif %}
+				</td>
+				<td width = "10%">{{ game.date.strftime('%d/%m/%Y')  }}<br>
+					<form action="/inventory/deletegame" method="post">
+					<input type="hidden" name="game_id" value="{{ game.game_id }}">
+					<input type="submit" value="Delete">
+					</form>
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endblock %}

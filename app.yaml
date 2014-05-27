@@ -1,0 +1,34 @@
+application: maphack
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /stylesheets
+  static_dir: stylesheets
+
+- url: /images
+  static_dir: images
+
+- url: /scripts
+  static_dir: scripts
+
+# Twitter Bootstrap
+- url: /bootstrap
+  static_dir: bootstrap
+
+# Handler for front page
+- url: /
+  script: maphack.application
+
+# All other pages require login
+- url: /.*
+  script: maphack.application
+  login: required
+
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest

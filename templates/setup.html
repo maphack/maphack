@@ -1,0 +1,23 @@
+<!-- Setup page for logged in maphack user	-->
+{% extends "base.html" %}
+{% block content %}
+<div class="row-fluid">
+	<div class="span6">
+		<img class="splashpic" src="../images/splashpic.png">
+	</div>
+	<div class="span6">
+		<div class="top-pad-one">
+			Please set up your profile before continuing to use maphack.<br>
+			<form action="/setup" method="post">
+				<fieldset>
+					Display name:<br>
+					<input class="input-xlarge" type="text" name="display_name" required><br>
+					Profile picture:<br>
+					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
+					<input type="submit" value="Submit">
+				</fieldset>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

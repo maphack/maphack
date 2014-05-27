@@ -1,0 +1,24 @@
+<!-- Profile edit page for logged in maphack user -->
+{% extends "base.html" %}
+{% block content %}
+<div class="row-fluid">
+	<div class="span6">
+		<img class="splashpic" src="../images/splashpic.png">
+	</div>
+	<div class="span6">
+		<div class="top-pad-one">
+			Display name:<br>
+			<form action="/profile/edit" method="post">
+				<fieldset>
+					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}" required><br>
+					Profile picture:<br>
+					<input class="input-xlarge" type="text" name="img_url" value="{{ img_url }}" placeholder="url"><br>
+					More about yourself:<br>
+					<textarea class="input-block-level" name="bio" rows="5" placeholder="bio">{{ bio }}</textarea><br>
+					<button type="submit">Update</button>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+</div>
+{% endblock %}

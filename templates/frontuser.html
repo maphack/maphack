@@ -1,0 +1,58 @@
+<!-- Front page for logged in Giftbook user -->
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Maphack | Play. Trade. Play.</title>
+    <link href="../bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="../stylesheets/main.css">
+</head>
+<body>
+<div class="container">
+
+    <!-- Top bar -->
+    <div class="row top-container">
+        <div class="span5">
+            <img class="logo" src="../images/logo.png">
+        </div>
+        <div class="span4 offset8 signin-align">
+            <span> {{ user_mail }} <a href="{{ logout }}">logout</a></span>
+        </div>
+    </div>
+    <!-- End of top bar -->
+
+    <!-- Main navigation -->
+    <div class="navbar">
+        <div class="navbar-inner">
+            <ul class="nav">
+                <li><a href="/maphack">Home</a></li>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/inventory">Inventory</a></li>
+                <li><a href="/playlist">Playlist</a></li>
+                
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="span6">
+            <img class="giftpic" src="../images/maphack.jpg">
+        </div>
+        <div class="span6">
+            <div class="top-pad-one">
+                <p>
+                    Greetings, {{ user_mail }}!<br>
+                    We welcome you, our Great and All Powerful Mighty Mentor.
+                </p>
+                <p>
+                    Profile/Inventory/Playlists are currently in early alpha.
+                </p>
+                <p>
+                    Deleting games from Inventory and Playlists are bugged at the moment. Sorry!
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

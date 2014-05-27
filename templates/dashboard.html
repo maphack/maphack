@@ -1,0 +1,14 @@
+<!-- Front page for logged in maphack user -->
+{% extends "base.html" %}
+{% block content %}
+<div class="row-fluid">
+	<div class="span6">
+		<img class="splashpic" src="../images/splashpic.png">
+	</div>
+	<div class="span6">
+		<div class="top-pad-one">
+			Welcome back, <em><strong>{{ display_name }}</strong><em>
+		</div>
+	</div>
+</div>
+{% endblock %}
