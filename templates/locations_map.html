@@ -68,6 +68,10 @@
       });
     }
 
+    function printLocation() {
+      alert("Latitude: " + latitude + ", Longitude: " + longitude);
+    }
+
     google.maps.event.addDomListener(window, 'load', initialize);
 
   </script>
@@ -78,6 +82,7 @@
     <input type="button" value="Geocode" onclick="codeAddress()"><br>
     <input id="location_name" type="textbox" placeholder="Custom name">
     <input type="button" value="Add location" onclick="addLocation()"><br>
+    <input type="button" value="Print location" onclick="printLocation()"><br>
     <form action="/locations">
     <input type="submit" value="Go back">
 </form>
