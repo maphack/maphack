@@ -96,7 +96,8 @@ class Setup(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			user.display_name = self.request.get('display_name')
-			user.img_url = self.request.get('img_url')
+			if self.request.get('img_url').rstrip() != '':
+				user.img_url = self.request.get('img_url')
 
 			if user.display_name.rstrip() != '':    # display name cannot be empty
 				user.setup = True
@@ -141,7 +142,8 @@ class ProfileEdit(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			user.display_name = self.request.get('display_name')
-			user.img_url = self.request.get('img_url')
+			if self.request.get('img_url').rstrip() != '':
+				user.img_url = self.request.get('img_url')
 			user.bio = self.request.get('bio')
 
 			if user.display_name.rstrip() != '':    # display name cannot be empty
