@@ -28,6 +28,7 @@
     var map;
     var latitude;
     var longitude;
+    var marker;
     function initialize() {
       geocoder = new google.maps.Geocoder();
       var latlng = new google.maps.LatLng(1.28967, 103.85007);
@@ -36,6 +37,21 @@
         center: latlng
       }
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+      google.maps.event.addListener(map, 'click', function(event) {
+        placeMarker(event.latLng);
+      });
+    }
+
+    function placeMarker(location) {
+      var marker = new google.maps.Marker({
+        position: location,
+        map: map
+      });
+
+      map.setCenter(location);
+      latitude = location.lat();
+      longitude = location.lng();
     }
 
     function codeAddress() {
@@ -44,7 +60,7 @@
           console.log(results)
         if (status == google.maps.GeocoderStatus.OK) {
           map.setCenter(results[0].geometry.location);
-          var marker = new google.maps.Marker({
+          marker = new google.maps.Marker({
             map: map,
             position: results[0].geometry.location
           });
