@@ -50,6 +50,10 @@
           });
           latitude = results[0].geometry.location.lat();
           longitude = results[0].geometry.location.lng();
+          
+          if (results[0].partial_match == true) {
+            alert('Geocode has returned a partial match! You should check whether the marker is set accurately and if not, set the marker on your own.')
+          }
         } else {
           alert('Geocode was not successful for the following reason: ' + status);
         }
