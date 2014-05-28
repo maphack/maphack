@@ -44,9 +44,13 @@
     }
 
     function placeMarker(location) {
-      var marker = new google.maps.Marker({
+      if (marker != null) {
+        marker.setMap(null);
+      }      
+      marker = new google.maps.Marker({
         position: location,
-        map: map
+        map: map,
+        draggable: true,
       });
 
       map.setCenter(location);
@@ -62,7 +66,8 @@
           map.setCenter(results[0].geometry.location);
           marker = new google.maps.Marker({
             map: map,
-            position: results[0].geometry.location
+            position: results[0].geometry.location,
+            draggable: true,
           });
           latitude = results[0].geometry.location.lat();
           longitude = results[0].geometry.location.lng();
@@ -102,7 +107,7 @@
     <input id="address" type="textbox">
     <input type="button" value="Geocode" onclick="codeAddress()"><br>
     <input id="location_name" type="textbox" placeholder="Custom name">
-    <input type="button" value="Add location" onclick="addLocation()"><br>
+    <input type="button" value="Add Location" onclick="addLocation()"><br>
     <input type="button" value="Print location" onclick="printLocation()"><br>
     <form action="/locations">
     <input type="submit" value="Go back">
