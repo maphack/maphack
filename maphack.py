@@ -25,7 +25,7 @@ class Location(ndb.Model):
 	location_id = ndb.IntegerProperty()
 	name = ndb.StringProperty()
 	address = ndb.StringProperty()
-	point = ndb.GeoPtProperty()
+	geopt = ndb.GeoPtProperty()
 
 class Inventory(ndb.Model):
 	# Key: user id
@@ -204,7 +204,7 @@ class LocationsAddLocation(webapp2.RequestHandler):
 			location.address = self.request.get('address')
 			location.latitude = self.request.get('latitude')
 			location.longitude = self.request.get('longitude')
-			location.point = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
+			location.geopt = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
 			user.next_location += 1
 
 			user.put()
