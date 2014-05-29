@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>maphack | search. trade. play.</title>
+  <style>
+    html, body, #map-canvas {
+      height: 100%;
+      margin: 0px;
+      padding: 0px
+    }
+    #panel {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      margin-left: -180px;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+    }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script>
+    var geocoder;
+    var map;
+    var marker;
+
+    function initialize() {
+      geocoder = new google.maps.Geocoder();
+      var latlng = new google.maps.LatLng(1.2939106, 103.7810538);
+      var mapOptions = {
+        zoom: 16,
+        center: latlng
+      }
+      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+      google.maps.event.addListener(map, 'click', function(event) {
+        placeMarker(event.latLng);
+      });
+    }
+
+    function placeMarker(location) {
+      if (marker != null) {
+        marker.setMap(null);
+      }
+
+      marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        draggable: true,
+      });
+
+      map.setCenter(location);
+    }
+
+    function codeAddress() {
+      var address = document.getElementById('address').value;
+      geocoder.geocode( { 'address': address, 'componentRestrictions': { country: 'SG' }}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          map.setCenter(results[0].geometry.location);
+          marker = new google.maps.Marker({
+            map: map,
+            position: results[0].geometry.location,
+            draggable: true,
+          });
+
+          if (results[0].partial_match) {
+            alert("Geocode has returned a partial match. Drag the marker to the correct location before adding it.");
+          }
+        } else {
+          alert('Geocode was not successful for the following reason: ' + status);
+        }
+      });
+    }
+
+    function addLocation() {
+      var name = $('#name').val();
+
+      if (!name) {
+        alert("Please enter a name for this location.");
+      } else {
+        latitude = marker.getPosition().lat();
+        longitude = marker.getPosition().lng();
+
+        var latlng = new google.maps.LatLng(latitude, longitude);
+        geocoder.geocode({'latLng': latlng}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            var address = results[0].formatted_address;
+
+            $.ajax({
+              type: "POST",
+              url: '/locations/add',
+              data: {name: name, address: address, latitude: latitude, longitude: longitude},
+              success: function(){
+                alert("Location added.");
+              }
+            });
+          } else {
+            alert("Reverse geocoder failed due to: " + status);
+          }
+        });
+      }
+    }
+
+    function printLocation() {
+      alert("Latitude: " + marker.getPosition().lat() + ", longitude: " + marker.getPosition().lng());
+    }
+
+    google.maps.event.addDomListener(window, 'load', initialize);
+
+  </script>
+</head>
+<body>
+  <div id="panel">
+    <input id="address" type="textbox" placeholder="address">
+    <input type="button" value="geocode" onclick="codeAddress()"><br>
+    <input id="name" type="textbox" placeholder="custom name">
+    <input type="button" value="add location" onclick="addLocation()"><br>
+    <input type="button" value="print location" onclick="printLocation()"><br>
+    <form action="/locations">
+      <input type="submit" value="go back">
+    </form>
+  </div>
+  <div id="map-canvas"></div>
+</body>
+</html>

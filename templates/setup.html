@@ -1,4 +1,4 @@
-<!-- Setup page for logged in maphack user	-->
+<!-- Setup page	-->
 {% extends "base.html" %}
 {% block content %}
 <div class="row-fluid">
@@ -11,7 +11,13 @@
 			<form action="/setup" method="post">
 				<fieldset>
 					Display name: (required)<br>
-					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}"required><br>
+					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}"required>
+
+					<!-- Error message -->
+					{% if error != "" %}
+					<div class="error">{{ error }}</div><br>
+					{% endif %}
+
 					Profile picture:<br>
 					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
 					<input type="submit" value="Submit">

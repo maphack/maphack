@@ -1,4 +1,4 @@
-<!-- Profile edit page for logged in maphack user -->
+<!-- Profile edit page -->
 {% extends "base.html" %}
 {% block content %}
 <div class="row-fluid">
@@ -7,10 +7,16 @@
 	</div>
 	<div class="span6">
 		<div class="top-pad-one">
-			Display name:<br>
 			<form action="/profile/edit" method="post">
 				<fieldset>
-					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}" required><br>
+					Display name:<br>
+					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}" required>
+
+					<!-- Error message -->
+					{% if error != "" %}
+					<div class="error">{{ error }}</div><br>
+					{% endif %}
+
 					Profile picture:<br>
 					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
 					More about yourself:<br>

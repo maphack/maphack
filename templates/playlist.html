@@ -1,4 +1,4 @@
-<!-- Playlist page for logged in maphack user -->
+<!-- Playlist page -->
 {% extends "base.html" %}
 {% block content %}
 <form action="/playlist" method="post">
@@ -42,7 +42,7 @@
 				</td>
 				<td width = "10%">{{ game.date.strftime('%d/%m/%Y')  }}<br>
 					<form action="/playlist/deletegame" method="post">
-					<input type="hidden" name="game_id" value="{{ game.game_id }}">
+					<input type="hidden" name="game_id" value="{{ game.key.id() }}">
 					<input type="submit" value="Delete">
 					</form>
 				</td>
