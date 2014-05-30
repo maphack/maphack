@@ -224,6 +224,15 @@ class LocationsDelete(webapp2.RequestHandler):
 
 			self.redirect('/locations')
 
+class LocationView(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			template = JINJA_ENVIRONMENT.get_template('location_view.html')
+			self.response.out.write(template.render())
+
 class InventoryPage(webapp2.RequestHandler):
 	def show(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
@@ -489,6 +498,7 @@ application = webapp2.WSGIApplication([
 	('/locations', Locations),
 	('/locations/add', LocationsAdd),
 	('/locations/delete', LocationsDelete),
+	('/locations/view', LocationView),
 	('/inventory', InventoryPage),
 	('/inventory/delete', InventoryDelete),
 	('/playlist', PlaylistPage),
