@@ -1,0 +1,9 @@
+<!-- Search results page -->
+{% extends "base.html" %}
+{% block content %}
+
+<h4> Users who {{ query_type }} {{ title }} on {{ platform }} </h4>
+{% for person_id in person_ids %}
+User ID: {{ person_id }}
+{% endfor %}
+{% endblock %}

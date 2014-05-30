@@ -22,31 +22,40 @@
 <table class="table table-bordered table-striped">
 	<thead>
 		<tr>
-			<th width = "20%">Title</th>
+			<th width = "30%">Title</th>
 			<th width = "10%">Platform</th>
-			<th width = "40%">Description</th>
+			<th width = "20%">Description</th>
 			<th width = "20%">Image</th>
 			<th width = "10%">Date</th>
+			<th width = "10%">Search</th>
 		</tr>
 	</thead>
 	<tbody>
 		{% for game in games %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
-				<td width = "10%">{{ game.platform }}</td>
-				<td width = "40%">{{ game.description }} </td>
-				<td width = "20%">
-					{% if game.img_url != "" %}
-						<img class="game_img" src="{{ game.img_url }}">
-					{% endif %}
-				</td>
-				<td width = "10%">{{ game.date.strftime('%d/%m/%Y')  }}<br>
-					<form action="/inventory/delete" method="post">
+		<tr>
+			<td width = "30%">{{ game.title }}</td>
+			<td width = "10%">{{ game.platform }}</td>
+			<td width = "20%">{{ game.description }} </td>
+			<td width = "20%">
+				{% if game.img_url != "" %}
+				<img class="game_img" src="{{ game.img_url }}">
+				{% endif %}
+			</td>
+			<td width = "10%">{{ game.date.strftime('%d/%m/%Y')  }}<br>
+				<form action="/inventory/delete" method="post">
 					<input type="hidden" name="game_id" value="{{ game.key.id() }}">
 					<input type="submit" value="Delete">
-					</form>
-				</td>
-			</tr>
+				</form>
+			</td>
+			<td width = "10%">
+				<form action="/search/results" method="post">
+					<input type="hidden" name="title" value="{{ game.title }}">
+					<input type="hidden" name="platform" value="{{ game.platform }}">
+					<input type="hidden" name="query_type" value="want">
+					<input type="submit" value="Search">
+				</form>
+			</td>
+		</tr>
 		{% endfor %}
 	</tbody>
 </table>
