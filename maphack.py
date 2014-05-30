@@ -233,6 +233,14 @@ class LocationView(webapp2.RequestHandler):
 			template = JINJA_ENVIRONMENT.get_template('location_view.html')
 			self.response.out.write(template.render())
 
+	def post(self):
+		location_key = ndb.Key('Person', users.get_current_user().user_id(),
+				'Location', int(self.request.get('id')))
+		location = location_key.get()
+		location.name = self.request.get('name')
+
+		location.put()
+
 class InventoryPage(webapp2.RequestHandler):
 	def show(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()

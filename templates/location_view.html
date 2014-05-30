@@ -14,7 +14,7 @@
       position: absolute;
       top: 5px;
       left: 50%;
-      margin-left: -70px;
+      margin-left: -160px;
       z-index: 5;
       background-color: #fff;
       padding: 5px;
@@ -48,7 +48,24 @@
     	 map: map,
       });
 
-      document.getElementById("locdelete").value = currentLocId;
+      document.getElementById("locdelete").value = currentLocId;      
+    }
+
+    function nameChange() {
+      var newName = $('#namechange').val();
+
+      if (!newName || newName.trim() == "") {
+        alert("Please enter a valid new name.");
+      } else {
+        $.ajax({
+              type: "POST",
+              url: '/locations/view',
+              data: {name: newName, id: currentLocId},
+              success: function(){
+                alert("Name changed.");
+              }
+            });
+      }
     }
 
     google.maps.event.addDomListener(window, 'load', initialize);
@@ -56,8 +73,10 @@
   </script>
 </head>
 <body>
-  <div id="panel">
-    <button type="button" onclick="window.open('', '_self', ''); window.close();">Close window</button>
+  <div id="panel">            
+    <input id="namechange" type="textbox" placeholder="New name here">
+    <input type="button" value="Change location name" onclick="nameChange()"><br>    
+    <button type="button" onclick="window.open('', '_self', ''); window.close();">Close window</button>    
     <form action="/locations/delete" method="post">
           <input id="locdelete" type="hidden" name="location_id"/>
           <input type="submit" value="Delete location">
