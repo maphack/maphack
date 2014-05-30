@@ -79,7 +79,7 @@
     function addLocation() {
       var name = $('#name').val();
 
-      if (!name) {
+      if (!name || name.trim() == "") {
         alert("Please enter a name for this location.");
       } else {
         latitude = marker.getPosition().lat();
