@@ -43,14 +43,24 @@ class Game(ndb.Model):
 	date = ndb.DateTimeProperty(auto_now_add=True)
 
 class Platform(ndb.Model):
+	# Key: platform name
 	pass
 
-class GameAggregate(ndb.Model):
+class Owners(ndb.Model):
 	# Key: game title
-	num_have = ndb.IntegerProperty(default = 0)
-	num_want = ndb.IntegerProperty(default = 0)
-	owner_ids = ndb.StringProperty(repeated = True)
-	hunter_ids = ndb.StringProperty(repeated = True)
+	count = ndb.IntegerProperty(default = 0)
+
+class Owner(ndb.Model):
+	# Key: person id
+	game_ids = ndb.StringProperty(repeated = True)
+
+class Seekers(ndb.Model):
+	# Key: game title
+	count = ndb.IntegerProperty(default = 0)
+
+class Seeker(ndb.Model):
+	# Key: person id
+	game_ids = ndb.StringProperty(repeated = True)
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
@@ -87,6 +97,12 @@ class Setup(webapp2.RequestHandler):
 			user.display_name = users.get_current_user().nickname()
 			user.img_url = '../images/profile_pic.png'
 			user.put()
+
+			inventory = Inventory(id = users.get_current_user().user_id())
+			inventory.put()
+
+			playlist = Playlist(id = users.get_current_user().user_id())
+			playlist.put()
 
 			template_values = {
 				'img_url': user.img_url,
@@ -224,7 +240,7 @@ class LocationsDelete(webapp2.RequestHandler):
 
 			self.redirect('/locations')
 
-class LocationView(webapp2.RequestHandler):
+class LocationsView(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == None or user.setup == False:
@@ -274,31 +290,37 @@ class InventoryPage(webapp2.RequestHandler):
 				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
 				inventory = inventory_key.get()
 
-				if inventory == None:
-					inventory = Inventory(id = users.get_current_user().user_id())
-
 				inventory.count += 1
+				inventory.put()
 
 				game = Game(parent = inventory_key)
 				game.title = self.request.get('title')
 				game.platform = self.request.get('platform')
 				game.img_url = self.request.get('img_url')
 				game.description = self.request.get('description')
-
-				gameaggregate_key = ndb.Key('GameAggregate', game.title, 
-					parent = ndb.Key('Platform', game.platform))
-				gameaggregate = gameaggregate_key.get()
-
-				if gameaggregate == None:
-					gameaggregate = GameAggregate(parent = ndb.Key('Platform', game.platform),
-						id = game.title)
-				
-				gameaggregate.num_have += 1
-				gameaggregate.owner_ids.append(users.get_current_user().user_id())
-
-				inventory.put()
 				game.put()
-				gameaggregate.put()
+
+				owners_key = ndb.Key('Owners', game.title,
+					parent = ndb.Key('Platform', game.platform))
+				owners = owners_key.get()
+
+				if owners == None:
+					owners = Owners(parent = ndb.Key('Platform', game.platform),
+						id = game.title)
+
+				owners.count += 1
+				owners.put()
+
+				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+					parent = owners_key)
+				owner = owner_key.get()
+
+				if owner == None:
+					owner = Owner(parent = owners_key,
+						id = users.get_current_user().user_id())
+				
+				owner.game_ids.append(str(game.key.id()))
+				owner.put()
 
 				self.show()
 
@@ -315,19 +337,32 @@ class InventoryDelete(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			game_key = ndb.Key('Inventory', users.get_current_user().user_id(),
-				'Game', int(self.request.get('game_id')))
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+			inventory = inventory_key.get()
+
+			inventory.count -= 1
+			inventory.put()
+
+			game_key = ndb.Key('Game', int(self.request.get('game_id')),
+				parent = inventory_key)
 			game = game_key.get()
-
-			gameaggregate_key = ndb.Key('GameAggregate', game.title, 
-					parent = ndb.Key('Platform', game.platform))
-			gameaggregate = gameaggregate_key.get()
-
-			gameaggregate.num_have -= 1
-			gameaggregate.owner_ids.remove(users.get_current_user().user_id())
-
 			game_key.delete()
-			gameaggregate.put()
+
+			owners_key = ndb.Key('Owners', game.title,
+				parent = ndb.Key('Platform', game.platform))
+			owners = owners_key.get()
+			owners.count -= 1
+			owners.put()
+
+			owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+				parent = owners_key)
+			owner = owner_key.get()
+			owner.game_ids.remove(self.request.get('game_id'))
+			
+			if owner.game_ids == []:
+				owner_key.delete()
+			else:
+				owner.put()
 
 			self.redirect('/inventory')
 
@@ -364,31 +399,37 @@ class PlaylistPage(webapp2.RequestHandler):
 				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 				playlist = playlist_key.get()
 
-				if playlist == None:
-					playlist = Playlist(id = users.get_current_user().user_id())
-
 				playlist.count += 1
+				playlist.put()
 
 				game = Game(parent = playlist_key)
 				game.title = self.request.get('title')
 				game.platform = self.request.get('platform')
 				game.img_url = self.request.get('img_url')
 				game.description = self.request.get('description')
-
-				gameaggregate_key = ndb.Key('GameAggregate', game.title, 
-					parent = ndb.Key('Platform', game.platform))
-				gameaggregate = gameaggregate_key.get()
-
-				if gameaggregate == None:
-					gameaggregate = GameAggregate(parent = ndb.Key('Platform', game.platform),
-						id = game.title)
-				
-				gameaggregate.num_want += 1
-				gameaggregate.hunter_ids.append(users.get_current_user().user_id())
-
-				playlist.put()
 				game.put()
-				gameaggregate.put()
+
+				seekers_key = ndb.Key('Seekers', game.title,
+					parent = ndb.Key('Platform', game.platform))
+				seekers = seekers_key.get()
+
+				if seekers == None:
+					seekers = Seekers(parent = ndb.Key('Platform', game.platform),
+						id = game.title)
+
+				seekers.count += 1
+				seekers.put()
+
+				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+					parent = seekers_key)
+				seeker = seeker_key.get()
+
+				if seeker == None:
+					seeker = Seeker(parent = seekers_key,
+						id = users.get_current_user().user_id())
+				
+				seeker.game_ids.append(str(game.key.id()))
+				seeker.put()
 
 				self.show()
 
@@ -405,19 +446,32 @@ class PlaylistDelete(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			game_key = ndb.Key('Inventory', users.get_current_user().user_id(),
-				'Game', int(self.request.get('game_id')))
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+			playlist = playlist_key.get()
+
+			playlist.count -= 1
+			playlist.put()
+
+			game_key = ndb.Key('Game', int(self.request.get('game_id')),
+				parent = playlist_key)
 			game = game_key.get()
-
-			gameaggregate_key = ndb.Key('GameAggregate', game.title, 
-					parent = ndb.Key('Platform', game.platform))
-			gameaggregate = gameaggregate_key.get()
-
-			gameaggregate.num_want -= 1
-			gameaggregate.hunter_ids.remove(users.get_current_user().user_id())
-
 			game_key.delete()
-			gameaggregate.put()
+
+			seekers_key = ndb.Key('Seekers', game.title,
+				parent = ndb.Key('Platform', game.platform))
+			seekers = seekers_key.get()
+			seekers.count -= 1
+			seekers.put()
+
+			seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+				parent = seekers_key)
+			seeker = seeker_key.get()
+			seeker.game_ids.remove(self.request.get('game_id'))
+			
+			if seeker.game_ids == []:
+				seeker_key.delete()
+			else:
+				seeker.put()
 
 			self.redirect('/playlist')
 
@@ -466,33 +520,31 @@ class SearchResults(webapp2.RequestHandler):
 				query_type = "have"
 				title = self.request.get('title')
 				platform = self.request.get('platform')
-				person_ids = []
 
-				gameaggregate_key = ndb.Key('GameAggregate', title, 
+				owners_key = ndb.Key('Owners', title,
 					parent = ndb.Key('Platform', platform))
-				gameaggregate = gameaggregate_key.get()
 
-				if gameaggregate:
-					for person_id in gameaggregate.owner_ids:
-						person_ids.append(person_id)
+				query = ndb.gql("SELECT * "
+					"FROM Owner "
+					"WHERE ANCESTOR IS :1 ",
+					owners_key)
 
-				self.show(query_type, title, platform, person_ids)
+				self.show(query_type, title, platform, query)
 
 			elif self.request.get('query_type') == "want":
 				query_type = "want"
 				title = self.request.get('title')
 				platform = self.request.get('platform')
-				person_ids = []
 
-				gameaggregate_key = ndb.Key('GameAggregate', title, 
+				seekers_key = ndb.Key('Seekers', title,
 					parent = ndb.Key('Platform', platform))
-				gameaggregate = gameaggregate_key.get()
 
-				if gameaggregate:
-					for person_id in gameaggregate.hunter_ids:
-						person_ids.append(person_id)
+				query = ndb.gql("SELECT * "
+					"FROM Seeker "
+					"WHERE ANCESTOR IS :1 ",
+					seekers_key)
 
-				self.show(query_type, title, platform, person_ids)
+				self.show(query_type, title, platform, query)
 			else:
 				error = "Error: Problem with search query."
 				self.show(error)
@@ -506,7 +558,7 @@ application = webapp2.WSGIApplication([
 	('/locations', Locations),
 	('/locations/add', LocationsAdd),
 	('/locations/delete', LocationsDelete),
-	('/locations/view', LocationView),
+	('/locations/view', LocationsView),
 	('/inventory', InventoryPage),
 	('/inventory/delete', InventoryDelete),
 	('/playlist', PlaylistPage),
