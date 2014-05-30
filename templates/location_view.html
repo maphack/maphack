@@ -27,13 +27,13 @@
     var currentLat = window.opener.locationObject.lat;	
     var currentLon = window.opener.locationObject.lon; 
     var currentLocId = window.opener.locationObject.locId;
-    
-    console.log(currentLat);
+
     var geocoder;
     var map;
     var latitude;
     var longitude;
     var marker;
+
     function initialize() {
       geocoder = new google.maps.Geocoder();
       var latlng = new google.maps.LatLng(parseFloat(currentLat), parseFloat(currentLon));
@@ -41,11 +41,11 @@
         zoom: 17,
         center: latlng
       }
-    
+
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
       var marker = new google.maps.Marker({
-    	 position: map.getCenter(),
-    	 map: map,
+        position: map.getCenter(),
+        map: map,
       });
 
       document.getElementById("locdelete").value = currentLocId;      
@@ -58,13 +58,13 @@
         alert("Please enter a valid new name.");
       } else {
         $.ajax({
-              type: "POST",
-              url: '/locations/view',
-              data: {name: newName, id: currentLocId},
-              success: function(){
-                alert("Name changed.");
-              }
-            });
+          type: "POST",
+          url: '/locations/view',
+          data: {name: newName, id: currentLocId},
+          success: function(){
+            alert("Name changed.");
+          }
+        });
       }
     }
 
@@ -74,13 +74,13 @@
 </head>
 <body>
   <div id="panel">            
-    <input id="namechange" type="textbox" placeholder="New name here">
-    <input type="button" value="Change location name" onclick="nameChange()"><br>    
-    <button type="button" onclick="window.open('', '_self', ''); window.close();">Close window</button>    
+    <input id="namechange" type="textbox" placeholder="new name">
+    <input type="button" value="change name" onclick="nameChange()"><br>
     <form action="/locations/delete" method="post">
-          <input id="locdelete" type="hidden" name="location_id"/>
-          <input type="submit" value="Delete location">
+      <input id="locdelete" type="hidden" name="location_id"/>
+      <input type="submit" value="delete location">
     </form>
+    <button type="button" onclick="window.open('', '_self', ''); window.close();">close window</button>
   </div>
   <div id="map-canvas"></div>
 </body>
