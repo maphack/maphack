@@ -52,15 +52,16 @@ class Owners(ndb.Model):
 
 class Owner(ndb.Model):
 	# Key: person id
-	game_ids = ndb.StringProperty(repeated = True)
+	person_key = ndb.KeyProperty()
+	game_keys = ndb.KeyProperty(repeated = True)
 
 class Seekers(ndb.Model):
 	# Key: game title
 	count = ndb.IntegerProperty(default = 0)
 
 class Seeker(ndb.Model):
-	# Key: person id
-	game_ids = ndb.StringProperty(repeated = True)
+	person_key = ndb.KeyProperty()
+	game_keys = ndb.KeyProperty(repeated = True)
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
@@ -258,7 +259,7 @@ class LocationsView(webapp2.RequestHandler):
 		location.put()
 
 class InventoryPage(webapp2.RequestHandler):
-	def show(self):
+	def show(self, error = ""):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
@@ -274,6 +275,7 @@ class InventoryPage(webapp2.RequestHandler):
 				'display_name': user.display_name,
 				'logout': users.create_logout_url(self.request.host_url),
 				'games': games,
+				'error': error,
 				}
 			template = JINJA_ENVIRONMENT.get_template('inventory.html')
 			self.response.out.write(template.render(template_values))
@@ -318,11 +320,16 @@ class InventoryPage(webapp2.RequestHandler):
 				if owner == None:
 					owner = Owner(parent = owners_key,
 						id = users.get_current_user().user_id())
-				
-				owner.game_ids.append(str(game.key.id()))
+					owner.person_key = ndb.Key('Person', users.get_current_user().user_id())
+
+				owner.game_keys.append(game.key)
 				owner.put()
 
 				self.show()
+
+			else:
+				error = "Error: Problem with game title and/or platform."
+				self.show(error)
 
 class InventoryDelete(webapp2.RequestHandler):
 	def get(self):
@@ -357,9 +364,9 @@ class InventoryDelete(webapp2.RequestHandler):
 			owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
 				parent = owners_key)
 			owner = owner_key.get()
-			owner.game_ids.remove(self.request.get('game_id'))
+			owner.game_keys.remove(self.request.get(game_key))
 			
-			if owner.game_ids == []:
+			if owner.game_keys == []:
 				owner_key.delete()
 			else:
 				owner.put()
@@ -367,7 +374,7 @@ class InventoryDelete(webapp2.RequestHandler):
 			self.redirect('/inventory')
 
 class PlaylistPage(webapp2.RequestHandler):
-	def show(self):
+	def show(self, error = ""):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
@@ -427,11 +434,16 @@ class PlaylistPage(webapp2.RequestHandler):
 				if seeker == None:
 					seeker = Seeker(parent = seekers_key,
 						id = users.get_current_user().user_id())
-				
-				seeker.game_ids.append(str(game.key.id()))
+					seeker.person_key = ndb.Key('Person', users.get_current_user().user_id())
+
+				seeker.game_keys.append(game.key)
 				seeker.put()
 
 				self.show()
+
+			else:
+				error = "Error: Problem with game title and/or platform."
+				self.show(error)
 
 class PlaylistDelete(webapp2.RequestHandler):
 	def get(self):
@@ -466,9 +478,9 @@ class PlaylistDelete(webapp2.RequestHandler):
 			seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
 				parent = seekers_key)
 			seeker = seeker_key.get()
-			seeker.game_ids.remove(self.request.get('game_id'))
+			seeker.game_keys.remove(game_key)
 			
-			if seeker.game_ids == []:
+			if seeker.game_keys == []:
 				seeker_key.delete()
 			else:
 				seeker.put()
@@ -490,7 +502,7 @@ class Search(webapp2.RequestHandler):
 			self.response.out.write(template.render(template_values))
 
 class SearchResults(webapp2.RequestHandler):
-	def show(self, query_type, title, platform, person_ids, error = ""):
+	def show(self, query_type, title, platform, persons, error = ""):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
@@ -502,7 +514,7 @@ class SearchResults(webapp2.RequestHandler):
 				'query_type': query_type,
 				'title': title,
 				'platform': platform,
-				'person_ids': person_ids,
+				'persons': persons,
 				'error': error,
 				}
 			template = JINJA_ENVIRONMENT.get_template('search_results.html')
@@ -524,12 +536,17 @@ class SearchResults(webapp2.RequestHandler):
 				owners_key = ndb.Key('Owners', title,
 					parent = ndb.Key('Platform', platform))
 
-				query = ndb.gql("SELECT * "
+				results = ndb.gql("SELECT * "
 					"FROM Owner "
 					"WHERE ANCESTOR IS :1 ",
 					owners_key)
 
-				self.show(query_type, title, platform, query)
+				persons = []
+				for owner in results:
+					person = [owner.person_key.get().display_name, owner.person_key.id()]
+					persons.append(person)
+
+				self.show(query_type, title, platform, persons)
 
 			elif self.request.get('query_type') == "want":
 				query_type = "want"
@@ -539,15 +556,20 @@ class SearchResults(webapp2.RequestHandler):
 				seekers_key = ndb.Key('Seekers', title,
 					parent = ndb.Key('Platform', platform))
 
-				query = ndb.gql("SELECT * "
+				results = ndb.gql("SELECT * "
 					"FROM Seeker "
 					"WHERE ANCESTOR IS :1 ",
 					seekers_key)
 
-				self.show(query_type, title, platform, query)
+				persons = []
+				for seeker in results:
+					person = [seeker.person_key.get().display_name, seeker.person_key.id()]
+					persons.append(person)
+
+				self.show(query_type, title, platform, persons)
 			else:
 				error = "Error: Problem with search query."
-				self.show(error)
+				self.show(error = error)
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
