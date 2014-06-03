@@ -1,10 +1,10 @@
 import jinja2
-import json
 import os
 import urllib
 import webapp2
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from math import radians, cos, sin, asin, sqrt
 
 JINJA_ENVIRONMENT = jinja2.Environment(
 	loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + '/templates'),
@@ -63,6 +63,25 @@ class Seekers(ndb.Model):
 class Seeker(ndb.Model):
 	person_key = ndb.KeyProperty()
 	game_keys = ndb.KeyProperty(repeated = True)
+
+# Helper functions
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+
+    # 6367 km is the radius of the Earth
+    km = 6367 * c
+    return km 
 
 # Handlers
 class MainPage(webapp2.RequestHandler):
@@ -248,7 +267,7 @@ class LocationsView(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			template = JINJA_ENVIRONMENT.get_template('location_view.html')
+			template = JINJA_ENVIRONMENT.get_template('locations_view.html')
 			self.response.out.write(template.render())
 
 	def post(self):
@@ -625,7 +644,7 @@ class UserPage(webapp2.RequestHandler):
 				found = False
 				for you_seek in you_playlist:
 					if me_own.title == you_seek.title and me_own.platform == you_seek.platform:
-						me_match.append([me_own.title, me_own.platform])
+						me_match.append([me_own.title, me_own.platform, me_own.description, me_own.img_url, me_own.key.id()])
 						found = True;
 						break;
 				if not found:
@@ -635,11 +654,22 @@ class UserPage(webapp2.RequestHandler):
 				found = False
 				for me_seek in me_playlist:
 					if you_own.title == me_seek.title and you_own.platform == me_seek.platform:
-						you_match.append([you_own.title, you_own.platform])
+						you_match.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
 						found = True;
 						break;
 				if not found:
-					you_diff.append([you_own.title, you_own.platform])
+					you_diff.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
+
+			nearest_dist = float("inf")
+			me_nearest_loc = None
+			you_nearest_loc = None
+			for you_location in you_locations:
+				for me_location in me_locations:
+					dist = haversine(you_location.geopt.lat, you_location.geopt.lon, me_location.geopt.lat, me_location.geopt.lon)
+					if dist < nearest_dist:
+						nearest_dist = dist
+						me_nearest_loc = me_location
+						you_nearest_loc = you_location
 
 			template_values = {
 				'img_url': user.img_url,
@@ -653,6 +683,9 @@ class UserPage(webapp2.RequestHandler):
 				'you_diff': you_diff,
 				'me_locations': me_locations,
 				'you_locations': you_locations,
+				'nearest_dist': nearest_dist,
+				'me_nearest_loc': me_nearest_loc,
+				'you_nearest_loc': you_nearest_loc,
 				}
 			template = JINJA_ENVIRONMENT.get_template('user.html')
 			self.response.out.write(template.render(template_values))

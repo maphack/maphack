@@ -1,22 +1,38 @@
 <!-- User page -->
 {% extends "base.html" %}
 {% block content %}
-<img class="profile_pic" src="{{ img_url }}"> {{ person_name }}<br>
+<p>
+	<img class="profile_pic" src="{{ img_url }}"> {{ person_name }}
+</p>
+<p>
+	{% if not me_locations.count() %}
+	Unable to calculate nearest location because you have not added any locations!
+	{% elif not you_locations.count() %}
+	Unable to calculate nearest location because {{ person_name }} has not added any locations!
+	{% else %}
+	{{ person_name }} can trade ~{{ '%0.2f' % nearest_dist }} k.m. away.
+	{% endif %}
+</p>
 <div class="top-pad-one">
+	<h4>Matching inventories and playlists:</h4><br>
 	{% if me_diff %}
 	games you own that are not in {{ person_name }}'s playlist<br>
 	<table class="table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "80%">title</th>
-				<th width = "20%">platform</th>
+				<th width = "20%">title</th>
+				<th width = "10%">platform</th>
+				<th width = "50%">description</th>
+				<th width = "20%">image</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in me_diff %}
 			<tr>
-				<td width = "80%">{{ game[0] }}</td>
-				<td width = "20%">{{ game[1] }}</td>
+				<td width = "20%">{{ game[0] }}</td>
+				<td width = "10%">{{ game[1] }}</td>
+				<td width = "50%">{{ game[2] }}</td>
+				<td width = "20%">{{ game[3] }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -31,15 +47,19 @@
 	<table class="table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "80%">title</th>
-				<th width = "20%">platform</th>
+				<th width = "20%">title</th>
+				<th width = "10%">platform</th>
+				<th width = "50%">description</th>
+				<th width = "20%">image</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in me_match %}
 			<tr>
-				<td width = "80%">{{ game[0] }}</td>
-				<td width = "20%">{{ game[1] }}</td>
+				<td width = "20%">{{ game[0] }}</td>
+				<td width = "10%">{{ game[1] }}</td>
+				<td width = "50%">{{ game[2] }}</td>
+				<td width = "20%">{{ game[3] }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -54,15 +74,19 @@
 	<table class="table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "80%">title</th>
-				<th width = "20%">platform</th>
+				<th width = "20%">title</th>
+				<th width = "10%">platform</th>
+				<th width = "50%">description</th>
+				<th width = "20%">image</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in you_match %}
 			<tr>
-				<td width = "80%">{{ game[0] }}</td>
-				<td width = "20%">{{ game[1] }}</td>
+				<td width = "20%">{{ game[0] }}</td>
+				<td width = "10%">{{ game[1] }}</td>
+				<td width = "50%">{{ game[2] }}</td>
+				<td width = "20%">{{ game[3] }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -77,15 +101,19 @@
 	<table class="table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "80%">title</th>
-				<th width = "20%">platform</th>
+				<th width = "20%">title</th>
+				<th width = "10%">platform</th>
+				<th width = "50%">description</th>
+				<th width = "20%">image</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in you_diff %}
 			<tr>
-				<td width = "80%">{{ game[0] }}</td>
-				<td width = "20%">{{ game[1] }}</td>
+				<td width = "20%">{{ game[0] }}</td>
+				<td width = "10%">{{ game[1] }}</td>
+				<td width = "50%">{{ game[2] }}</td>
+				<td width = "20%">{{ game[3] }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
