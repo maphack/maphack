@@ -1,7 +1,97 @@
-<!-- Search results page -->
+<!-- User page -->
 {% extends "base.html" %}
 {% block content %}
+<img class="profile_pic" src="{{ img_url }}"> {{ person_name }}<br>
 <div class="top-pad-one">
-	{{ person_name }}
+	{% if me_diff %}
+	games you own that are not in {{ person_name }}'s playlist<br>
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "80%">title</th>
+				<th width = "20%">platform</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for game in me_diff %}
+			<tr>
+				<td width = "80%">{{ game[0] }}</td>
+				<td width = "20%">{{ game[1] }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	you have no other games!
+	{% endif %}
+</div>
+<div class="top-pad-one">
+	{% if me_match %}
+	games you own that are in {{ person_name }}'s playlist<br>
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "80%">title</th>
+				<th width = "20%">platform</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for game in me_match %}
+			<tr>
+				<td width = "80%">{{ game[0] }}</td>
+				<td width = "20%">{{ game[1] }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	you have no games {{ person_name }} wants!
+	{% endif %}
+</div>
+<div class="top-pad-one">
+	{% if you_match %}
+	games {{ person_name }} owns that are in your playlist<br>
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "80%">title</th>
+				<th width = "20%">platform</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for game in you_match %}
+			<tr>
+				<td width = "80%">{{ game[0] }}</td>
+				<td width = "20%">{{ game[1] }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	{{ person_name }} has no games you want!
+	{% endif %}
+</div>
+<div class="top-pad-one">
+	{% if you_diff %}
+	games {{ person_name }} owns that are not in your playlist<br>
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "80%">title</th>
+				<th width = "20%">platform</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for game in you_diff %}
+			<tr>
+				<td width = "80%">{{ game[0] }}</td>
+				<td width = "20%">{{ game[1] }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	{{ person_name }} has no other games!
+	{% endif %}
 </div>
 {% endblock %}

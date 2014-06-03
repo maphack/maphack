@@ -1,8 +1,8 @@
 import jinja2
+import json
 import os
 import urllib
 import webapp2
-from webapp2_extras import routes
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
@@ -64,6 +64,7 @@ class Seeker(ndb.Model):
 	person_key = ndb.KeyProperty()
 	game_keys = ndb.KeyProperty(repeated = True)
 
+# Handlers
 class MainPage(webapp2.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
@@ -577,54 +578,81 @@ class UserPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			person_name = ndb.Key('Person', person_id).get().display_name
-			my_inventory = ndb.gql("SELECT * "
+			person = ndb.Key('Person', person_id).get()
+
+			me_inventory = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
-			my_playlist = ndb.gql("SELECT * "
+			me_playlist = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
-			your_inventory = ndb.gql("SELECT * "
+			you_inventory = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
 				ndb.Key('Inventory', person_id))
 
-			your_playlist = ndb.gql("SELECT * "
+			you_playlist = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
 				ndb.Key('Playlist', person_id))
 
-			my_locations = ndb.gql("SELECT * "
+			me_locations = ndb.gql("SELECT * "
 				"FROM Location "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date ASC",
 				ndb.Key('Person', users.get_current_user().user_id()))
 
-			your_locations = ndb.gql("SELECT * "
+			you_locations = ndb.gql("SELECT * "
 				"FROM Location "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date ASC",
 				ndb.Key('Person', person_id))
 
+			me_diff = []
+			me_match = []
+			you_match = []
+			you_diff = []
+
+			for me_own in me_inventory:
+				found = False
+				for you_seek in you_playlist:
+					if me_own.title == you_seek.title and me_own.platform == you_seek.platform:
+						me_match.append([me_own.title, me_own.platform])
+						found = True;
+						break;
+				if not found:
+					me_diff.append([me_own.title, me_own.platform])
+
+			for you_own in you_inventory:
+				found = False
+				for me_seek in me_playlist:
+					if you_own.title == me_seek.title and you_own.platform == me_seek.platform:
+						you_match.append([you_own.title, you_own.platform])
+						found = True;
+						break;
+				if not found:
+					you_diff.append([you_own.title, you_own.platform])
+
 			template_values = {
 				'img_url': user.img_url,
 				'display_name': user.display_name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'person_name': person_name,
-				'my_inventory': my_inventory,
-				'my_playlist': my_playlist,
-				'your_inventory': your_inventory,
-				'your_playlist': your_playlist,
-				'my_locations': my_locations,
-				'your_locations': your_locations,
+				'person_pic': person.img_url,
+				'person_name': person.display_name,
+				'me_diff': me_diff,
+				'me_match': me_match,
+				'you_match': you_match,
+				'you_diff': you_diff,
+				'me_locations': me_locations,
+				'you_locations': you_locations,
 				}
 			template = JINJA_ENVIRONMENT.get_template('user.html')
 			self.response.out.write(template.render(template_values))
