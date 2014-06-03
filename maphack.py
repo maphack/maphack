@@ -2,6 +2,7 @@ import jinja2
 import os
 import urllib
 import webapp2
+from webapp2_extras import routes
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
@@ -16,8 +17,8 @@ class Person(ndb.Model):
 	person_id = ndb.StringProperty()
 	email = ndb.StringProperty()
 	display_name = ndb.StringProperty()
-	img_url = ndb.StringProperty()
-	bio = ndb.StringProperty()
+	img_url = ndb.StringProperty(default = '../images/profile_pic.png')
+	bio = ndb.StringProperty(default = '')
 	setup = ndb.BooleanProperty(default = False)
 	date = ndb.DateTimeProperty(auto_now_add=True)
 
@@ -96,7 +97,6 @@ class Setup(webapp2.RequestHandler):
 			user.person_id = users.get_current_user().user_id()
 			user.email = users.get_current_user().email()
 			user.display_name = users.get_current_user().nickname()
-			user.img_url = '../images/profile_pic.png'
 			user.put()
 
 			inventory = Inventory(id = users.get_current_user().user_id())
@@ -187,7 +187,7 @@ class ProfileEdit(webapp2.RequestHandler):
 				error = "Error: Problem with display name."
 				self.show(error)
 
-class Locations(webapp2.RequestHandler):
+class LocationsPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
@@ -364,7 +364,7 @@ class InventoryDelete(webapp2.RequestHandler):
 			owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
 				parent = owners_key)
 			owner = owner_key.get()
-			owner.game_keys.remove(self.request.get(game_key))
+			owner.game_keys.remove(game_key)
 			
 			if owner.game_keys == []:
 				owner_key.delete()
@@ -571,13 +571,71 @@ class SearchResults(webapp2.RequestHandler):
 				error = "Error: Problem with search query."
 				self.show(error = error)
 
+class UserPage(webapp2.RequestHandler):
+	def get(self, person_id):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			person_name = ndb.Key('Person', person_id).get().display_name
+			my_inventory = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Inventory', users.get_current_user().user_id()))
+
+			my_playlist = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Playlist', users.get_current_user().user_id()))
+
+			your_inventory = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Inventory', person_id))
+
+			your_playlist = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Playlist', person_id))
+
+			my_locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date ASC",
+				ndb.Key('Person', users.get_current_user().user_id()))
+
+			your_locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date ASC",
+				ndb.Key('Person', person_id))
+
+			template_values = {
+				'img_url': user.img_url,
+				'display_name': user.display_name,
+				'logout': users.create_logout_url(self.request.host_url),
+				'person_name': person_name,
+				'my_inventory': my_inventory,
+				'my_playlist': my_playlist,
+				'your_inventory': your_inventory,
+				'your_playlist': your_playlist,
+				'my_locations': my_locations,
+				'your_locations': your_locations,
+				}
+			template = JINJA_ENVIRONMENT.get_template('user.html')
+			self.response.out.write(template.render(template_values))
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
 	('/setup', Setup),
 	('/profile', Profile),
 	('/profile/edit', ProfileEdit),
-	('/locations', Locations),
+	('/locations', LocationsPage),
 	('/locations/add', LocationsAdd),
 	('/locations/delete', LocationsDelete),
 	('/locations/view', LocationsView),
@@ -587,4 +645,5 @@ application = webapp2.WSGIApplication([
 	('/playlist/delete', PlaylistDelete),
 	('/search', Search),
 	('/search/results', SearchResults),
+	('/user/(.*)', UserPage),
 	], debug=True)

@@ -6,52 +6,54 @@
 		this.lat = lat;
 		this.lon = lon;
 		this.locId = locId;
-
-		this.setLat = function(newLat){this.lat = newLat;};
-		this.setLon = function(newLon){this.lon = newLon;};
 	}
 
 	locationObject = new locationObj(null, null, null);
 
 	function openWindow(lat, lon, locId) {
-		
 		locationObject.lat = lat;
 		locationObject.lon = lon;
 		locationObject.locId = locId;
 		window.open("/locations/view");
 	}
-	
 </script>
-<table class="table table-bordered table-striped">
-	<thead>
-		<tr>
-			<th width = "20%">Name</th>
-			<th width = "50%">Address</th>
-			<th width = "10%">Latitude</th>
-			<th width = "10%">Longitude</th>
-			<th width = "10%">Delete</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for location in locations %}
-		<tr>
-			<td width = "20%"><a href="#" onClick="openWindow({{location.geopt.lat}}, {{location.geopt.lon}}, {{ location.key.id() }})">{{ location.name }}</a></td>
-			<td width = "50%">{{ location.address }}</td>
-			<td width = "10%">{{ location.geopt.lat }}</td>
-			<td width = "10%">{{ location.geopt.lon }}</td>
-			<td width = "10%">
-				<form action="/locations/delete" method="post">
-					<input type="hidden" name="location_id" value="{{ location.key.id() }}">
-					<input type="submit" value="delete">
-				</form>
-			</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
-
-<br>
-<form action="/locations/add" method="get">
-	<button type="submit">add location</button>
-</form>
+<div class="top-pad-one">
+	{% if locations.count() %}
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "20%">name</th>
+				<th width = "50%">address</th>
+				<th width = "10%">latitude</th>
+				<th width = "10%">longitude</th>
+				<th width = "10%">delete</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for location in locations %}
+			<tr>
+				<td width = "20%"><a href="#" onClick="openWindow({{ location.geopt.lat }}, {{ location.geopt.lon }}, {{ location.key.id() }})">{{ location.name }}</a></td>
+				<td width = "50%">{{ location.address }}</td>
+				<td width = "10%">{{ location.geopt.lat }}</td>
+				<td width = "10%">{{ location.geopt.lon }}</td>
+				<td width = "10%">
+					<form action="/locations/delete" method="post">
+						<input type="hidden" name="location_id" value="{{ location.key.id() }}">
+						<input type="submit" value="delete">
+					</form>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p>
+		no locations added! add the locations you want to trade at.
+	</p>
+	{% endif %}
+	<br>
+	<form action="/locations/add" method="get">
+		<button type="submit">add location</button>
+	</form>
+</div>
 {% endblock %}

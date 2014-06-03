@@ -24,43 +24,36 @@
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
   <script>
-    var currentLat = window.opener.locationObject.lat;	
-    var currentLon = window.opener.locationObject.lon; 
-    var currentLocId = window.opener.locationObject.locId;
-
-    var geocoder;
     var map;
-    var latitude;
-    var longitude;
-    var marker;
+    var latitude = window.opener.locationObject.lat;;
+    var longitude = window.opener.locationObject.lon;
+    var location_id = window.opener.locationObject.locId;
 
     function initialize() {
-      geocoder = new google.maps.Geocoder();
-      var latlng = new google.maps.LatLng(parseFloat(currentLat), parseFloat(currentLon));
+      var latlng = new google.maps.LatLng(latitude, longitude);
       var mapOptions = {
         zoom: 17,
         center: latlng
       }
-
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
       var marker = new google.maps.Marker({
-        position: map.getCenter(),
+        position: latlng,
         map: map,
       });
 
-      document.getElementById("locdelete").value = currentLocId;      
+      document.getElementById("locdelete").value = location_id;
     }
 
     function nameChange() {
       var newName = $('#namechange').val();
 
       if (!newName || newName.trim() == "") {
-        alert("Please enter a valid new name.");
+        alert("Please enter a valid name.");
       } else {
         $.ajax({
           type: "POST",
           url: '/locations/view',
-          data: {name: newName, id: currentLocId},
+          data: {name: newName, id: location_id},
           success: function(){
             alert("Name changed.");
           }
@@ -69,7 +62,6 @@
     }
 
     google.maps.event.addDomListener(window, 'load', initialize);
-
   </script>
 </head>
 <body>

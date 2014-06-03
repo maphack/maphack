@@ -7,21 +7,19 @@
 	</div>
 	<div class="span6">
 		<div class="top-pad-one">
+			<!-- Error message -->
+			{% if error != "" %}
+			<div class="error">{{ error }}</div><br>
+			{% endif %}
 			<form action="/profile/edit" method="post">
 				<fieldset>
-					Display name:<br>
-					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}" required>
-
-					<!-- Error message -->
-					{% if error != "" %}
-					<div class="error">{{ error }}</div><br>
-					{% endif %}
-
-					Profile picture:<br>
+					display name:<br>
+					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}" required><br>
+					profile picture:<br>
 					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
-					More about yourself:<br>
+					more about yourself:<br>
 					<textarea class="input-block-level" name="bio" rows="5" placeholder="bio">{{ bio }}</textarea><br>
-					<button type="submit">Update</button>
+					<button type="submit">update</button>
 				</fieldset>
 			</form>
 		</div>

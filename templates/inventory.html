@@ -1,34 +1,18 @@
 <!-- Inventory page -->
 {% extends "base.html" %}
 {% block content %}
-<form action="/inventory" method="post">
-	<fieldset>
-		<div class="row-fluid">
-			Add game to inventory:<br>
-			Title: <input class="input-xlarge" type="text" name="title" required><br>
-			Platform: <input class="input-xlarge" type="text" name="platform" required><br>
-			Image url: <input class="input-xlarge" type="text" name="img_url"><br>
-		</div>
-		<div class="row-fluid">
-			<div class="span6">
-				Game description: <textarea class="input-block-level" name="description" rows="3"> </textarea><br>
-				<input type="submit" value="add">
-			</div>
-		</div>
-	</fieldset>
-</form>
-
-<h4>Inventory</h4>
+{% if games.count() %}
+<h4>inventory</h4>
 <table class="table table-bordered table-striped">
 	<thead>
 		<tr>
-			<th width = "20%">Title</th>
-			<th width = "10%">Platform</th>
-			<th width = "20%">Description</th>
-			<th width = "20%">Image</th>
-			<th width = "10%">Date</th>
-			<th width = "10%">Search</th>
-			<th width = "10%">Delete</th>
+			<th width = "20%">title</th>
+			<th width = "10%">platform</th>
+			<th width = "20%">description</th>
+			<th width = "20%">image</th>
+			<th width = "10%">date</th>
+			<th width = "10%">search</th>
+			<th width = "10%">delete</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -50,17 +34,39 @@
 					<input type="hidden" name="title" value="{{ game.title }}">
 					<input type="hidden" name="platform" value="{{ game.platform }}">
 					<input type="hidden" name="query_type" value="want">
-					<input type="submit" value="Search">
+					<input type="submit" value="search">
 				</form>
 			</td>
 			<td width = "10%">
 				<form action="/inventory/delete" method="post">
 					<input type="hidden" name="game_id" value="{{ game.key.id() }}">
-					<input type="submit" value="Delete">
+					<input type="submit" value="delete">
 				</form>
 			</td>
 		</tr>
 		{% endfor %}
 	</tbody>
 </table>
+{% else %}
+<p>
+	no games in your inventory! add the games you want to trade away.
+</p>
+{% endif %}
+<div class="top-pad-one">
+	<form action="/inventory" method="post">
+		<fieldset>
+			<div class="row-fluid">
+				title: <input class="input-xlarge" type="text" name="title" required><br>
+				platform: <input class="input-xlarge" type="text" name="platform" required><br>
+				image url: <input class="input-xlarge" type="text" name="img_url"><br>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					description: <textarea class="input-block-level" name="description" rows="3"> </textarea><br>
+					<input type="submit" value="add">
+				</div>
+			</div>
+		</fieldset>
+	</form>
+</div>
 {% endblock %}

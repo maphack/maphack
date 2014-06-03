@@ -1,20 +1,31 @@
 <!-- Search results page -->
 {% extends "base.html" %}
 {% block content %}
-
-<h4> Users who {{ query_type }} {{ title }} on {{ platform }} </h4>
-<table class="table table-bordered table-striped">
-	<thead>
-		<tr>
-			<th width = "20%">Name</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for person in persons %}
-		<tr>
-			<td width = "20%">{{ person[0] }}</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
+<div class="top-pad-one">
+	<h4> Users who {{ query_type }} {{ title }} on {{ platform }} </h4>
+	{% if persons %}
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "20%">Name</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for person in persons %}
+			<tr>
+				<td width = "20%">
+				<a href= '../user/{{ person[1] }}'>
+						{{ person[0] }}
+					</a>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p>
+		No matching results.
+	</p>
+	{% endif %}
+</div>
 {% endblock %}

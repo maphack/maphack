@@ -8,8 +8,14 @@
 	<div class="span6">
 		<div class="top-pad-one">
 			<h4>profile</h4>
-			Display name: {{ display_name }}<br>
-			About me: {{ bio }}<br>
+			display name: {{ display_name }}<br>
+			about me: 
+			{% if bio != "" %}
+			{{ bio }}
+			{% else %}
+			none
+			{% endif %}
+			<br>
 			<br>
 			<form action="/profile/edit" method="get">
 				<button type="submit">edit profile</button>
