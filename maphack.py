@@ -704,13 +704,27 @@ class UserLocations(webapp2.RequestHandler):
 
 			locLats = []
 			locLons = []
+
 			for x in range(0, len(locPts)):
 				locLats.append(locPts[x].geopt.lat)
-				locLons.append(locPts[x].geopt.lon)			
+				locLons.append(locPts[x].geopt.lon)	
+
+			myqry = Location.query()
+			myLocPts = myqry.fetch(projection=[Location.geopt])
+
+			myLocLats = []
+			myLocLons = []
+
+			for x in range(0, len(myLocPts)):	
+				myLocLats.append(myLocPts[x].geopt.lat)
+				myLocLons.append(myLocPts[x].geopt.lon)		
 
 			template_values = {
 				'you_lats': locLats,
 				'you_lons': locLons,
+				'my_lats': myLocLats,
+				'my_lons': myLocLons,
+				'person_name': person.display_name
 			}
 			template = JINJA_ENVIRONMENT.get_template('userlocations.html')
 			self.response.out.write(template.render(template_values))

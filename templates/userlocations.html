@@ -14,7 +14,7 @@
       position: absolute;
       top: 5px;
       left: 50%;
-      margin-left: -160px;
+      margin-left: -100px;
       z-index: 5;
       background-color: #fff;
       padding: 5px;
@@ -26,7 +26,8 @@
   <script>
   var latArray = {{ you_lats }}
   var lonArray = {{ you_lons }}
-  console.log(latArray);
+  var myLatArray = {{ my_lats }}
+  var myLonArray = {{ my_lons }}
 
     function initialize() { 
 
@@ -35,7 +36,9 @@
         zoom: 12,
         center: latlng
       }
-      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);      
+      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);  
+
+      // add the markers corresponding to the locations of the user whose page is being visited
       for (var i = 0; i < latArray.length; i++) {
 
         var markerLatLng = new google.maps.LatLng(latArray[i], lonArray[i]);
@@ -45,12 +48,29 @@
           map: map,
         });  
       }
+
+      // add the markers corresponding to the locations of the user who is visiting the page
+      for (var j = 0; j < myLatArray.length - latArray.length; j++) {
+
+        var myMarkerLatLng = new google.maps.LatLng(myLatArray[j], myLonArray[j]);
+
+        var marker = new google.maps.Marker({
+          position:myMarkerLatLng,
+          map: map,
+          icon: "/images/blue_MarkerU.png",
+        });  
+      }
+
     }
 
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
 </head>
 <body>
+  <div id="panel">
+    Blue markers: Your trading locations <br>
+    Red markers: {{ person_name }}'s locations
+  </div>
   <div id="map-canvas"></div> 
 </body>
 </html>
