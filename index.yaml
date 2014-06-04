@@ -19,9 +19,19 @@ indexes:
 - kind: Location
   ancestor: yes
   properties:
+  - name: address
+
+- kind: Location
+  ancestor: yes
+  properties:
   - name: date
 
 - kind: Location
   ancestor: yes
   properties:
   - name: geopt
+
+- kind: Location
+  ancestor: yes
+  properties:
+  - name: name
