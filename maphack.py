@@ -677,6 +677,7 @@ class UserPage(webapp2.RequestHandler):
 				'logout': users.create_logout_url(self.request.host_url),
 				'person_pic': person.img_url,
 				'person_name': person.display_name,
+				'person_id': person_id,
 				'me_diff': me_diff,
 				'me_match': me_match,
 				'you_match': you_match,
@@ -688,6 +689,30 @@ class UserPage(webapp2.RequestHandler):
 				'you_nearest_loc': you_nearest_loc,
 				}
 			template = JINJA_ENVIRONMENT.get_template('user.html')
+			self.response.out.write(template.render(template_values))
+
+class UserLocations(webapp2.RequestHandler):
+	def get(self, person_id):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			person = ndb.Key('Person', person_id).get()
+
+			qry = Location.query(ancestor=ndb.Key('Person', person_id))
+			locPts = qry.fetch(projection=[Location.geopt])
+
+			locLats = []
+			locLons = []
+			for x in range(0, len(locPts)):
+				locLats.append(locPts[x].geopt.lat)
+				locLons.append(locPts[x].geopt.lon)			
+
+			template_values = {
+				'you_lats': locLats,
+				'you_lons': locLons,
+			}
+			template = JINJA_ENVIRONMENT.get_template('userlocations.html')
 			self.response.out.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
@@ -706,5 +731,6 @@ application = webapp2.WSGIApplication([
 	('/playlist/delete', PlaylistDelete),
 	('/search', Search),
 	('/search/results', SearchResults),
-	('/user/(.*)', UserPage),
+	('/user/locations/(.*)', UserLocations),
+	('/user/(.*)', UserPage),	
 	], debug=True)
