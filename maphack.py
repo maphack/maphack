@@ -709,7 +709,7 @@ class UserLocations(webapp2.RequestHandler):
 				locLats.append(locPts[x].geopt.lat)
 				locLons.append(locPts[x].geopt.lon)	
 
-			myqry = Location.query()
+			myqry = Location.query(ancestor=ndb.Key('Person', user.person_id))
 			myLocPts = myqry.fetch(projection=[Location.geopt])
 
 			myLocLats = []
