@@ -1,10 +1,13 @@
+import datetime
 import jinja2
+import json
 import os
 import urllib
 import webapp2
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from math import radians, cos, sin, asin, sqrt
+from time import mktime
 
 JINJA_ENVIRONMENT = jinja2.Environment(
 	loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + '/templates'),
@@ -14,7 +17,6 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 # Datastore definitions
 class Person(ndb.Model):
 	# Key: person id
-	person_id = ndb.StringProperty()
 	email = ndb.StringProperty()
 	display_name = ndb.StringProperty()
 	img_url = ndb.StringProperty(default = '../images/profile_pic.png')
@@ -63,6 +65,14 @@ class Seekers(ndb.Model):
 class Seeker(ndb.Model):
 	person_key = ndb.KeyProperty()
 	game_keys = ndb.KeyProperty(repeated = True)
+
+# JSON encoder
+class NdbEncoder(json.JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, datetime.datetime):
+			return int(mktime(obj.timetuple()))
+
+		return json.JSONEncoder.default(self, obj)
 
 # Helper functions
 def haversine(lon1, lat1, lon2, lat2):
@@ -114,7 +124,6 @@ class Setup(webapp2.RequestHandler):
 			self.redirect('/dashboard')
 		else:
 			user = Person(id = users.get_current_user().user_id())
-			user.person_id = users.get_current_user().user_id()
 			user.email = users.get_current_user().email()
 			user.display_name = users.get_current_user().nickname()
 			user.put()
@@ -599,97 +608,100 @@ class UserPage(webapp2.RequestHandler):
 		else:
 			person = ndb.Key('Person', person_id).get()
 
-			me_inventory = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Inventory', users.get_current_user().user_id()))
+			if person == None:
+				self.redirect('/dashboard')
+			else:
+				me_inventory = ndb.gql("SELECT * "
+					"FROM Game "
+					"WHERE ANCESTOR IS :1 "
+					"ORDER BY date DESC",
+					ndb.Key('Inventory', users.get_current_user().user_id()))
 
-			me_playlist = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Playlist', users.get_current_user().user_id()))
+				me_playlist = ndb.gql("SELECT * "
+					"FROM Game "
+					"WHERE ANCESTOR IS :1 "
+					"ORDER BY date DESC",
+					ndb.Key('Playlist', users.get_current_user().user_id()))
 
-			you_inventory = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Inventory', person_id))
+				you_inventory = ndb.gql("SELECT * "
+					"FROM Game "
+					"WHERE ANCESTOR IS :1 "
+					"ORDER BY date DESC",
+					ndb.Key('Inventory', person_id))
 
-			you_playlist = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Playlist', person_id))
+				you_playlist = ndb.gql("SELECT * "
+					"FROM Game "
+					"WHERE ANCESTOR IS :1 "
+					"ORDER BY date DESC",
+					ndb.Key('Playlist', person_id))
 
-			me_locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
-				ndb.Key('Person', users.get_current_user().user_id()))
+				me_locations = ndb.gql("SELECT * "
+					"FROM Location "
+					"WHERE ANCESTOR IS :1 "
+					"ORDER BY date ASC",
+					ndb.Key('Person', users.get_current_user().user_id()))
 
-			you_locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
-				ndb.Key('Person', person_id))
+				you_locations = ndb.gql("SELECT * "
+					"FROM Location "
+					"WHERE ANCESTOR IS :1 "
+					"ORDER BY date ASC",
+					ndb.Key('Person', person_id))
 
-			me_diff = []
-			me_match = []
-			you_match = []
-			you_diff = []
+				me_diff = []
+				me_match = []
+				you_match = []
+				you_diff = []
 
-			for me_own in me_inventory:
-				found = False
-				for you_seek in you_playlist:
-					if me_own.title == you_seek.title and me_own.platform == you_seek.platform:
-						me_match.append([me_own.title, me_own.platform, me_own.description, me_own.img_url, me_own.key.id()])
-						found = True;
-						break;
-				if not found:
-					me_diff.append([me_own.title, me_own.platform])
+				for me_own in me_inventory:
+					found = False
+					for you_seek in you_playlist:
+						if me_own.title == you_seek.title and me_own.platform == you_seek.platform:
+							me_match.append([me_own.title, me_own.platform, me_own.description, me_own.img_url, me_own.key.id()])
+							found = True;
+							break;
+					if not found:
+						me_diff.append([me_own.title, me_own.platform])
 
-			for you_own in you_inventory:
-				found = False
-				for me_seek in me_playlist:
-					if you_own.title == me_seek.title and you_own.platform == me_seek.platform:
-						you_match.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
-						found = True;
-						break;
-				if not found:
-					you_diff.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
+				for you_own in you_inventory:
+					found = False
+					for me_seek in me_playlist:
+						if you_own.title == me_seek.title and you_own.platform == me_seek.platform:
+							you_match.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
+							found = True;
+							break;
+					if not found:
+						you_diff.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
 
-			nearest_dist = float("inf")
-			me_nearest_loc = None
-			you_nearest_loc = None
-			for you_location in you_locations:
-				for me_location in me_locations:
-					dist = haversine(you_location.geopt.lat, you_location.geopt.lon, me_location.geopt.lat, me_location.geopt.lon)
-					if dist < nearest_dist:
-						nearest_dist = dist
-						me_nearest_loc = me_location
-						you_nearest_loc = you_location
+				nearest_dist = float("inf")
+				me_nearest_loc = None
+				you_nearest_loc = None
+				for you_location in you_locations:
+					for me_location in me_locations:
+						dist = haversine(you_location.geopt.lat, you_location.geopt.lon, me_location.geopt.lat, me_location.geopt.lon)
+						if dist < nearest_dist:
+							nearest_dist = dist
+							me_nearest_loc = me_location
+							you_nearest_loc = you_location
 
-			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
-				'logout': users.create_logout_url(self.request.host_url),
-				'person_pic': person.img_url,
-				'person_name': person.display_name,
-				'person_id': person_id,
-				'me_diff': me_diff,
-				'me_match': me_match,
-				'you_match': you_match,
-				'you_diff': you_diff,
-				'me_locations': me_locations,
-				'you_locations': you_locations,
-				'nearest_dist': nearest_dist,
-				'me_nearest_loc': me_nearest_loc,
-				'you_nearest_loc': you_nearest_loc,
-				}
-			template = JINJA_ENVIRONMENT.get_template('user.html')
-			self.response.out.write(template.render(template_values))
+				template_values = {
+					'img_url': user.img_url,
+					'display_name': user.display_name,
+					'logout': users.create_logout_url(self.request.host_url),
+					'person_pic': person.img_url,
+					'person_name': person.display_name,
+					'person_id': person_id,
+					'me_diff': me_diff,
+					'me_match': me_match,
+					'you_match': you_match,
+					'you_diff': you_diff,
+					'me_locations': me_locations,
+					'you_locations': you_locations,
+					'nearest_dist': nearest_dist,
+					'me_nearest_loc': me_nearest_loc,
+					'you_nearest_loc': you_nearest_loc,
+					}
+				template = JINJA_ENVIRONMENT.get_template('user.html')
+				self.response.out.write(template.render(template_values))
 
 class UserLocations(webapp2.RequestHandler):
 	def get(self, person_id):
@@ -709,7 +721,7 @@ class UserLocations(webapp2.RequestHandler):
 				locLats.append(locPts[x].geopt.lat)
 				locLons.append(locPts[x].geopt.lon)
 
-			myqry = Location.query(ancestor=ndb.Key('Person', user.person_id))
+			myqry = Location.query(ancestor=ndb.Key('Person', user.key.id()))
 			myLocPts = myqry.fetch(projection=[Location.geopt])
 
 			myLocLats = []
@@ -729,6 +741,51 @@ class UserLocations(webapp2.RequestHandler):
 			template = JINJA_ENVIRONMENT.get_template('user_locations.html')
 			self.response.out.write(template.render(template_values))
 
+class Test(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			template_values = {
+				'img_url': user.img_url,
+				'display_name': user.display_name,
+				'logout': users.create_logout_url(self.request.host_url),
+				}
+			template = JINJA_ENVIRONMENT.get_template('test.html')
+			self.response.out.write(template.render(template_values))
+
+class UserData(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			person_id = self.request.get('person_id')
+			person = ndb.Key('Person', person_id).get()
+
+			'''
+			inventory = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Inventory', person_id))
+
+			playlist = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Playlist', person_id))
+
+			locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date ASC",
+				ndb.Key('Person', person_id))
+			'''
+
+			return json.dumps(ndb.Model.to_dict(person), cls = NdbEncoder)
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -746,5 +803,7 @@ application = webapp2.WSGIApplication([
 	('/search', Search),
 	('/search/results', SearchResults),
 	('/user/(.*)/locations', UserLocations),
-	('/user/(.*)', UserPage),	
+	('/user/(.*)', UserPage),
+	('/test', Test),
+	('/userdata', UserData),
 	], debug=True)

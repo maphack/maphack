@@ -1,18 +1,15 @@
 <!-- Search page -->
 {% extends "base.html" %}
 {% block content %}
-
     <form action="/display" method="post">
         <fieldset>
             <div class="row-fluid">
                 <p> Enter the game title you wish to search for: </p>
-
                 <div class="span12">
                     Game: <input class="input-xlarge" type="text" name="game">
                 </div>
-                <p><input type="submit" value="Submit"></p>
+                <p><input type="submit" value="submit"></p>
             </div>
         </fieldset>
     </form>
-
 {% endblock %}

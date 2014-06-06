@@ -1,0 +1,31 @@
+<!-- Test page -->
+{% extends "base.html" %}
+{% block content %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+	function getPerson() {
+		var person_id = document.getElementById('person_id').value;
+
+		$.ajax({
+			type: "GET",
+			url: '/userdata',
+			data: {person_id: person_id},
+			success: function(data){
+				alert(data);
+			},
+			error: function(xhr,err){
+				alert("Failed\nreadyState: "+xhr.readyState+"\nstatus: "+xhr.status + "\nresponseText: "+xhr.responseText);
+			}
+		});
+
+	}
+</script>
+<form action="/display" method="post">
+	<fieldset>
+		<div class="row-fluid">
+			<input id="person_id" type="textbox" placeholder="user id" value="167176955777861719774">
+			<input type="button" value="submit" onclick="getPerson()">
+		</div>
+	</fieldset>
+</form>
+{% endblock %}
