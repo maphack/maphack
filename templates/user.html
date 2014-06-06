@@ -6,14 +6,14 @@
 </p>
 <p>
 	{% if not me_locations.count() %}
-	Unable to calculate nearest location because you have not added any locations!
+	unable to calculate nearest location because you have not added any locations!
 	{% elif not you_locations.count() %}
-	Unable to calculate nearest location because {{ person_name }} has not added any locations!
+	unable to calculate nearest location because {{ person_name }} has not added any locations!
 	{% else %}
 	{{ person_name }} can trade ~{{ '%0.2f' % nearest_dist }} k.m. away.
 	{% endif %}
 	<br>
-	<a href="../user/{{ person_id }}/locations" target="_blank">View this user's trading locations</a>
+	<a href="../user/{{ person_id }}/locations" target="_blank">view this user's trading locations</a>
 </p>
 <div class="top-pad-one">
 	<h4>Matching inventories and playlists:</h4><br>
