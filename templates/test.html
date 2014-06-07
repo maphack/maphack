@@ -9,9 +9,9 @@
 		$.ajax({
 			type: "GET",
 			url: '/userdata',
-			data: {person_id: person_id},
-			success: function(data){
-				alert(data);
+			data: {'person_id': person_id},
+			success: function(response){
+				alert(response);
 			},
 			error: function(xhr,err){
 				alert("Failed\nreadyState: "+xhr.readyState+"\nstatus: "+xhr.status + "\nresponseText: "+xhr.responseText);

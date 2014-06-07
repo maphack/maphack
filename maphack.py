@@ -7,7 +7,6 @@ import webapp2
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from math import radians, cos, sin, asin, sqrt
-from time import mktime
 
 JINJA_ENVIRONMENT = jinja2.Environment(
 	loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + '/templates'),
@@ -70,7 +69,17 @@ class Seeker(ndb.Model):
 class NdbEncoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, datetime.datetime):
-			return int(mktime(obj.timetuple()))
+			return {"y": obj.year,
+				"m": obj.month,
+				"d": obj.day,
+				"h": obj.hour,
+				"s": obj.second,}
+
+		if isinstance(obj, ndb.GeoPt):
+			return {"lat": obj.lat, "lon": obj.lon}
+
+		if isinstance(obj, ndb.Key):
+			return "key"
 
 		return json.JSONEncoder.default(self, obj)
 
@@ -764,7 +773,6 @@ class UserData(webapp2.RequestHandler):
 			person_id = self.request.get('person_id')
 			person = ndb.Key('Person', person_id).get()
 
-			'''
 			inventory = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
@@ -782,9 +790,13 @@ class UserData(webapp2.RequestHandler):
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date ASC",
 				ndb.Key('Person', person_id))
-			'''
 
-			return json.dumps(ndb.Model.to_dict(person), cls = NdbEncoder)
+			result = [{ 'person': ndb.Model.to_dict(person) },
+				{ 'inventory': [ndb.Model.to_dict(game) for game in inventory] },
+				{ 'playlist': [ndb.Model.to_dict(game) for game in playlist] },
+				{ 'locations': [ndb.Model.to_dict(location) for location in locations] },]
+			self.response.headers['Content-Type'] = 'application/javascript'
+			self.response.out.write(json.dumps(result, cls = NdbEncoder))
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
