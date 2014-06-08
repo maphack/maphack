@@ -791,10 +791,11 @@ class UserData(webapp2.RequestHandler):
 				"ORDER BY date ASC",
 				ndb.Key('Person', person_id))
 
-			result = [{ 'person': ndb.Model.to_dict(person) },
-				{ 'inventory': [ndb.Model.to_dict(game) for game in inventory] },
-				{ 'playlist': [ndb.Model.to_dict(game) for game in playlist] },
-				{ 'locations': [ndb.Model.to_dict(location) for location in locations] },]
+			result = [{ 'person': ndb.Model.to_dict(person, include = ["display_name", "img_url"]),
+				'inventory': [ndb.Model.to_dict(game, exclude = ["date"]) for game in inventory],
+				'playlist': [ndb.Model.to_dict(game, exclude = ["date"]) for game in playlist],
+				'locations': [ndb.Model.to_dict(location, exclude = ["name", "date"]) for location in locations],
+				}]
 			self.response.headers['Content-Type'] = 'application/javascript'
 			self.response.out.write(json.dumps(result, cls = NdbEncoder))
 
