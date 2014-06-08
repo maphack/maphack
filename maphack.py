@@ -84,7 +84,7 @@ class NdbEncoder(json.JSONEncoder):
 		return json.JSONEncoder.default(self, obj)
 
 # Helper functions
-def haversine(lon1, lat1, lon2, lat2):
+def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
