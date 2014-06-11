@@ -1,22 +1,6 @@
 <!-- Locations page -->
 {% extends "base.html" %}
 {% block content %}
-<script>
-	function locationObj(lat, lon, locId) {
-		this.lat = lat;
-		this.lon = lon;
-		this.locId = locId;
-	}
-
-	locationObject = new locationObj(null, null, null);
-
-	function openWindow(lat, lon, locId) {
-		locationObject.lat = lat;
-		locationObject.lon = lon;
-		locationObject.locId = locId;
-		window.open("/locations/view");
-	}
-</script>
 <div class="top-pad-one">
 	{% if locations.count() %}
 	<table class="table table-bordered table-striped">
@@ -32,7 +16,7 @@
 		<tbody>
 			{% for location in locations %}
 			<tr>
-				<td width = "20%"><a href="#" onClick="openWindow({{ location.geopt.lat }}, {{ location.geopt.lon }}, {{ location.key.id() }})">{{ location.name }}</a></td>
+				<td width = "20%"><a href="/locations/view?name={{ location.name }}&location_id={{ location.key.id() }}&latitude={{ location.geopt.lat }}&longitude={{ location.geopt.lon }}">{{ location.name }}</a></td>
 				<td width = "50%">{{ location.address }}</td>
 				<td width = "10%">{{ location.geopt.lat }}</td>
 				<td width = "10%">{{ location.geopt.lon }}</td>
@@ -47,11 +31,10 @@
 		</tbody>
 	</table>
 	{% else %}
-	<p>
-		no locations added! add the locations you want to trade at.
-	</p>
+	<p>no locations added! add the locations you want to trade at.</p>
 	{% endif %}
-	<br>
+</div>
+<div class="top-pad-one">
 	<form action="/locations/add" method="get">
 		<button type="submit">add location</button>
 	</form>

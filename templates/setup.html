@@ -7,22 +7,22 @@
 	</div>
 	<div class="span6">
 		<div class="top-pad-one">
-			Please set up your profile before continuing to use maphack.<br>
-			<form action="/setup" method="post">
-				<fieldset>
-					display name: (required)<br>
-					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}"required><br>
-
-					<!-- Error message -->
-					{% if error != "" %}
-					<div class="error">{{ error }}</div><br>
-					{% endif %}
-
-					profile picture:<br>
-					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
-					<input type="submit" value="submit">
-				</fieldset>
-			</form>
+			<p>please set up your profile before continuing to use maphack.</p>
+			<!-- Error message -->
+			{% if error %}
+			<div class="error"><p>{{ error }}</p></div>
+			{% endif %}
+			<p>
+				<form action="/setup" method="post">
+					<fieldset>
+						display name (required)<br>
+						<input class="input-xlarge" type="text" name="name" value="{{ input_name }}"required><br>
+						profile picture<br>
+						<input class="input-xlarge" type="text" name="pic" placeholder="url" value="{{ input_pic }}"><br>
+						<button type="submit">submit</button>
+					</fieldset>
+				</form>
+			</p>
 		</div>
 	</div>
 </div>

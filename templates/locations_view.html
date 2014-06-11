@@ -14,22 +14,25 @@
       position: absolute;
       top: 5px;
       left: 50%;
-      margin-left: -160px;
+      margin-left: -180px;
       z-index: 5;
       background-color: #fff;
       padding: 5px;
       border: 1px solid #999;
     }
   </style>
-  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>
     var map;
-    var latitude = window.opener.locationObject.lat;;
-    var longitude = window.opener.locationObject.lon;
-    var location_id = window.opener.locationObject.locId;
+    var name = '{{ name }}';
+    var location_id = {{ location_id }};
+    var latitude = {{ latitude }};
+    var longitude = {{ longitude }};
 
     function initialize() {
+      document.getElementById('name').value = name;
+
       var latlng = new google.maps.LatLng(latitude, longitude);
       var mapOptions = {
         zoom: 17,
@@ -40,22 +43,28 @@
         position: latlng,
         map: map,
       });
-
-      document.getElementById("locdelete").value = location_id;
     }
 
-    function nameChange() {
-      var newName = $('#namechange').val();
+    function changeName() {
+      var name = $('#name').val();
 
-      if (!newName || newName.trim() == "") {
-        alert("Please enter a valid name.");
+      if (!name || name.trim() == '') {
+        alert('please enter a valid name.');
       } else {
         $.ajax({
-          type: "POST",
+          type: 'POST',
           url: '/locations/view',
-          data: {name: newName, id: location_id},
+          data: {name: name, location_id: {{ location_id }}},
           success: function(){
-            alert("Name changed.");
+            alert('name changed.');
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+            alert(jqXHR.responseText);
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+
+            window.location.href = '/locations';
           }
         });
       }
@@ -65,14 +74,16 @@
   </script>
 </head>
 <body>
-  <div id="panel">            
-    <input id="namechange" type="textbox" placeholder="new name">
-    <input type="button" value="change name" onclick="nameChange()"><br>
+  <div id="panel">
+    <input id="name" type="textbox" placeholder="new name">
+    <input type="button" value="change name" onclick="changeName()"><br>
     <form action="/locations/delete" method="post">
-      <input id="locdelete" type="hidden" name="location_id"/>
-      <input type="submit" value="delete location">
+      <input type="hidden" name="location_id" value="{{ location_id }}">
+      <input type="submit" value="delete">
     </form>
-    <button type="button" onclick="window.open('', '_self', ''); window.close();">close window</button>
+    <form action="/locations">
+      <input type="submit" value="go back">
+    </form>
   </div>
   <div id="map-canvas"></div>
 </body>

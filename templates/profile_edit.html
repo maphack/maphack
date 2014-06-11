@@ -8,20 +8,22 @@
 	<div class="span6">
 		<div class="top-pad-one">
 			<!-- Error message -->
-			{% if error != "" %}
-			<div class="error">{{ error }}</div><br>
+			{% if error %}
+			<div class="error"><p>{{ error }}</p></div>
 			{% endif %}
-			<form action="/profile/edit" method="post">
-				<fieldset>
-					display name:<br>
-					<input class="input-xlarge" type="text" name="display_name" value="{{ display_name }}" required><br>
-					profile picture:<br>
-					<input class="input-xlarge" type="text" name="img_url" placeholder="url"><br>
-					more about yourself:<br>
-					<textarea class="input-block-level" name="bio" rows="5" placeholder="bio">{{ bio }}</textarea><br>
-					<button type="submit">update</button>
-				</fieldset>
-			</form>
+			<p>
+				<form action="/profile/edit" method="post">
+					<fieldset>
+					display name (required)<br>
+						<input class="input-xlarge" type="text" name="name" value="{{ input_name }}" required><br>
+						profile picture<br>
+						<input class="input-xlarge" type="text" name="pic" placeholder="url" value="{{ input_pic }}"><br>
+						about me<br>
+						<textarea class="input-block-level" name="bio" rows="5" placeholder="bio">{{ input_bio }}</textarea><br>
+						<button type="submit">update</button>
+					</fieldset>
+				</form>
+			</p>
 		</div>
 	</div>
 </div>

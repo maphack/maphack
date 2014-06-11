@@ -1,23 +1,14 @@
 <!-- User page -->
 {% extends "base.html" %}
 {% block content %}
+<p><img class="display_pic" src="{{ person_pic }}"> {{ person_name }}</p>
 <p>
-	<img class="profile_pic" src="{{ img_url }}"> {{ person_name }}
-</p>
-<p>
-	{% if not me_locations.count() %}
-	unable to calculate nearest location because you have not added any locations!
-	{% elif not you_locations.count() %}
-	unable to calculate nearest location because {{ person_name }} has not added any locations!
-	{% else %}
-	{{ person_name }} can trade ~{{ '%0.2f' % nearest_dist }} k.m. away.
-	{% endif %}
-	<br>
-	<a href="../user/{{ person_id }}/locations" target="_blank">view this user's trading locations</a>
+	{{ person_name }} can trade ~{{ '%0.2f' % nearest_distance }} k.m. away.<br>
+	<a href="../user/locations/{{ person_id }}" target="_blank">view this user's trading locations</a>
 </p>
 <div class="top-pad-one">
-	<h4>Matching inventories and playlists:</h4><br>
-	{% if me_diff %}
+	<h4>matching inventories and playlists:</h4><br>
+	{% if my_diff %}
 	games you own that are not in {{ person_name }}'s playlist<br>
 	<table class="table table-bordered table-striped">
 		<thead>
@@ -29,7 +20,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for game in me_diff %}
+			{% for game in my_diff %}
 			<tr>
 				<td width = "20%">{{ game[0] }}</td>
 				<td width = "10%">{{ game[1] }}</td>
@@ -44,7 +35,7 @@
 	{% endif %}
 </div>
 <div class="top-pad-one">
-	{% if me_match %}
+	{% if my_match %}
 	games you own that are in {{ person_name }}'s playlist<br>
 	<table class="table table-bordered table-striped">
 		<thead>
@@ -56,7 +47,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for game in me_match %}
+			{% for game in my_match %}
 			<tr>
 				<td width = "20%">{{ game[0] }}</td>
 				<td width = "10%">{{ game[1] }}</td>
@@ -71,7 +62,7 @@
 	{% endif %}
 </div>
 <div class="top-pad-one">
-	{% if you_match %}
+	{% if your_match %}
 	games {{ person_name }} owns that are in your playlist<br>
 	<table class="table table-bordered table-striped">
 		<thead>
@@ -83,7 +74,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for game in you_match %}
+			{% for game in your_match %}
 			<tr>
 				<td width = "20%">{{ game[0] }}</td>
 				<td width = "10%">{{ game[1] }}</td>
@@ -98,7 +89,7 @@
 	{% endif %}
 </div>
 <div class="top-pad-one">
-	{% if you_diff %}
+	{% if your_diff %}
 	games {{ person_name }} owns that are not in your playlist<br>
 	<table class="table table-bordered table-striped">
 		<thead>
@@ -110,7 +101,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for game in you_diff %}
+			{% for game in your_diff %}
 			<tr>
 				<td width = "20%">{{ game[0] }}</td>
 				<td width = "10%">{{ game[1] }}</td>

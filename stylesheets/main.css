@@ -9,8 +9,8 @@
     height:100px;
 }
 
-/* For the profile picture */
-.profile_pic {
+/* For the display picture */
+.display_pic {
     height:100px;
 }
 
@@ -32,8 +32,8 @@
     margin-top: 1cm;
 }
 
-/* For the game image */
-.game_img {
+/* For the game picture */
+.game_pic {
     display: block;
     max-height: 100px
 }

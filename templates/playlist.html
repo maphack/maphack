@@ -1,68 +1,73 @@
 <!-- Playlist page -->
 {% extends "base.html" %}
 {% block content %}
-{% if games.count() %}
-<h4>playlist</h4>
-<table class="table table-bordered table-striped">
-	<thead>
-		<tr>
-			<th width = "20%">title</th>
-			<th width = "10%">platform</th>
-			<th width = "20%">description</th>
-			<th width = "20%">image</th>
-			<th width = "10%">date</th>
-			<th width = "10%">search</th>
-			<th width = "10%">delete</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for game in games %}
-		<tr>
-			<td width = "20%">{{ game.title }}</td>
-			<td width = "10%">{{ game.platform }}</td>
-			<td width = "20%">{{ game.description }} </td>
-			<td width = "20%">
-				{% if game.img_url != "" %}
-				<img class="game_img" src="{{ game.img_url }}">
-				{% endif %}
-			</td>
-			<td width = "10%">
-				{{ game.date.strftime('%d/%m/%Y') }}<br>
-			</td>
-			<td width = "10%">
-				<form action="/search/results" method="post">
-					<input type="hidden" name="title" value="{{ game.title }}">
-					<input type="hidden" name="platform" value="{{ game.platform }}">
-					<input type="hidden" name="query_type" value="have">
-					<input type="submit" value="search">
-				</form>
-			</td>
-			<td width = "10%">
-				<form action="/playlist/delete" method="post">
-					<input type="hidden" name="game_id" value="{{ game.key.id() }}">
-					<input type="submit" value="delete">
-				</form>
-			</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-</table>
-{% else %}
-<p>
-	no games in your playlist! add the games you want to trade for.
-</p>
-{% endif %}
+<div class="top-pad-one">
+	{% if playlist.count() %}
+	<h4>playlist</h4>
+	<table class="table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width = "20%">title</th>
+				<th width = "10%">platform</th>
+				<th width = "20%">description</th>
+				<th width = "20%">image</th>
+				<th width = "10%">date</th>
+				<th width = "10%">search</th>
+				<th width = "10%">delete</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for game in playlist %}
+			<tr>
+				<td width = "20%">{{ game.title }}</td>
+				<td width = "10%">{{ game.platform }}</td>
+				<td width = "20%">{{ game.description }} </td>
+				<td width = "20%">
+					{% if game.pic != "" %}
+					<img class="game_pic" src="{{ game.pic }}">
+					{% endif %}
+				</td>
+				<td width = "10%">
+					{{ game.date.strftime('%d/%m/%Y') }}<br>
+				</td>
+				<td width = "10%">
+					<form action="/search/results" method="get">
+						<input type="hidden" name="title" value="{{ game.title }}">
+						<input type="hidden" name="platform" value="{{ game.platform }}">
+						<input type="hidden" name="query_type" value="have">
+						<input type="submit" value="search">
+					</form>
+				</td>
+				<td width = "10%">
+					<form action="/playlist/delete" method="post">
+						<input type="hidden" name="game_id" value="{{ game.key.id() }}">
+						<input type="submit" value="delete">
+					</form>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	{% else %}
+	<p>	no games in your playlist! add the games you want to trade for.</p>
+	{% endif %}
+</div>
+<div class="top-pad-one">
+	{% if error %}
+	<div class="error"><p>{{ error }}</p></div>
+	{% endif %}
+</div>
 <div class="top-pad-one">
 	<form action="/playlist" method="post">
 		<fieldset>
 			<div class="row-fluid">
-				title: <input class="input-xlarge" type="text" name="title" required><br>
-				platform: <input class="input-xlarge" type="text" name="platform" required><br>
-				image url: <input class="input-xlarge" type="text" name="img_url"><br>
+				title <input class="input-xlarge" type="text" name="title" value="{{ input_title }}" required><br>
+				platform <input class="input-xlarge" type="text" name="platform" value="{{ input_platform }}" required><br>
+				image url <input class="input-xlarge" type="text" name="pic" value="{{ input_pic }}"><br>
 			</div>
 			<div class="row-fluid">
 				<div class="span6">
-					description: <textarea class="input-block-level" name="description" rows="3"> </textarea><br>
+					description <textarea class="input-block-level" name="description" rows="3">{{ input_description }}</textarea><br>
 					<input type="submit" value="add">
 				</div>
 			</div>

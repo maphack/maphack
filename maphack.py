@@ -1,89 +1,96 @@
-import datetime
 import jinja2
-import json
 import os
-import urllib
 import webapp2
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from math import radians, cos, sin, asin, sqrt
+from operator import itemgetter
+from urlparse import urlparse
 
 JINJA_ENVIRONMENT = jinja2.Environment(
-	loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + '/templates'),
-	extensions=['jinja2.ext.autoescape'],
-	autoescape=True)
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__) + '/templates'),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
+
+DISPLAY_PIC = '../images/display_pic.png'
 
 # Datastore definitions
 class Person(ndb.Model):
 	# Key: person id
 	email = ndb.StringProperty()
-	display_name = ndb.StringProperty()
-	img_url = ndb.StringProperty(default = '../images/profile_pic.png')
-	bio = ndb.StringProperty(default = '')
-	setup = ndb.BooleanProperty(default = False)
-	date = ndb.DateTimeProperty(auto_now_add=True)
+	name = ndb.StringProperty()
+	pic = ndb.StringProperty(default = DISPLAY_PIC, indexed = False)
+	inventory_count = ndb.IntegerProperty(default = 0, indexed = False)
+	playlist_count = ndb.IntegerProperty(default = 0, indexed = False)
+	bio = ndb.StringProperty(default = '', indexed = False)
+	setup = ndb.BooleanProperty(default = False, indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
 class Location(ndb.Model):
 	name = ndb.StringProperty()
-	address = ndb.StringProperty()
+	address = ndb.StringProperty(indexed = False)
 	geopt = ndb.GeoPtProperty()
-	date = ndb.DateTimeProperty(auto_now_add=True)
+	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Inventory(ndb.Model):
 	# Key: person id
-	count = ndb.IntegerProperty(default = 0)
+	count = ndb.IntegerProperty(default = 0, indexed = False)
 
 class Playlist(ndb.Model):
 	# Key: person id
-	count = ndb.IntegerProperty(default = 0)
+	count = ndb.IntegerProperty(default = 0, indexed = False)
 
 class Game(ndb.Model):
 	title = ndb.StringProperty()
 	platform = ndb.StringProperty()
-	img_url = ndb.StringProperty()
-	description = ndb.TextProperty()
-	date = ndb.DateTimeProperty(auto_now_add=True)
+	pic = ndb.StringProperty(indexed = False)
+	description = ndb.TextProperty(indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Platform(ndb.Model):
-	# Key: platform name
 	pass
 
 class Owners(ndb.Model):
 	# Key: game title
-	count = ndb.IntegerProperty(default = 0)
+	count = ndb.IntegerProperty(default = 0, indexed = False)
 
 class Owner(ndb.Model):
 	# Key: person id
-	person_key = ndb.KeyProperty()
-	game_keys = ndb.KeyProperty(repeated = True)
+	name = ndb.StringProperty()
+	game_ids = ndb.IntegerProperty(repeated = True, indexed = False)
+	descriptions = ndb.TextProperty(repeated = True, indexed = False)
 
 class Seekers(ndb.Model):
 	# Key: game title
-	count = ndb.IntegerProperty(default = 0)
+	count = ndb.IntegerProperty(default = 0, indexed = False)
 
 class Seeker(ndb.Model):
-	person_key = ndb.KeyProperty()
-	game_keys = ndb.KeyProperty(repeated = True)
+	# Key: person id
+	name = ndb.StringProperty()
+	game_ids = ndb.IntegerProperty(repeated = True, indexed = False)
+	descriptions = ndb.TextProperty(repeated = True, indexed = False)
 
-# JSON encoder
-class NdbEncoder(json.JSONEncoder):
-	def default(self, obj):
-		if isinstance(obj, datetime.datetime):
-			return {"y": obj.year,
-				"m": obj.month,
-				"d": obj.day,
-				"h": obj.hour,
-				"s": obj.second,}
+# Helper functions:
+def user_game_map(result):
+	uid = result.key.id()
+	name = result.name
+	descriptions = result.descriptions
 
-		if isinstance(obj, ndb.GeoPt):
-			return {"lat": obj.lat, "lon": obj.lon}
+	my_locations = ndb.gql("SELECT * "
+		"FROM Location "
+		"WHERE ANCESTOR IS :1 "
+		"ORDER BY date ASC",
+		ndb.Key('Person', users.get_current_user().user_id()))
 
-		if isinstance(obj, ndb.Key):
-			return "key"
+	your_locations = ndb.gql("SELECT * "
+		"FROM Location "
+		"WHERE ANCESTOR IS :1 "
+		"ORDER BY date ASC",
+		ndb.Key('Person', uid))
 
-		return json.JSONEncoder.default(self, obj)
+	nearest_distance = min_dist(my_locations, your_locations)
+	return uid, name, descriptions, nearest_distance
 
-# Helper functions
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points
@@ -100,9 +107,17 @@ def haversine(lat1, lon1, lat2, lon2):
 
     # 6367 km is the radius of the Earth
     km = 6367 * c
-    return km 
+    return km
 
-# Handlers
+def min_dist(locs1, locs2):
+	min_dist = float('inf')
+	for loc1 in locs1:
+		for loc2 in locs2:
+			dist = haversine(loc1.geopt.lat, loc1.geopt.lon, loc2.geopt.lat, loc2.geopt.lon)
+			if dist < min_dist:
+				min_dist = dist
+	return min_dist
+
 class MainPage(webapp2.RequestHandler):
 	def get(self):
 		user = users.get_current_user()
@@ -119,35 +134,31 @@ class Dashboard(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
 				}
 			template = JINJA_ENVIRONMENT.get_template('dashboard.html')
 			self.response.out.write(template.render(template_values))
 
 class Setup(webapp2.RequestHandler):
-	def show(self, error = ""):
+	def show(self, error = '', input_name = '', input_pic = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user and user.setup:
 			self.redirect('/dashboard')
 		else:
-			user = Person(id = users.get_current_user().user_id())
-			user.email = users.get_current_user().email()
-			user.display_name = users.get_current_user().nickname()
-			user.put()
-
-			inventory = Inventory(id = users.get_current_user().user_id())
-			inventory.put()
-
-			playlist = Playlist(id = users.get_current_user().user_id())
-			playlist.put()
+			if user == None:
+				user = Person(id = users.get_current_user().user_id())
+				user.email = users.get_current_user().email()
+				user.put()
 
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': DISPLAY_PIC,
+				'name': users.get_current_user().nickname(),
 				'logout': users.create_logout_url(self.request.host_url),
 				'error': error,
+				'input_name': input_name,
+				'input_pic': input_pic
 				}
 			template = JINJA_ENVIRONMENT.get_template('setup.html')
 			self.response.out.write(template.render(template_values))
@@ -160,28 +171,55 @@ class Setup(webapp2.RequestHandler):
 		if user == None or user.setup == None:
 			self.redirect('/setup')
 		else:
-			if self.request.get('display_name').rstrip() != '':    # display name cannot be empty
-				user.display_name = self.request.get('display_name')
+			error = ''
 
-				if self.request.get('img_url').rstrip() != '':
-					user.img_url = self.request.get('img_url')
+			# Validate name
+			try:
+				input_name = self.request.get('name').rstrip()
+				if input_name == '':
+					raise Exception, 'display name cannot be empty'
+				qry = Person.query(Person.name == input_name)
+				if qry.count():
+					raise Exception, 'name is already taken'
+			except Exception, e:
+				error = error  + 'error with display name. ' + str(e) + '. '
 
+			# Validate pic
+			try:
+				input_pic = self.request.get('pic').rstrip()
+				if input_pic == '':
+					input_pic = DISPLAY_PIC
+				else:
+					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
+						raise Exception, 'image link must be http or https'
+			except Exception, e:
+				error = error  + 'error with image link. ' + str(e) + '. '
+
+			if error == '':
+				user.name = input_name
+				user.pic = input_pic
 				user.setup = True
 				user.put()
+
+				inventory = Inventory(id = users.get_current_user().user_id())
+				inventory.put()
+
+				playlist = Playlist(id = users.get_current_user().user_id())
+				playlist.put()
+
 				self.redirect('/dashboard')
 			else:
-				error = "Error: Problem with display name."
-				self.show(error)
+				self.show(error, input_name, input_pic)
 
 class Profile(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
-			self.redirect('/setup')
+			self.redirect('/dashboard')
 		else:
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'bio': user.bio,
 				'logout': users.create_logout_url(self.request.host_url),
 				}
@@ -189,17 +227,30 @@ class Profile(webapp2.RequestHandler):
 			self.response.out.write(template.render(template_values))
 
 class ProfileEdit(webapp2.RequestHandler):
-	def show(self, error = ""):
+	def show(self, error = '', input_name = '', input_pic = '', input_bio = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
-			self.redirect('/setup')
+			self.redirect('/dashboard')
 		else:
+			# Fill form with user attributes
+			if not input_name:
+				input_name = user.name
+			if not input_pic:
+				input_pic = user.pic
+			if input_pic == DISPLAY_PIC:
+				input_pic = ''
+			if not input_bio:
+				input_bio = user.bio
+
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'bio': user.bio,
 				'logout': users.create_logout_url(self.request.host_url),
-				'error': error
+				'error': error,
+				'input_name': input_name,
+				'input_pic': input_pic,
+				'input_bio': input_bio,
 				}
 			template = JINJA_ENVIRONMENT.get_template('profile_edit.html')
 			self.response.out.write(template.render(template_values))
@@ -210,20 +261,59 @@ class ProfileEdit(webapp2.RequestHandler):
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
-			self.redirect('/setup')
+			self.redirect('/dashboard')
 		else:
-			if self.request.get('display_name').rstrip() != '':    # display name cannot be empty
-				user.display_name = self.request.get('display_name')
+			error = ''
 
-				if self.request.get('img_url').rstrip() != '':
-					user.img_url = self.request.get('img_url')
-				
-				user.bio = self.request.get('bio')
+			# Validate name
+			try:
+				input_name = self.request.get('name').rstrip()
+				if input_name == '':
+					raise Exception, 'display name cannot be empty'
+				if input_name != user.name:
+					qry = Person.query(Person.name == input_name)
+					if qry.count():
+						raise Exception, 'name is already taken'
+			except Exception, e:
+				error = error  + 'error with display name. ' + str(e) + '. '
+
+			# Validate pic
+			try:
+				input_pic = self.request.get('pic').rstrip()
+				if input_pic == '':
+					input_pic = DISPLAY_PIC
+				else:
+					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
+						raise Exception, 'image link must be http or https'
+			except Exception, e:
+				error = error  + 'error with image link. ' + str(e) + '. '
+
+			#Validate bio
+			try:
+				input_bio = self.request.get('bio').rstrip()
+			except Exception, e:
+				error = error  + 'error with bio. ' + str(e) + '. '
+
+			if error == '':
+				# Change names
+				games = Owner.query(Owner.name == user.name)
+				for game in games:
+					game.name = input_name
+					game.put()
+
+				games = Seeker.query(Seeker.name == user.name)
+				for game in games:
+					game.name = input_name
+					game.put()
+
+				user.name = input_name
+				user.pic = input_pic
+				user.bio = input_bio
 				user.put()
+
 				self.redirect('/profile')
 			else:
-				error = "Error: Problem with display name."
-				self.show(error)
+				self.show(error, input_name, input_pic, input_bio)
 
 class LocationsPage(webapp2.RequestHandler):
 	def get(self):
@@ -238,8 +328,8 @@ class LocationsPage(webapp2.RequestHandler):
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
 				'locations': locations,
 				}
@@ -257,7 +347,7 @@ class LocationsAdd(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()))
@@ -268,9 +358,16 @@ class LocationsAdd(webapp2.RequestHandler):
 			location.put()
 
 class LocationsDelete(webapp2.RequestHandler):
-	def post(self):
+	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			self.redirect('/locations')
+
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			location_key = ndb.Key('Person', users.get_current_user().user_id(),
@@ -285,35 +382,49 @@ class LocationsView(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			template_values = {
+				'name': self.request.get('name'),
+				'location_id': self.request.get('location_id'),
+				'latitude': self.request.get('latitude'),
+				'longitude': self.request.get('longitude'),
+			}
 			template = JINJA_ENVIRONMENT.get_template('locations_view.html')
-			self.response.out.write(template.render())
+			self.response.out.write(template.render(template_values))
 
 	def post(self):
 		location_key = ndb.Key('Person', users.get_current_user().user_id(),
-				'Location', int(self.request.get('id')))
+				'Location', int(self.request.get('location_id')))
 		location = location_key.get()
-		location.name = self.request.get('name')
 
-		location.put()
+		if location == None:
+			self.error(403)
+			self.response.out.write("invalid location id; you are being redirected.")
+		else:
+			location.name = self.request.get('name')
+			location.put()
 
 class InventoryPage(webapp2.RequestHandler):
-	def show(self, error = ""):
+	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			games = ndb.gql("SELECT * "
+			inventory = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'games': games,
+				'inventory': inventory,
 				'error': error,
+				'input_title': input_title,
+				'input_platform': input_platform,
+				'input_pic': input_pic,
+				'input_description': input_description,
 				}
 			template = JINJA_ENVIRONMENT.get_template('inventory.html')
 			self.response.out.write(template.render(template_values))
@@ -326,48 +437,75 @@ class InventoryPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			if self.request.get('title').rstrip() != '' and self.request.get('platform').rstrip() != '':
+			error = ''
+
+			# Validate title
+			try:
+				input_title = self.request.get('title').rstrip()
+				if input_title == '':
+					raise Exception, 'title cannot be empty'
+			except Exception, e:
+				error = error + 'error with game title. ' + str(e) + '. '
+
+			# Validate platform
+			try:
+				input_platform = self.request.get('platform').rstrip()
+				if input_platform == '':
+					raise Exception, 'platform cannot be empty'
+			except Exception, e:
+				error = error + 'error with game platform. ' + str(e) + '. '
+
+			# Validate pic
+			try:
+				input_pic = self.request.get('pic').rstrip()
+				if input_pic != '':
+					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
+						raise Exception, 'image link must be http or https'
+			except Exception, e:
+				error = error  + 'error with image link. ' + str(e) + '. '
+
+			#Validate description
+			try:
+				input_description = self.request.get('description').rstrip()
+			except Exception, e:
+				error = error  + 'error with description. ' + str(e) + '. '
+
+			if error == '':
 				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
 				inventory = inventory_key.get()
-
 				inventory.count += 1
 				inventory.put()
 
 				game = Game(parent = inventory_key)
-				game.title = self.request.get('title')
-				game.platform = self.request.get('platform')
-				game.img_url = self.request.get('img_url')
-				game.description = self.request.get('description')
+				game.title = input_title
+				game.platform = input_platform
+				game.description = input_description
+				game.pic = input_pic
 				game.put()
 
 				owners_key = ndb.Key('Owners', game.title,
 					parent = ndb.Key('Platform', game.platform))
 				owners = owners_key.get()
-
 				if owners == None:
 					owners = Owners(parent = ndb.Key('Platform', game.platform),
 						id = game.title)
-
 				owners.count += 1
 				owners.put()
 
 				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
 					parent = owners_key)
 				owner = owner_key.get()
-
 				if owner == None:
 					owner = Owner(parent = owners_key,
 						id = users.get_current_user().user_id())
-					owner.person_key = ndb.Key('Person', users.get_current_user().user_id())
-
-				owner.game_keys.append(game.key)
+				owner.name = user.name
+				owner.game_ids.append(game.key.id())
+				owner.descriptions.append(game.description)
 				owner.put()
 
 				self.show()
-
 			else:
-				error = "Error: Problem with game title and/or platform."
-				self.show(error)
+				self.show(error, input_title, input_platform, input_pic, input_description)
 
 class InventoryDelete(webapp2.RequestHandler):
 	def get(self):
@@ -383,51 +521,59 @@ class InventoryDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-			inventory = inventory_key.get()
-
-			inventory.count -= 1
-			inventory.put()
-
+			
 			game_key = ndb.Key('Game', int(self.request.get('game_id')),
 				parent = inventory_key)
 			game = game_key.get()
-			game_key.delete()
 
-			owners_key = ndb.Key('Owners', game.title,
-				parent = ndb.Key('Platform', game.platform))
-			owners = owners_key.get()
-			owners.count -= 1
-			owners.put()
+			if game:
+				inventory = inventory_key.get()
+				inventory.count -= 1
+				inventory.put()
 
-			owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
-				parent = owners_key)
-			owner = owner_key.get()
-			owner.game_keys.remove(game_key)
+				game_key.delete()
+
+				owners_key = ndb.Key('Owners', game.title,
+					parent = ndb.Key('Platform', game.platform))
+				owners = owners_key.get()
+				owners.count -= 1
+				owners.put()
+
+				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+					parent = owners_key)
+				owner = owner_key.get()
+				owner.game_ids.remove(game.key.id())
+				owner.descriptions.remove(game.description)
 			
-			if owner.game_keys == []:
-				owner_key.delete()
-			else:
-				owner.put()
+				if owner.game_ids == []:
+					owner_key.delete()
+				else:
+					owner.put()
 
 			self.redirect('/inventory')
 
 class PlaylistPage(webapp2.RequestHandler):
-	def show(self, error = ""):
+	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			games = ndb.gql("SELECT * "
+			playlist = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'games': games,
+				'playlist': playlist,
+				'error': error,
+				'input_title': input_title,
+				'input_platform': input_platform,
+				'input_pic': input_pic,
+				'input_description': input_description,
 				}
 			template = JINJA_ENVIRONMENT.get_template('playlist.html')
 			self.response.out.write(template.render(template_values))
@@ -440,48 +586,75 @@ class PlaylistPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			if self.request.get('title').rstrip() != '' and self.request.get('platform').rstrip() != '':
+			error = ''
+
+			# Validate title
+			try:
+				input_title = self.request.get('title').rstrip()
+				if input_title == '':
+					raise Exception, 'title cannot be empty'
+			except Exception, e:
+				error = error + 'error with game title. ' + str(e) + '. '
+
+			# Validate platform
+			try:
+				input_platform = self.request.get('platform').rstrip()
+				if input_platform == '':
+					raise Exception, 'platform cannot be empty'
+			except Exception, e:
+				error = error + 'error with game platform. ' + str(e) + '. '
+
+			# Validate pic
+			try:
+				input_pic = self.request.get('pic').rstrip()
+				if input_pic != '':
+					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
+						raise Exception, 'image link must be http or https'
+			except Exception, e:
+				error = error  + 'error with image link. ' + str(e) + '. '
+
+			#Validate description
+			try:
+				input_description = self.request.get('description').rstrip()
+			except Exception, e:
+				error = error  + 'error with description. ' + str(e) + '. '
+
+			if error == '':
 				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 				playlist = playlist_key.get()
-
 				playlist.count += 1
 				playlist.put()
 
 				game = Game(parent = playlist_key)
-				game.title = self.request.get('title')
-				game.platform = self.request.get('platform')
-				game.img_url = self.request.get('img_url')
-				game.description = self.request.get('description')
+				game.title = input_title
+				game.platform = input_platform
+				game.description = input_description
+				game.pic = input_pic
 				game.put()
 
 				seekers_key = ndb.Key('Seekers', game.title,
 					parent = ndb.Key('Platform', game.platform))
 				seekers = seekers_key.get()
-
 				if seekers == None:
 					seekers = Seekers(parent = ndb.Key('Platform', game.platform),
 						id = game.title)
-
 				seekers.count += 1
 				seekers.put()
 
 				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
 					parent = seekers_key)
 				seeker = seeker_key.get()
-
 				if seeker == None:
 					seeker = Seeker(parent = seekers_key,
 						id = users.get_current_user().user_id())
-					seeker.person_key = ndb.Key('Person', users.get_current_user().user_id())
-
-				seeker.game_keys.append(game.key)
+				seeker.name = user.name
+				seeker.game_ids.append(game.key.id())
+				seeker.descriptions.append(game.description)
 				seeker.put()
 
 				self.show()
-
 			else:
-				error = "Error: Problem with game title and/or platform."
-				self.show(error)
+				self.show(error, input_title, input_platform, input_pic, input_description)
 
 class PlaylistDelete(webapp2.RequestHandler):
 	def get(self):
@@ -497,116 +670,98 @@ class PlaylistDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-			playlist = playlist_key.get()
-
-			playlist.count -= 1
-			playlist.put()
-
+			
 			game_key = ndb.Key('Game', int(self.request.get('game_id')),
 				parent = playlist_key)
 			game = game_key.get()
-			game_key.delete()
 
-			seekers_key = ndb.Key('Seekers', game.title,
-				parent = ndb.Key('Platform', game.platform))
-			seekers = seekers_key.get()
-			seekers.count -= 1
-			seekers.put()
+			if game:
+				playlist = playlist_key.get()
+				playlist.count -= 1
+				playlist.put()
 
-			seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
-				parent = seekers_key)
-			seeker = seeker_key.get()
-			seeker.game_keys.remove(game_key)
+				game_key.delete()
+
+				seekers_key = ndb.Key('Seekers', game.title,
+					parent = ndb.Key('Platform', game.platform))
+				seekers = seekers_key.get()
+				seekers.count -= 1
+				seekers.put()
+
+				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+					parent = seekers_key)
+				seeker = seeker_key.get()
+				seeker.game_ids.remove(game.key.id())
+				seeker.descriptions.remove(game.description)
 			
-			if seeker.game_keys == []:
-				seeker_key.delete()
-			else:
-				seeker.put()
+				if seeker.game_ids == []:
+					seeker_key.delete()
+				else:
+					seeker.put()
 
 			self.redirect('/playlist')
 
-class Search(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
-			self.redirect('/setup')
-		else:
-			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
-				'logout': users.create_logout_url(self.request.host_url),
-				}
-			template = JINJA_ENVIRONMENT.get_template('search.html')
-			self.response.out.write(template.render(template_values))
-
 class SearchResults(webapp2.RequestHandler):
-	def show(self, query_type, title, platform, persons, error = ""):
+	def show(self, query_type = '', title = '', platform = '', results = '', error = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
+				'pic': user.pic,
+				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
 				'query_type': query_type,
 				'title': title,
 				'platform': platform,
-				'persons': persons,
+				'results': results,
 				'error': error,
 				}
 			template = JINJA_ENVIRONMENT.get_template('search_results.html')
 			self.response.out.write(template.render(template_values))
 
 	def get(self):
-		self.redirect('/search')
-
-	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			if self.request.get('query_type') == "have":
-				query_type = "have"
+			query_type = self.request.get('query_type')
+			if query_type == 'have':
 				title = self.request.get('title')
 				platform = self.request.get('platform')
 
 				owners_key = ndb.Key('Owners', title,
 					parent = ndb.Key('Platform', platform))
 
-				results = ndb.gql("SELECT * "
+				owners = ndb.gql("SELECT * "
 					"FROM Owner "
 					"WHERE ANCESTOR IS :1 ",
 					owners_key)
 
-				persons = []
-				for owner in results:
-					person = [owner.person_key.get().display_name, owner.person_key.id()]
-					persons.append(person)
+				results = owners.map(user_game_map)
+				results = sorted(results, key = itemgetter(3))
+				
+				self.show(query_type, title, platform, results)
 
-				self.show(query_type, title, platform, persons)
-
-			elif self.request.get('query_type') == "want":
-				query_type = "want"
+			elif query_type == 'want':
 				title = self.request.get('title')
 				platform = self.request.get('platform')
 
 				seekers_key = ndb.Key('Seekers', title,
 					parent = ndb.Key('Platform', platform))
 
-				results = ndb.gql("SELECT * "
+				seekers = ndb.gql("SELECT * "
 					"FROM Seeker "
 					"WHERE ANCESTOR IS :1 ",
 					seekers_key)
 
-				persons = []
-				for seeker in results:
-					person = [seeker.person_key.get().display_name, seeker.person_key.id()]
-					persons.append(person)
+				results = seekers.map(user_game_map)
+				results = sorted(results, key = itemgetter(3))
 
-				self.show(query_type, title, platform, persons)
+				self.show(query_type, title, platform, results)
+
 			else:
-				error = "Error: Problem with search query."
+				error = 'invalid query.'
 				self.show(error = error)
 
 class UserPage(webapp2.RequestHandler):
@@ -615,102 +770,91 @@ class UserPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			person = ndb.Key('Person', person_id).get()
-
-			if person == None:
+			if user.key.id() == person_id:
 				self.redirect('/dashboard')
 			else:
-				me_inventory = ndb.gql("SELECT * "
-					"FROM Game "
-					"WHERE ANCESTOR IS :1 "
-					"ORDER BY date DESC",
-					ndb.Key('Inventory', users.get_current_user().user_id()))
+				person = ndb.Key('Person', person_id).get()
+				if person == None:
+					self.redirect('/dashboard')
+				else:
+					my_inventory = ndb.gql("SELECT * "
+						"FROM Game "
+						"WHERE ANCESTOR IS :1 "
+						"ORDER BY date DESC",
+						ndb.Key('Inventory', users.get_current_user().user_id()))
 
-				me_playlist = ndb.gql("SELECT * "
-					"FROM Game "
-					"WHERE ANCESTOR IS :1 "
-					"ORDER BY date DESC",
-					ndb.Key('Playlist', users.get_current_user().user_id()))
+					my_playlist = ndb.gql("SELECT * "
+						"FROM Game "
+						"WHERE ANCESTOR IS :1 "
+						"ORDER BY date DESC",
+						ndb.Key('Playlist', users.get_current_user().user_id()))
 
-				you_inventory = ndb.gql("SELECT * "
-					"FROM Game "
-					"WHERE ANCESTOR IS :1 "
-					"ORDER BY date DESC",
-					ndb.Key('Inventory', person_id))
+					your_inventory = ndb.gql("SELECT * "
+						"FROM Game "
+						"WHERE ANCESTOR IS :1 "
+						"ORDER BY date DESC",
+						ndb.Key('Inventory', person_id))
 
-				you_playlist = ndb.gql("SELECT * "
-					"FROM Game "
-					"WHERE ANCESTOR IS :1 "
-					"ORDER BY date DESC",
-					ndb.Key('Playlist', person_id))
+					your_playlist = ndb.gql("SELECT * "
+						"FROM Game "
+						"WHERE ANCESTOR IS :1 "
+						"ORDER BY date DESC",
+						ndb.Key('Playlist', person_id))
 
-				me_locations = ndb.gql("SELECT * "
-					"FROM Location "
-					"WHERE ANCESTOR IS :1 "
-					"ORDER BY date ASC",
-					ndb.Key('Person', users.get_current_user().user_id()))
+					my_locations = ndb.gql("SELECT * "
+						"FROM Location "
+						"WHERE ANCESTOR IS :1 "
+						"ORDER BY date ASC",
+						ndb.Key('Person', users.get_current_user().user_id()))
 
-				you_locations = ndb.gql("SELECT * "
-					"FROM Location "
-					"WHERE ANCESTOR IS :1 "
-					"ORDER BY date ASC",
-					ndb.Key('Person', person_id))
+					your_locations = ndb.gql("SELECT * "
+						"FROM Location "
+						"WHERE ANCESTOR IS :1 "
+						"ORDER BY date ASC",
+						ndb.Key('Person', person_id))
 
-				me_diff = []
-				me_match = []
-				you_match = []
-				you_diff = []
+					my_diff = []
+					my_match = []
+					your_match = []
+					your_diff = []
 
-				for me_own in me_inventory:
-					found = False
-					for you_seek in you_playlist:
-						if me_own.title == you_seek.title and me_own.platform == you_seek.platform:
-							me_match.append([me_own.title, me_own.platform, me_own.description, me_own.img_url, me_own.key.id()])
-							found = True;
-							break;
-					if not found:
-						me_diff.append([me_own.title, me_own.platform])
+					for i_own in my_inventory:
+						found = False
+						for you_seek in your_playlist:
+							if i_own.title == you_seek.title and i_own.platform == you_seek.platform:
+								my_match.append([i_own.title, i_own.platform, i_own.description, i_own.pic, i_own.key.id()])
+								found = True;
+								break;
+						if not found:
+							my_diff.append([i_own.title, i_own.platform, i_own.description, i_own.pic, i_own.key.id()])
 
-				for you_own in you_inventory:
-					found = False
-					for me_seek in me_playlist:
-						if you_own.title == me_seek.title and you_own.platform == me_seek.platform:
-							you_match.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
-							found = True;
-							break;
-					if not found:
-						you_diff.append([you_own.title, you_own.platform, you_own.description, you_own.img_url, you_own.key.id()])
+					for you_own in your_inventory:
+						found = False
+						for i_seek in my_playlist:
+							if you_own.title == i_seek.title and you_own.platform == i_seek.platform:
+								your_match.append([you_own.title, you_own.platform, you_own.description, you_own.pic, you_own.key.id()])
+								found = True;
+								break;
+						if not found:
+							your_diff.append([you_own.title, you_own.platform, you_own.description, you_own.pic, you_own.key.id()])
 
-				nearest_dist = float("inf")
-				me_nearest_loc = None
-				you_nearest_loc = None
-				for you_location in you_locations:
-					for me_location in me_locations:
-						dist = haversine(you_location.geopt.lat, you_location.geopt.lon, me_location.geopt.lat, me_location.geopt.lon)
-						if dist < nearest_dist:
-							nearest_dist = dist
-							me_nearest_loc = me_location
-							you_nearest_loc = you_location
+					nearest_distance = min_dist(my_locations, your_locations)
 
-				template_values = {
-					'img_url': user.img_url,
-					'display_name': user.display_name,
-					'logout': users.create_logout_url(self.request.host_url),
-					'person_pic': person.img_url,
-					'person_name': person.display_name,
-					'person_id': person_id,
-					'me_diff': me_diff,
-					'me_match': me_match,
-					'you_match': you_match,
-					'you_diff': you_diff,
-					'me_locations': me_locations,
-					'you_locations': you_locations,
-					'nearest_dist': nearest_dist,
-					'me_nearest_loc': me_nearest_loc,
-					'you_nearest_loc': you_nearest_loc,
-					}
-				template = JINJA_ENVIRONMENT.get_template('user.html')
-				self.response.out.write(template.render(template_values))
+					template_values = {
+						'pic': user.pic,
+						'name': user.name,
+						'logout': users.create_logout_url(self.request.host_url),
+						'person_pic': person.pic,
+						'person_name': person.name,
+						'person_id': person_id,
+						'my_diff': my_diff,
+						'my_match': my_match,
+						'your_match': your_match,
+						'your_diff': your_diff,
+						'nearest_distance': nearest_distance,
+						}
+					template = JINJA_ENVIRONMENT.get_template('user.html')
+					self.response.out.write(template.render(template_values))
 
 class UserLocations(webapp2.RequestHandler):
 	def get(self, person_id):
@@ -745,59 +889,10 @@ class UserLocations(webapp2.RequestHandler):
 				'you_lons': locLons,
 				'my_lats': myLocLats,
 				'my_lons': myLocLons,
-				'person_name': person.display_name,
+				'person_name': person.name,
 			}
 			template = JINJA_ENVIRONMENT.get_template('user_locations.html')
 			self.response.out.write(template.render(template_values))
-
-class Test(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
-			self.redirect('/setup')
-		else:
-			template_values = {
-				'img_url': user.img_url,
-				'display_name': user.display_name,
-				'logout': users.create_logout_url(self.request.host_url),
-				}
-			template = JINJA_ENVIRONMENT.get_template('test.html')
-			self.response.out.write(template.render(template_values))
-
-class UserData(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
-			self.redirect('/setup')
-		else:
-			person_id = self.request.get('person_id')
-			person = ndb.Key('Person', person_id).get()
-
-			inventory = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Inventory', person_id))
-
-			playlist = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Playlist', person_id))
-
-			locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
-				ndb.Key('Person', person_id))
-
-			result = [{ 'person': ndb.Model.to_dict(person, include = ["display_name", "img_url"]),
-				'inventory': [ndb.Model.to_dict(game, exclude = ["date"]) for game in inventory],
-				'playlist': [ndb.Model.to_dict(game, exclude = ["date"]) for game in playlist],
-				'locations': [ndb.Model.to_dict(location, exclude = ["name", "date"]) for location in locations],
-				}]
-			self.response.headers['Content-Type'] = 'application/javascript'
-			self.response.out.write(json.dumps(result, cls = NdbEncoder))
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
@@ -813,10 +908,8 @@ application = webapp2.WSGIApplication([
 	('/inventory/delete', InventoryDelete),
 	('/playlist', PlaylistPage),
 	('/playlist/delete', PlaylistDelete),
-	('/search', Search),
 	('/search/results', SearchResults),
-	('/user/(.*)/locations', UserLocations),
+	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
-	('/test', Test),
-	('/userdata', UserData),
-	], debug=True)
+	('/*', Dashboard),
+], debug=True)

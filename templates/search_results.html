@@ -2,30 +2,56 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="top-pad-one">
+	{% if error %}
+	<div class="error"><p>{{ error }}</p></div>
+	{% else %}
 	<h4> users who {{ query_type }} {{ title }} on {{ platform }} </h4>
-	{% if persons %}
+	{% if results %}
 	<table class="table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "20%">Name</th>
+				<th width = "20%">name</th>
+				<th width = "60%">description</th>
+				<th width = "20%">nearest distance</th>
 			</tr>
 		</thead>
 		<tbody>
-			{% for person in persons %}
+			{% for person in results %}
 			<tr>
 				<td width = "20%">
-				<a href= '../user/{{ person[1] }}'>
-						{{ person[0] }}
+					<a href= '../user/{{ person[0] }}'>
+						{{ person[1] }}
 					</a>
+				</td>
+				<td width = "80%">
+					{% if person[2]|length == 1 %}
+					{% if person[2][0] == '' %}
+					none
+					{% else %}
+					{{ person[2] }}
+					{% endif %}
+					{% else %}
+					{% for description in person[2] %}
+					<li>
+						{% if description == '' %}
+						none<br>
+						{% else %}
+						{{ description }}<br>
+						{% endif %}
+					</li>
+					{% endfor %}
+					{% endif %}
+				</td>
+				<td width = "20%">
+					{{ '%0.2f' % person[3] }} k.m.
 				</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
 	{% else %}
-	<p>
-		No matching results.
-	</p>
+	<p>no matching results.</p>
+	{% endif %}
 	{% endif %}
 </div>
 {% endblock %}
