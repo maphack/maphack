@@ -99,6 +99,9 @@ def user_game_map(result):
 
 	return result, nearest_distance
 
+def locations_map(result):
+	return [result.geopt.lat, result.geopt.lon]
+
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points
@@ -874,32 +877,27 @@ class UserLocations(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			person = ndb.Key('Person', person_id).get()
+			if person == None:
+				self.redirect('/dashboard')
 
-			qry = Location.query(ancestor=ndb.Key('Person', person_id))
-			locPts = qry.fetch(projection=[Location.geopt])
+			my_locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date ASC",
+				ndb.Key('Person', users.get_current_user().user_id()))
 
-			locLats = []
-			locLons = []
+			your_locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date ASC",
+				ndb.Key('Person', person_id))
 
-			for x in range(0, len(locPts)):
-				locLats.append(locPts[x].geopt.lat)
-				locLons.append(locPts[x].geopt.lon)
-
-			myqry = Location.query(ancestor=ndb.Key('Person', user.key.id()))
-			myLocPts = myqry.fetch(projection=[Location.geopt])
-
-			myLocLats = []
-			myLocLons = []
-
-			for x in range(0, len(myLocPts)):
-				myLocLats.append(myLocPts[x].geopt.lat)
-				myLocLons.append(myLocPts[x].geopt.lon)
+			my_locations = my_locations.map(locations_map)
+			your_locations = your_locations.map(locations_map)
 
 			template_values = {
-				'you_lats': locLats,
-				'you_lons': locLons,
-				'my_lats': myLocLats,
-				'my_lons': myLocLons,
+				'my_locations': my_locations,
+				'your_locations': your_locations,
 				'person_name': person.name,
 			}
 			template = JINJA_ENVIRONMENT.get_template('user_locations.html')

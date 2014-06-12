@@ -14,22 +14,20 @@
       position: absolute;
       top: 5px;
       left: 50%;
-      margin-left: -100px;
+      margin-left: -180px;
       z-index: 5;
       background-color: #fff;
       padding: 5px;
       border: 1px solid #999;
     }
   </style>
-  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>
-  var latArray = {{ you_lats }}
-  var lonArray = {{ you_lons }}
-  var myLatArray = {{ my_lats }}
-  var myLonArray = {{ my_lons }}
-
     function initialize() {
+      var my_locations = {{ my_locations|safe }};
+      var your_locations = {{ your_locations|safe }};
+
       var latlng = new google.maps.LatLng(1.3185848, 103.8455665);
       var mapOptions = {
         zoom: 12,
@@ -37,20 +35,19 @@
       }
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-      // add the markers corresponding to the locations of the user whose page is being visited
-      for (var i = 0; i < latArray.length; i++) {
-        var markerLatLng = new google.maps.LatLng(latArray[i], lonArray[i]);
+      for (var i = 0; i < my_locations.length; i++) {
+        var latlng = new google.maps.LatLng(my_locations[i][0], my_locations[i][1]);
         var marker = new google.maps.Marker({
-          position: markerLatLng,
+          position: latlng,
           map: map,
+          icon: "/images/red_MarkerU.png",
         });
       }
 
-      // add the markers corresponding to the locations of the user who is visiting the page
-      for (var j = 0; j < myLatArray.length; j++) {
-        var myMarkerLatLng = new google.maps.LatLng(myLatArray[j], myLonArray[j]);
+      for (var i = 0; i < your_locations.length; i++) {
+        var latlng = new google.maps.LatLng(your_locations[i][0], your_locations[i][1]);
         var marker = new google.maps.Marker({
-          position:myMarkerLatLng,
+          position: latlng,
           map: map,
           icon: "/images/blue_MarkerU.png",
         });
@@ -62,8 +59,8 @@
 </head>
 <body>
   <div id="panel">
-    Blue markers: Your trading locations <br>
-    Red markers: {{ person_name }}'s locations
+    <img class="marker" src="/images/red_MarkerU.png">: you<br>
+    <img class="marker" src="/images/blue_MarkerU.png">: {{ person_name }}<br>
   </div>
   <div id="map-canvas"></div>
 </body>
