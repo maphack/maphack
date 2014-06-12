@@ -16,22 +16,22 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% for person in results %}
+			{% for person, distance in results %}
 			<tr>
 				<td width = "20%">
-					<a href= '../user/{{ person[0] }}'>
-						{{ person[1] }}
+					<a href= '../user/{{ person.key.id() }}'>
+						{{ person.name }}
 					</a>
 				</td>
 				<td width = "80%">
-					{% if person[2]|length == 1 %}
-					{% if person[2][0] == '' %}
+					{% if person.descriptions|length == 1 %}
+					{% if person.descriptions[0] == '' %}
 					none
 					{% else %}
-					{{ person[2] }}
+					{{ person.descriptions }}
 					{% endif %}
 					{% else %}
-					{% for description in person[2] %}
+					{% for description in person.descriptions %}
 					<li>
 						{% if description == '' %}
 						none<br>
@@ -43,7 +43,7 @@
 					{% endif %}
 				</td>
 				<td width = "20%">
-					{{ '%0.2f' % person[3] }} k.m.
+					{{ '%0.2f' % distance }} k.m.
 				</td>
 			</tr>
 			{% endfor %}

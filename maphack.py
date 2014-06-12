@@ -72,10 +72,6 @@ class Seeker(ndb.Model):
 
 # Helper functions:
 def user_game_map(result):
-	uid = result.key.id()
-	name = result.name
-	descriptions = result.descriptions
-
 	my_locations = ndb.gql("SELECT * "
 		"FROM Location "
 		"WHERE ANCESTOR IS :1 "
@@ -86,10 +82,11 @@ def user_game_map(result):
 		"FROM Location "
 		"WHERE ANCESTOR IS :1 "
 		"ORDER BY date ASC",
-		ndb.Key('Person', uid))
+		ndb.Key('Person', result.key.id()))
 
 	nearest_distance = min_dist(my_locations, your_locations)
-	return uid, name, descriptions, nearest_distance
+
+	return result, nearest_distance
 
 def haversine(lat1, lon1, lat2, lon2):
     """
@@ -151,6 +148,9 @@ class Setup(webapp2.RequestHandler):
 				user = Person(id = users.get_current_user().user_id())
 				user.email = users.get_current_user().email()
 				user.put()
+
+			if input_pic == DISPLAY_PIC:
+				input_pic = ''
 
 			template_values = {
 				'pic': DISPLAY_PIC,
@@ -702,7 +702,7 @@ class PlaylistDelete(webapp2.RequestHandler):
 			self.redirect('/playlist')
 
 class SearchResults(webapp2.RequestHandler):
-	def show(self, query_type = '', title = '', platform = '', results = '', error = ''):
+	def show(self, query_type = '', title = '', platform = '', results = '', distances = '', error = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
@@ -739,7 +739,7 @@ class SearchResults(webapp2.RequestHandler):
 					owners_key)
 
 				results = owners.map(user_game_map)
-				results = sorted(results, key = itemgetter(3))
+				results = sorted(results, key = itemgetter(1))
 				
 				self.show(query_type, title, platform, results)
 
@@ -756,7 +756,7 @@ class SearchResults(webapp2.RequestHandler):
 					seekers_key)
 
 				results = seekers.map(user_game_map)
-				results = sorted(results, key = itemgetter(3))
+				results = sorted(results, key = itemgetter(1))
 
 				self.show(query_type, title, platform, results)
 
@@ -822,21 +822,21 @@ class UserPage(webapp2.RequestHandler):
 						found = False
 						for you_seek in your_playlist:
 							if i_own.title == you_seek.title and i_own.platform == you_seek.platform:
-								my_match.append([i_own.title, i_own.platform, i_own.description, i_own.pic, i_own.key.id()])
+								my_match.append(i_own)
 								found = True;
 								break;
 						if not found:
-							my_diff.append([i_own.title, i_own.platform, i_own.description, i_own.pic, i_own.key.id()])
+							my_diff.append(i_own)
 
 					for you_own in your_inventory:
 						found = False
 						for i_seek in my_playlist:
 							if you_own.title == i_seek.title and you_own.platform == i_seek.platform:
-								your_match.append([you_own.title, you_own.platform, you_own.description, you_own.pic, you_own.key.id()])
+								your_match.append(you_own)
 								found = True;
 								break;
 						if not found:
-							your_diff.append([you_own.title, you_own.platform, you_own.description, you_own.pic, you_own.key.id()])
+							your_diff.append(you_own)
 
 					nearest_distance = min_dist(my_locations, your_locations)
 

@@ -22,10 +22,10 @@
 		<tbody>
 			{% for game in my_diff %}
 			<tr>
-				<td width = "20%">{{ game[0] }}</td>
-				<td width = "10%">{{ game[1] }}</td>
-				<td width = "50%">{{ game[2] }}</td>
-				<td width = "20%">{{ game[3] }}</td>
+				<td width = "20%">{{ game.title }}</td>
+				<td width = "10%">{{ game.platform }}</td>
+				<td width = "50%">{{ game.description }}</td>
+				<td width = "20%">{{ game.pic }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -49,10 +49,10 @@
 		<tbody>
 			{% for game in my_match %}
 			<tr>
-				<td width = "20%">{{ game[0] }}</td>
-				<td width = "10%">{{ game[1] }}</td>
-				<td width = "50%">{{ game[2] }}</td>
-				<td width = "20%">{{ game[3] }}</td>
+				<td width = "20%">{{ game.title }}</td>
+				<td width = "10%">{{ game.platform }}</td>
+				<td width = "50%">{{ game.description }}</td>
+				<td width = "20%">{{ game.pic }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -76,10 +76,10 @@
 		<tbody>
 			{% for game in your_match %}
 			<tr>
-				<td width = "20%">{{ game[0] }}</td>
-				<td width = "10%">{{ game[1] }}</td>
-				<td width = "50%">{{ game[2] }}</td>
-				<td width = "20%">{{ game[3] }}</td>
+				<td width = "20%">{{ game.title }}</td>
+				<td width = "10%">{{ game.platform }}</td>
+				<td width = "50%">{{ game.description }}</td>
+				<td width = "20%">{{ game.pic }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -103,10 +103,10 @@
 		<tbody>
 			{% for game in your_diff %}
 			<tr>
-				<td width = "20%">{{ game[0] }}</td>
-				<td width = "10%">{{ game[1] }}</td>
-				<td width = "50%">{{ game[2] }}</td>
-				<td width = "20%">{{ game[3] }}</td>
+				<td width = "20%">{{ game.title }}</td>
+				<td width = "10%">{{ game.platform }}</td>
+				<td width = "50%">{{ game.description }}</td>
+				<td width = "20%">{{ game.pic }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>
