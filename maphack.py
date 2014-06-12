@@ -47,6 +47,17 @@ class Game(ndb.Model):
 	description = ndb.TextProperty(indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
+class Listing(ndb.Model):
+	owner_id = ndb.StringProperty()
+	trade_away_ids = ndb.IntegerProperty(repeated = True)
+	trade_for_ids = ndb.IntegerProperty(repeated = True)	
+	trade_away_titles = ndb.StringProperty(repeated = True)
+	trade_for_titles = ndb.StringProperty(repeated = True)
+	trade_away_platforms = ndb.StringProperty(repeated = True)
+	trade_for_platforms = ndb.StringProperty(repeated = True)
+	top_up = ndb.IntegerProperty()	
+	date = ndb.DateTimeProperty(auto_now_add = True)
+
 class Platform(ndb.Model):
 	pass
 
@@ -894,6 +905,108 @@ class UserLocations(webapp2.RequestHandler):
 			template = JINJA_ENVIRONMENT.get_template('user_locations.html')
 			self.response.out.write(template.render(template_values))
 
+class ListingsPage(webapp2.RequestHandler):
+	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			listings = ndb.gql("SELECT * "
+				"FROM Listing "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Listing', users.get_current_user().user_id()))
+
+			playlist = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Playlist', users.get_current_user().user_id()))
+
+			inventory = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Inventory', users.get_current_user().user_id()))
+
+			template_values = {
+				'pic': user.pic,
+				'name': user.name,
+				'logout': users.create_logout_url(self.request.host_url),
+				'listings': listings,
+				'playlist': playlist,
+				'inventory': inventory,
+				'error': error,
+				'input_title': input_title,
+				'input_platform': input_platform,
+				'input_pic': input_pic,
+				'input_description': input_description,
+				}
+			template = JINJA_ENVIRONMENT.get_template('listings.html')
+			self.response.out.write(template.render(template_values))
+
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			playlist = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Playlist', users.get_current_user().user_id()))
+
+			inventory = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Inventory', users.get_current_user().user_id()))
+
+			template_values = {
+				'pic': user.pic,
+				'name': user.name,
+				'logout': users.create_logout_url(self.request.host_url),	
+				'playlist': playlist,
+				'inventory': inventory,
+				}
+			template = JINJA_ENVIRONMENT.get_template('listings.html')
+			self.response.out.write(template.render(template_values))
+			
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			error = ''
+
+			# Validate list of games to trade away
+			try:
+				topup = self.request.get('topup')
+				away_list = self.request.get('wtt')
+				if len(away_list) == 0 and topup == 0:	
+					raise Exception, 'you must choose at least one game to trade away'
+			except Exception, e:
+				error = error + 'error with list of games chosen. ' + str(e) + '. '
+
+			# Validate list of games to receive in trade
+			try:
+				receive_list = self.request.get('wtg')
+				if len(receive_list) == 0 and topup == 0:
+					raise Exception, 'platform cannot be empty'
+			except Exception, e:
+				error = error + 'error with list of games chosen. ' + str(e) + '. '
+
+			if error == '':
+
+				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))				
+				listing.owner_id = users.get_current_user().user_id()
+				listing.top_up = int(topup)
+				listing.put()
+
+				self.show()
+			else:
+				self.show(error)
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -911,5 +1024,6 @@ application = webapp2.WSGIApplication([
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
+	('/listings', ListingsPage),
 	('/*', Dashboard),
 ], debug=True)
