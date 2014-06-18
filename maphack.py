@@ -1,6 +1,7 @@
 import jinja2
 import os
 import webapp2
+import json
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from math import radians, cos, sin, asin, sqrt
@@ -948,6 +949,12 @@ class ListingsPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			listings = ndb.gql("SELECT * "
+				"FROM Listing "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Listing', users.get_current_user().user_id()))
+
 			playlist = ndb.gql("SELECT * "
 				"FROM Game "
 				"WHERE ANCESTOR IS :1 "
@@ -976,11 +983,12 @@ class ListingsPage(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			error = ''
+			jdata = json.loads(cgi.escape(self.request.body))
 
 			# Validate list of games to trade away
 			try:
-				topup = self.request.get('topup')
-				away_list = self.request.get('wtt')
+				topup = jdata.topup
+				away_list = jdata.toTrade
 				if len(away_list) == 0 and topup == 0:	
 					raise Exception, 'you must choose at least one game to trade away'
 			except Exception, e:
@@ -988,17 +996,33 @@ class ListingsPage(webapp2.RequestHandler):
 
 			# Validate list of games to receive in trade
 			try:
-				receive_list = self.request.get('wtg')
+				receive_list = jdata.toReceive
 				if len(receive_list) == 0 and topup == 0:
-					raise Exception, 'platform cannot be empty'
+					raise Exception, 'you must choose at least one game you want'
 			except Exception, e:
 				error = error + 'error with list of games chosen. ' + str(e) + '. '
 
 			if error == '':
+				trade_away_titles = []
+				trade_away_platforms = []
+				trade_for_titles = []
+				trade_away_platforms = []
+				
+				for game in away_list:
+					trade_away_titles.append(game.title)
+					trade_away_platforms.append(game.platform)
+
+				for game in receive_list:
+					trade_for_titles.append(game.title)
+					trade_away_platforms.append(game.platform)
 
 				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))				
 				listing.owner_id = users.get_current_user().user_id()
 				listing.top_up = int(topup)
+				listing.trade_away_titles = trade_away_titles
+				listing.trade_away_platforms = trade_away_platforms
+				listing.trade_for_titles = trade_for_titles
+				listing.trade_for_platforms = trade_for_platforms
 				listing.put()
 
 				self.show()

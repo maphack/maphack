@@ -1,72 +1,135 @@
 {% extends "base.html" %}
 {% block content %}
 
-<script src="/scripts/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 
-<style>
-  #sortable1, #sortable2 { min-height: 60px; width: 550px; border-style: solid; list-style-type: none; margin: 0; padding: 0 0 2.5em; float: left; margin-right: 10px; }
-  #sortable3, #sortable4 { min-height: 60px; width: 565px; border-style: solid; list-style-type: none; margin: 0; padding: 0 0 2.5em; float: left; margin-right: 10px; }
-  #sortable1 li, #sortable2 li, #sortable3 li, #sortable4 li { margin: 0 0px 0px 0px; padding: 5px; font-size: 1.2em; width: 530px; }
-  span.dropt {border-bottom: thin dotted; background: #ffeedd;}
-  span.dropt:hover {text-decoration: none; background: #ffffff; z-index: 6; }
-  span.dropt span {position: absolute; left: -9999px; margin: 20px 0 0 0px; padding: 3px 3px 3px 3px; border-style:solid; border-color:black; border-width:1px; z-index: 6;}
-  span.dropt:hover span {left: 2%; background: #ffffff;} 
-  span.dropt span {position: absolute; left: -9999px; margin: 4px 0 0 0px; padding: 3px 3px 3px 3px; border-style:solid; border-color:black; border-width:1px;}
-  span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;} 
-</style>
-<script>
-  $(function() {
-    $( "#sortable1, #sortable3" ).sortable({
-      connectWith: ".connectedSortable"
-    }).disableSelection();
-  });
+<script type="text/javascript">
 
-    $(function() {
-    $( "#sortable2, #sortable4" ).sortable({
-      connectWith: ".connectedSortable"
-    }).disableSelection();
-  });
+  function addNewListing() {
+    // arrays representing the inventory and playlist of the user
+    var inventory = [];
+    var playlist = [];
+    
+    // populate the inventory and playlist representations with the info for each game
+    {% for game in inventory %}
+      inventory.push({ Title: "{{game.title}}", Platform: "{{game.platform}}", Id: "{{game.key.id()}}"});
+    {% endfor %} 
+    console.log(inventory);
+    alert(inventory.length);
+    {% for game in playlist %}
+      playlist.push({ Title: "{{game.title}}", Platform: "{{game.platform}}", Id: "{{game.key.id()}}"});
+    {% endfor %} 
+
+    console.log(playlist);
+
+    // initialize newTrade object to be passed as JSON later in POST request
+    var newTrade = {
+      toTrade: [],
+      toReceive: [],
+      topUp: document.getElementById("topup").value,
+    };
+
+    // add checked items in the inventory to the trade
+    for (var i = 0; i < inventory.length; i++) {
+      // alert("loop counter: " + i);
+      if(document.getElementById("inv" + i).checked) {
+        newTrade.toTrade.push(inventory[i]);
+        alert('checked');
+      } else {
+        alert('unchecked');
+      }
+    }
+
+    // add checked items in the playlist to the trade
+    for (var i = 0; i < playlist.length; i++) {
+      if(document.getElementById("plist" + i).checked) {
+        newTrade.toReceive.push(playlist[i]);
+        alert('checkedd');
+      } else {
+        alert('uncheckedd');
+      }
+    }
+
+    console.log(newTrade);
+    alert('attempting to post new Trade..');
+    $.ajax({
+      type: "POST",
+      url: "/listings",
+      data: JSON.stringify(newTrade),
+      contentType: "application/json; charset=utf-8",
+      dataType: "json",
+      success: function(){alert('success');},
+      failure: function() {
+          alert('failure');
+      }
+    });
+  }  
 </script>
+
 <h4>Make a new listing:</h4>
 <h5>I want to trade</h5>
-<div class="top-pad-one">
-	<form action="/listings" method="post">
-		<div class="totrade" style="min-height: 200px; height: auto; margin:0 auto; display:inline-block; " align="center">
-			<ul id="sortable1" class="connectedSortable" name = "wtt">
-			
-			</ul>
-		</div>
-		<div style="width: 20px; height: 20px; margin-right:7px; display:inline-block; vertical-align:top;" align="center">
-			for 
-		</div>
-		<div class="toget" style="min-height: 200px; height: auto; margin:0 auto; display:inline-block;" align="center"> 	
-			<ul id="sortable2" class="connectedSortable" name = "wtg">
+<div class="top-pad-one">	
+	<div class="totrade" style="width: 550px; min-height: 200px; height: auto; margin:0 auto; display:inline-block; " align="center">
+    <table id="tobetraded" border="1" style="width: 550px;">
+      <thead>
+        <tr><th></th><th>Title</th><th>Platform</th></tr>
+      </thead>
+      {% for game in inventory %}
+      <tbody>
+        <tr>
+          <td><input id="inv{{loop.index0}}" type="checkbox"></td>
+          <td>{{ game.title }}</td>
+          <td>{{ game.platform }}</td>
+        </tr>
+      </tbody>
+      {% endfor %}
+    </table>
+  </div>
+  <div style="width: 20px; height: 20px; margin-right:7px; display:inline-block; vertical-align:top;" align="center">
+    for 
+  </div>
+  <div class="toget" style="width: 550px;min-height: 200px; height: auto; margin:0 auto; display:inline-block;" align="center">   
+    <table id="tobereceived" border="1" style="width: 550px;">
+      <thead>
+        <tr><th></th><th>Title</th><th>Platform</th></tr>
+      </thead>
+      {% for game in playlist %}
+      <tbody>
+        <tr>
+          <td><input id="plist{{loop.index0}}" type="checkbox"></td>
+          <td>{{ game.title }}</td>
+          <td>{{ game.platform }}</td>
+        </tr>
+      </tbody>
+      {% endfor %}
+    </table>
+  </div>
+    
+  <div class="row-fluid">
+    top-up amount <input id="topup" class="input-xlarge" type="text" name="topup" value="0" required><br>       
+  </div>
+  <button onclick="addNewListing()">add listing</button>
+</div>
 
-			</ul>
-		</div>
-		<div class="inventory" style="min-height: 200px; height: auto; margin:0 auto; display:inline-block;" align="center">
-			<ul id="sortable3" class="connectedSortable">
-				{% for game in inventory %}
-					<span class="dropt" title="{{ game.description }}">
-						<li class="ui-state-default">{{ game.title }} on {{ game.platform }}</li>  				
-					</span>			
-				{% endfor %}		
-			</ul>
-		</div>
-		<div class="playlist" style="min-height: 200px; height: auto; margin:0 auto; display:inline-block;" align="center"> 
-			<ul id="sortable4" class="connectedSortable">
-				{% for game in playlist %}
-					<span class="dropt" title="{{ game.description }}">
-						<li class="ui-state-default">{{ game.title }} on {{ game.platform }}</li>  				
-					</span>			
-				{% endfor %}
-			</ul>
-		</div>
-		<div class="row-fluid">
-				top-up amount <input class="input-xlarge" type="text" name="topup" value="0" required><br>				
-		</div>
-		<button type="submit">add listing</button>
-	</form>
+<div>
+  <h4>Current Listings</h4>
+  {% for listing in listings %}
+  <table class="table table-bordered table-striped">
+    <thead>
+      <tr>
+        <th width = "60%">My titles</th>
+        <th width = "40%">My platforms</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for game in listing.away_list %}
+      <tr>
+        <td width = "60%">{{ game.title }}</td>
+        <td width = "40%">{{ game.platform }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endfor %}
 </div>
 {% endblock %}
