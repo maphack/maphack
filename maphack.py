@@ -56,7 +56,7 @@ class Listing(ndb.Model):
 	trade_for_titles = ndb.StringProperty(repeated = True)
 	trade_away_platforms = ndb.StringProperty(repeated = True)
 	trade_for_platforms = ndb.StringProperty(repeated = True)
-	top_up = ndb.IntegerProperty()	
+	top_up = ndb.FloatProperty()	
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Platform(ndb.Model):
@@ -970,7 +970,8 @@ class ListingsPage(webapp2.RequestHandler):
 			template_values = {
 				'pic': user.pic,
 				'name': user.name,
-				'logout': users.create_logout_url(self.request.host_url),	
+				'logout': users.create_logout_url(self.request.host_url),
+				'listings': listings,	
 				'playlist': playlist,
 				'inventory': inventory,
 				}
@@ -983,12 +984,12 @@ class ListingsPage(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			error = ''
-			jdata = json.loads(cgi.escape(self.request.body))
+			jdata = json.loads(self.request.body)
 
 			# Validate list of games to trade away
 			try:
-				topup = jdata.topup
-				away_list = jdata.toTrade
+				topup = jdata['topUp']
+				away_list = jdata['toTrade']
 				if len(away_list) == 0 and topup == 0:	
 					raise Exception, 'you must choose at least one game to trade away'
 			except Exception, e:
@@ -996,7 +997,7 @@ class ListingsPage(webapp2.RequestHandler):
 
 			# Validate list of games to receive in trade
 			try:
-				receive_list = jdata.toReceive
+				receive_list = jdata['toReceive']
 				if len(receive_list) == 0 and topup == 0:
 					raise Exception, 'you must choose at least one game you want'
 			except Exception, e:
@@ -1005,24 +1006,30 @@ class ListingsPage(webapp2.RequestHandler):
 			if error == '':
 				trade_away_titles = []
 				trade_away_platforms = []
+				trade_away_ids = []
 				trade_for_titles = []
-				trade_away_platforms = []
+				trade_for_platforms = []
+				trade_for_ids = []
 				
 				for game in away_list:
-					trade_away_titles.append(game.title)
-					trade_away_platforms.append(game.platform)
+					trade_away_titles.append(game['Title'])
+					trade_away_platforms.append(game['Platform'])
+					trade_away_ids.append(int(game['Id']))
 
 				for game in receive_list:
-					trade_for_titles.append(game.title)
-					trade_away_platforms.append(game.platform)
+					trade_for_titles.append(game['Title'])
+					trade_for_platforms.append(game['Platform'])
+					trade_for_ids.append(int(game['Id']))
 
-				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))				
+				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
 				listing.owner_id = users.get_current_user().user_id()
-				listing.top_up = int(topup)
+				listing.top_up = float(topup)
 				listing.trade_away_titles = trade_away_titles
 				listing.trade_away_platforms = trade_away_platforms
+				listing.trade_away_ids = trade_away_ids
 				listing.trade_for_titles = trade_for_titles
 				listing.trade_for_platforms = trade_for_platforms
+				listing.trade_for_ids = trade_for_ids
 				listing.put()
 
 				self.show()

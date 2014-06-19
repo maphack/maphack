@@ -16,6 +16,12 @@ indexes:
   - name: date
     direction: desc
 
+- kind: Listing
+  ancestor: yes
+  properties:
+  - name: date
+    direction: desc
+
 - kind: Location
   ancestor: yes
   properties:
