@@ -8,27 +8,12 @@
 		<h4>playlist</h4><br>
 	</div>
 </div>
-
-<div style="margin-top: 128px;">
-	<div id="own" style="float: left; width: 50%">
-		cash<br>
-		<input type="number" step="0.01" name="mytopup" />
-	</div>
-
-	<div id="seek" style="float: right; width: 50%">
-		cash<br>
-		<input class="cash" type="number" step="0.01" name="yourtopup" />
-	</div>
-</div>
 <div class="top-pad-one" style="float: right">
 	<input type="button" value="add listing" onclick="addListing()">
 </div>
 <script>
 	var inventory = {{ inventory|safe }};
 	var playlist = {{ playlist|safe }};
-
-	console.log(inventory);
-	console.log(playlist);
 
 	// create inventory table
 	var invDiv = document.getElementById("inventory");
@@ -78,9 +63,12 @@
 	} else {
 		invDiv.innerHTML += "<center>no games in your inventory!</center>";
 	}
-	
-	var plDiv = document.getElementById("playlist");
+
+	// create price form input
+	invDiv.innerHTML += '<div align="left">price<br><input class="price" type="number" step="0.01" value="0.00" onclick="clearField(this);" required id="mytopup" /></div>'
+
 	// create playlist table
+	var plDiv = document.getElementById("playlist");
 	if (playlist.length) {
 		// initialise table
 		var pl_table = document.createElement('table');
@@ -128,24 +116,87 @@
 		plDiv.innerHTML += "<center>no games in your playlist!</center>";
 	}
 
+	// create price form input
+	plDiv.innerHTML += '<div align="right">price<br><input class="price" type="number" step="0.01" value="0.00" onclick="clearField(this);" required id="yourtopup" /></div>'
+
 	function addListing() {
+		var listing = {
+			own: [],
+			seek: [],
+		};
+
+		mytopup = document.getElementById("mytopup").value;
+		yourtopup = document.getElementById("yourtopup").value;
+
+		try {
+			if (mytopup) {
+				listing.mytopup = currencyFormat(mytopup);
+			} else {
+				throw "invalid topup offered."
+			}
+
+			if (yourtopup) {
+				listing.yourtopup = currencyFormat(yourtopup);
+			} else {
+				throw "invalid topup requested."
+			}
+
+			console.log(listing);
+
+		} catch (error) {
+			alert(error);
+		}
 	}
 
-  /*
-  function addListing() {
-    $.ajax({
-      type: 'POST',
-      url: '/listings/add',
-      data: 
-      success: function(){
-        alert('listing added.');
-      },
-      error: function(response) {
-        alert('an error has occured.');
-        console.log(response);
-      }
-    });
-  }
-  */
+	function currencyFormat(input) {
+		console.log(input);
+		tokens = input.split(".");
+		output = tokens[0];
+		console.log(tokens);
+
+		if (tokens[1]) {
+			if (tokens[1].length > 2) {
+				throw "price should contain up to 2 decimal places."
+			}
+
+			output += ".";
+			if (tokens[1].length == 1) {
+				output += tokens[1].substring(0,1);
+			} else {
+				output += tokens[1].substring(0,2);
+			}
+		}
+		return output;
+	}
+
+	function clearField(field) {
+		if (field.value == "0.00") {
+			field.value = "";
+		}
+	}
+
+	$(document).ready(function(){
+		// only allow numbers, decimal points, periods, backspaces, deletes to be typed in .price fields
+		$(".price").keydown(function (event) {
+			if (event.shiftKey) {
+				event.preventDefault();
+			}
+
+			if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 110 || event.keyCode == 190) {
+			}
+			else {
+				if (event.keyCode < 95) {
+					if (event.keyCode < 48 || event.keyCode > 57) {
+						event.preventDefault();
+					}
+				}
+				else {
+					if (event.keyCode < 96 || event.keyCode > 105) {
+						event.preventDefault();
+					}
+				}
+			}
+		});
+	});
 </script>
 {% endblock %}
