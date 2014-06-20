@@ -1,3 +1,4 @@
+import datetime
 import jinja2
 import os
 import webapp2
@@ -81,6 +82,24 @@ class Seeker(ndb.Model):
 	name = ndb.StringProperty()
 	game_ids = ndb.IntegerProperty(repeated = True, indexed = False)
 	descriptions = ndb.TextProperty(repeated = True, indexed = False)
+
+# JSON encoder
+class NdbEncoder(json.JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, datetime.datetime):
+			return {"y": obj.year,
+				"m": obj.month,
+				"d": obj.day,
+				"h": obj.hour,
+				"s": obj.second,}
+
+		if isinstance(obj, ndb.GeoPt):
+			return {"lat": obj.lat, "lon": obj.lon}
+
+		if isinstance(obj, ndb.Key):
+			return "key"
+
+		return json.JSONEncoder.default(self, obj)
 
 # Helper functions:
 def user_game_map(result):
@@ -953,7 +972,7 @@ class ListingsPage(webapp2.RequestHandler):
 				"FROM Listing "
 				"WHERE ANCESTOR IS :1 "
 				"ORDER BY date DESC",
-				ndb.Key('Listing', users.get_current_user().user_id()))
+				ndb.Key('Person', users.get_current_user().user_id()))
 
 			playlist = ndb.gql("SELECT * "
 				"FROM Game "
@@ -971,9 +990,9 @@ class ListingsPage(webapp2.RequestHandler):
 				'pic': user.pic,
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'listings': listings,	
-				'playlist': playlist,
-				'inventory': inventory,
+				'inventory': json.dumps([ndb.Model.to_dict(game) for game in inventory], cls = NdbEncoder),
+				'playlist': json.dumps([ndb.Model.to_dict(game) for game in playlist], cls = NdbEncoder),
+				'listings': json.dumps([ndb.Model.to_dict(listing) for listing in listings], cls = NdbEncoder),
 				}
 			template = JINJA_ENVIRONMENT.get_template('listings.html')
 			self.response.out.write(template.render(template_values))
@@ -1036,6 +1055,35 @@ class ListingsPage(webapp2.RequestHandler):
 			else:
 				self.show(error)
 
+class ListingsAdd(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			inventory = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Inventory', users.get_current_user().user_id()))
+
+			playlist = ndb.gql("SELECT * "
+				"FROM Game "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date DESC",
+				ndb.Key('Playlist', users.get_current_user().user_id()))
+
+			template_values = {
+				'pic': user.pic,
+				'name': user.name,
+				'logout': users.create_logout_url(self.request.host_url),
+				'inventory': json.dumps([ndb.Model.to_dict(game) for game in inventory], cls = NdbEncoder),
+				'playlist': json.dumps([ndb.Model.to_dict(game) for game in playlist], cls = NdbEncoder),
+				}
+			template = JINJA_ENVIRONMENT.get_template('listings_add.html')
+			self.response.out.write(template.render(template_values))
+
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1050,9 +1098,10 @@ application = webapp2.WSGIApplication([
 	('/inventory/delete', InventoryDelete),
 	('/playlist', PlaylistPage),
 	('/playlist/delete', PlaylistDelete),
+	('/listings', ListingsPage),
+	('/listings/add', ListingsAdd),
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
-	('/listings', ListingsPage),
 	('/*', Dashboard),
 ], debug=True)

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="top-pad-one">
+	<div id="inventory" style="float: left; width: 50%">
+		<h4>inventory</h4><br>
+	</div>
+	<div id="playlist" style="float: right; width: 50%">
+		<h4>playlist</h4><br>
+	</div>
+</div>
+
+<div style="margin-top: 128px;">
+	<div id="own" style="float: left; width: 50%">
+		cash<br>
+		<input type="number" step="0.01" name="mytopup" />
+	</div>
+
+	<div id="seek" style="float: right; width: 50%">
+		cash<br>
+		<input class="cash" type="number" step="0.01" name="yourtopup" />
+	</div>
+</div>
+<div class="top-pad-one" style="float: right">
+	<input type="button" value="add listing" onclick="addListing()">
+</div>
+<script>
+	var inventory = {{ inventory|safe }};
+	var playlist = {{ playlist|safe }};
+
+	console.log(inventory);
+	console.log(playlist);
+
+	// create inventory table
+	var invDiv = document.getElementById("inventory");
+	if (inventory.length) {
+		// initialise table
+		var inv_table = document.createElement('table');
+		inv_table.className = "table table-bordered table-striped";
+
+		// initialise header
+		var header = inv_table.createTHead();
+
+		// initialise row
+		var row = header.insertRow(0);
+
+		//initialise cells
+		var cell = row.insertCell(0);
+		cell.style.width = "5%";
+		cell = row.insertCell(1);
+		cell.innerHTML = "title";
+		cell.style.width = "80%";
+		cell = row.insertCell(2);
+		cell.innerHTML = "platform";
+		cell.style.width = "15%";
+
+		// initialise body
+		var body = inv_table.createTBody();
+
+		for (var i = 0; i < inventory.length; i++) {
+			// initialise row
+			var row = body.insertRow(i);
+
+			// initialise cells
+			cell = row.insertCell(0);
+			cell.innerHTML = '<input id="' + i + '" type="checkbox">';
+			cell.style.width = "5%";
+
+			cell = row.insertCell(1);
+			cell.innerHTML = inventory[i]['title'];
+			cell.style.width = "80%";
+
+			cell = row.insertCell(2);
+			cell.innerHTML = inventory[i]['platform'];
+			cell.style.width = "15%";
+		}
+
+		invDiv.appendChild(inv_table);
+	} else {
+		invDiv.innerHTML += "<center>no games in your inventory!</center>";
+	}
+	
+	var plDiv = document.getElementById("playlist");
+	// create playlist table
+	if (playlist.length) {
+		// initialise table
+		var pl_table = document.createElement('table');
+		pl_table.className = "table table-bordered table-striped";
+
+		// initialise header
+		var header = pl_table.createTHead();
+
+		// initialise row
+		var row = header.insertRow(0);
+
+		//initialise cells
+		var cell = row.insertCell(0);
+		cell.style.width = "5%";
+		cell = row.insertCell(1);
+		cell.innerHTML = "title";
+		cell.style.width = "80%";
+		cell = row.insertCell(2);
+		cell.innerHTML = "platform";
+		cell.style.width = "15%";
+
+		// initialise body
+		var body = pl_table.createTBody();
+
+		for (var i = 0; i < playlist.length; i++) {
+			// initialise row
+			var row = body.insertRow(i);
+
+			// initialise cells
+			cell = row.insertCell(0);
+			cell.innerHTML = '<input id="' + i + '" type="checkbox">';
+			cell.style.width = "5%";
+
+			cell = row.insertCell(1);
+			cell.innerHTML = playlist[i]['title'];
+			cell.style.width = "80%";
+
+			cell = row.insertCell(2);
+			cell.innerHTML = playlist[i]['platform'];
+			cell.style.width = "15%";
+		}
+
+		plDiv.appendChild(pl_table);
+	} else {
+		plDiv.innerHTML += "<center>no games in your playlist!</center>";
+	}
+
+	function addListing() {
+	}
+
+  /*
+  function addListing() {
+    $.ajax({
+      type: 'POST',
+      url: '/listings/add',
+      data: 
+      success: function(){
+        alert('listing added.');
+      },
+      error: function(response) {
+        alert('an error has occured.');
+        console.log(response);
+      }
+    });
+  }
+  */
+</script>
+{% endblock %}
