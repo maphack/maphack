@@ -569,25 +569,44 @@ class InventoryDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 			
-			game_key = ndb.Key('Game', int(self.request.get('game_id')),
+			game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
 				parent = inventory_key)
-			game = game_key.get()
+			game_to_delete = game_to_delete_key.get()
 
-			for id in game.listing_ids:
-				listing_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Listing', id)
-				listing_key.delete()
+			if game_to_delete:
+				for listing_id in game_to_delete.listing_ids:
+					listing_key = ndb.Key('Listing', listing_id,
+						parent = ndb.Key('Person', users.get_current_user().user_id()))
+					listing = listing_key.get()
 
-			if game:
+					for game_id in listing.own_ids:
+						game_key = ndb.Key('Game', game_id,
+							parent = inventory_key)
+						game = game_key.get()
+
+						game.listing_ids.remove(listing_id)
+						game.put()
+
+					for game_id in listing.seek_ids:
+						game_key = ndb.Key('Game', game_id,
+							parent = playlist_key)
+						game = game_key.get()
+
+						game.listing_ids.remove(listing_id)
+						game.put()
+
+					listing_key.delete()
+
+				game_to_delete_key.delete()
+
 				inventory = inventory_key.get()
 				inventory.count -= 1
 				inventory.put()
 
-				game_key.delete()
-
-				owners_key = ndb.Key('Owners', game.title,
-					parent = ndb.Key('Platform', game.platform))
+				owners_key = ndb.Key('Owners', game_to_delete.title,
+					parent = ndb.Key('Platform', game_to_delete.platform))
 				owners = owners_key.get()
 				owners.count -= 1
 				owners.put()
@@ -595,8 +614,8 @@ class InventoryDelete(webapp2.RequestHandler):
 				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
 					parent = owners_key)
 				owner = owner_key.get()
-				owner.game_ids.remove(game.key.id())
-				owner.descriptions.remove(game.description)
+				owner.game_ids.remove(game_to_delete.key.id())
+				owner.descriptions.remove(game_to_delete.description)
 			
 				if owner.game_ids == []:
 					owner_key.delete()
@@ -724,35 +743,54 @@ class PlaylistDelete(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
 			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 			
-			game_key = ndb.Key('Game', int(self.request.get('game_id')),
+			game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
 				parent = playlist_key)
-			game = game_key.get()
+			game_to_delete = game_to_delete_key.get()
 
-			if game:
+			if game_to_delete:
+				for listing_id in game_to_delete.listing_ids:
+					listing_key = ndb.Key('Listing', listing_id,
+						parent = ndb.Key('Person', users.get_current_user().user_id()))
+					listing = listing_key.get()
+
+					for game_id in listing.own_ids:
+						game_key = ndb.Key('Game', game_id,
+							parent = inventory_key)
+						game = game_key.get()
+
+						game.listing_ids.remove(listing_id)
+						game.put()
+
+					for game_id in listing.seek_ids:
+						game_key = ndb.Key('Game', game_id,
+							parent = playlist_key)
+						game = game_key.get()
+
+						game.listing_ids.remove(listing_id)
+						game.put()
+
+					listing_key.delete()
+
+				game_to_delete_key.delete()
+
 				playlist = playlist_key.get()
 				playlist.count -= 1
 				playlist.put()
 
-				for id in game.listing_ids:
-					listing_key = ndb.Key('Person', users.get_current_user().user_id(),
-						'Listing', id)
-					listing_key.delete()
-
-				game_key.delete()
-
-				seekers_key = ndb.Key('Seekers', game.title,
-					parent = ndb.Key('Platform', game.platform))
-				seekers = seekers_key.get()
+				seekers_key = ndb.Key('Seekers', game_to_delete.title,
+					parent = ndb.Key('Platform', game_to_delete.platform))
+				seekers = seekers.get()
 				seekers.count -= 1
 				seekers.put()
 
 				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
 					parent = seekers_key)
 				seeker = seeker_key.get()
-				seeker.game_ids.remove(game.key.id())
-				seeker.descriptions.remove(game.description)
+				seeker.game_ids.remove(game_to_delete.key.id())
+				seeker.descriptions.remove(game_to_delete.description)
 			
 				if seeker.game_ids == []:
 					seeker_key.delete()
