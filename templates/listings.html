@@ -90,6 +90,7 @@
 						cell = row.insertCell(3);
 						var img = document.createElement('img');
 						img.src = listings[i].own_pics[j];
+						img.className = "game_pic";
 						cell.appendChild(img)
 						cell.style.width = "20%";
 					}
@@ -158,6 +159,7 @@
 						cell = row.insertCell(3);
 						var img = document.createElement('img');
 						img.src = listings[i].seek_pics[j];
+						img.className = "game_pic";
 						cell.appendChild(img);
 						cell.style.width = "20%";
 					}
