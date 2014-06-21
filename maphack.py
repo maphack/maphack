@@ -50,6 +50,7 @@ class Game(ndb.Model):
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Listing(ndb.Model):
+	listing_id = ndb.IntegerProperty(indexed = False)
 	owner_id = ndb.StringProperty(indexed = False)
 	own_ids = ndb.IntegerProperty(repeated = True, indexed = False)
 	seek_ids = ndb.IntegerProperty(repeated = True, indexed = False)
@@ -1071,6 +1072,8 @@ class ListingsAdd(webapp2.RequestHandler):
 						raise Exception, "no such game in playlist."
 
 				listing.put()
+				listing.listing_id = listing.key.id()
+				listing.put()
 
 				# iterate over games and add listing id
 				for game_id in listing.own_ids:
@@ -1112,14 +1115,14 @@ class ListingsDelete(webapp2.RequestHandler):
 
 				for game_id in listing.seek_ids:
 					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
+						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
 					game = game_key.get()
 					game.listing_ids.remove(listing.key.id())
 					game.put()
 
 				listing_key.delete()
 
-				self.response.out.write("success")
+				self.redirect('/listings');
 			else:
 				self.response.out.write("no such listing id.")
 
@@ -1139,6 +1142,7 @@ application = webapp2.WSGIApplication([
 	('/playlist/delete', PlaylistDelete),
 	('/listings', ListingsPage),
 	('/listings/add', ListingsAdd),
+	('/listings/delete', ListingsDelete),
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),

@@ -180,6 +180,30 @@
 
 				listingDiv.appendChild(seekDiv);
 
+				// create delete button
+				var delDiv = document.createElement("div");
+				delDiv.style.clear = "both";
+				delDiv.style.float = "right";
+				delDiv.style.padding = "16px";
+
+				var delForm = document.createElement("form");
+				delForm.method = "POST";
+				delForm.action = "/listings/delete";
+
+				var delButton = document.createElement("input");
+				delButton.type = "submit";
+				delButton.value = "delete listing";
+
+				var delVal = document.createElement("input");
+				delVal.type = "hidden";
+				delVal.name = "listing_id";
+				delVal.value = listings[i].listing_id;
+
+				delForm.appendChild(delButton);
+				delForm.appendChild(delVal);
+				delDiv.appendChild(delForm);
+				listingDiv.appendChild(delDiv);
+
 				listingsDiv.appendChild(listingDiv);
 			}
 		} else {
