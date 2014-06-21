@@ -388,8 +388,17 @@ class LocationsAdd(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			locations = ndb.gql("SELECT * "
+				"FROM Location "
+				"WHERE ANCESTOR IS :1 "
+				"ORDER BY date ASC",
+				ndb.Key('Person', users.get_current_user().user_id()))
+
+			template_values = {
+				'locations': jsonify(locations),
+				}
 			template = JINJA_ENVIRONMENT.get_template('locations_add.html')
-			self.response.out.write(template.render())
+			self.response.out.write(template.render(template_values))
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
