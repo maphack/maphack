@@ -4,13 +4,13 @@
 <p><img class="display_pic" src="{{ person_pic }}"> {{ person_name }}</p>
 <p>
 	{{ person_name }} can trade ~{{ '%0.2f' % nearest_distance }} k.m. away.<br>
-	<a href="../user/locations/{{ person_id }}" target="_blank">view this user's trading locations</a>
+	<a href="/user/locations/{{ person_id }}" target="_blank">view this user's trading locations</a>
 </p>
 <div class="top-pad-one">
 	<h4>matching inventories and playlists:</h4><br>
 	{% if my_diff %}
 	games you own that are not in {{ person_name }}'s playlist<br>
-	<table class="table table-bordered table-striped">
+	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
 				<th width = "20%">title</th>
@@ -37,7 +37,7 @@
 <div class="top-pad-one">
 	{% if my_match %}
 	games you own that are in {{ person_name }}'s playlist<br>
-	<table class="table table-bordered table-striped">
+	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
 				<th width = "20%">title</th>
@@ -64,7 +64,7 @@
 <div class="top-pad-one">
 	{% if your_match %}
 	games {{ person_name }} owns that are in your playlist<br>
-	<table class="table table-bordered table-striped">
+	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
 				<th width = "20%">title</th>
@@ -91,7 +91,7 @@
 <div class="top-pad-one">
 	{% if your_diff %}
 	games {{ person_name }} owns that are not in your playlist<br>
-	<table class="table table-bordered table-striped">
+	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
 				<th width = "20%">title</th>

@@ -14,7 +14,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 
-DISPLAY_PIC = '../images/display_pic.png'
+DISPLAY_PIC = '/images/display_pic.png'
 
 # Datastore definitions
 class Person(ndb.Model):

@@ -29,7 +29,7 @@
 		if (inventory.length) {
 			// initialise table
 			var invTable = document.createElement("table");
-			invTable.className = "table table-bordered table-striped";
+			invTable.className = "sortable table table-bordered table-striped";
 
 			// initialise header
 			var header = invTable.createTHead();
@@ -81,7 +81,7 @@
 		if (playlist.length) {
 			// initialise table
 			var plTable = document.createElement("table");
-			plTable.className = "table table-bordered table-striped";
+			plTable.className = "sortable table table-bordered table-striped";
 
 			// initialise header
 			var header = plTable.createTHead();
@@ -225,8 +225,6 @@
 			if ((listing.seek.length != 0 || listing.yourtopup > 0) && (listing.own.length == 0 && listing.mytopup == 0)) {
 				throw "please add a price or games you would like to trade away.";
 			}
-
-			console.log(JSON.stringify(listing));
 
 			$.ajax({
 				type: "POST",

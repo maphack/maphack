@@ -7,7 +7,7 @@
 	{% else %}
 	<h4> users who {{ query_type }} {{ title }} on {{ platform }} </h4>
 	{% if results %}
-	<table class="table table-bordered table-striped">
+	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
 				<th width = "20%">name</th>
@@ -19,7 +19,7 @@
 			{% for person, distance in results %}
 			<tr>
 				<td width = "20%">
-					<a href= '../user/{{ person.key.id() }}'>
+					<a href= '/user/{{ person.key.id() }}'>
 						{{ person.name }}
 					</a>
 				</td>
