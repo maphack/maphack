@@ -43,6 +43,7 @@ class Playlist(ndb.Model):
 	count = ndb.IntegerProperty(default = 0, indexed = False)
 
 class Game(ndb.Model):
+	game_id = ndb.IntegerProperty(indexed = False)
 	title = ndb.StringProperty()
 	platform = ndb.StringProperty()
 	pic = ndb.StringProperty(indexed = False)
@@ -50,13 +51,11 @@ class Game(ndb.Model):
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Listing(ndb.Model):
-	owner_id = ndb.StringProperty()
-	trade_away_ids = ndb.IntegerProperty(repeated = True)
-	trade_for_ids = ndb.IntegerProperty(repeated = True)	
-	trade_away_titles = ndb.StringProperty(repeated = True)
-	trade_for_titles = ndb.StringProperty(repeated = True)
-	trade_away_platforms = ndb.StringProperty(repeated = True)
-	trade_for_platforms = ndb.StringProperty(repeated = True)
+	owner_id = ndb.StringProperty(indexed = False)
+	own_ids = ndb.IntegerProperty(repeated = True)
+	seek_ids = ndb.IntegerProperty(repeated = True)
+	own_games = ndb.StringProperty(repeated = True)
+	seek_games = ndb.StringProperty(repeated = True)
 	top_up = ndb.FloatProperty()	
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
@@ -148,6 +147,11 @@ def min_dist(locs1, locs2):
 			if dist < min_dist:
 				min_dist = dist
 	return min_dist
+
+def jsonify(query):
+	if type(query) is not ndb.Query:
+		raise Exception, "input is not of type ndb.Query"
+	return json.dumps([ndb.Model.to_dict(result) for result in query], cls = NdbEncoder)
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
@@ -516,6 +520,8 @@ class InventoryPage(webapp2.RequestHandler):
 				game.description = input_description
 				game.pic = input_pic
 				game.put()
+				game.game_id = game.key.id()
+				game.put()
 
 				owners_key = ndb.Key('Owners', game.title,
 					parent = ndb.Key('Platform', game.platform))
@@ -664,6 +670,8 @@ class PlaylistPage(webapp2.RequestHandler):
 				game.platform = input_platform
 				game.description = input_description
 				game.pic = input_pic
+				game.put()
+				game.game_id = game.key.id()
 				game.put()
 
 				seekers_key = ndb.Key('Seekers', game.title,
@@ -924,45 +932,6 @@ class UserLocations(webapp2.RequestHandler):
 			self.response.out.write(template.render(template_values))
 
 class ListingsPage(webapp2.RequestHandler):
-	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
-			self.redirect('/setup')
-		else:
-			listings = ndb.gql("SELECT * "
-				"FROM Listing "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Listing', users.get_current_user().user_id()))
-
-			playlist = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Playlist', users.get_current_user().user_id()))
-
-			inventory = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
-				ndb.Key('Inventory', users.get_current_user().user_id()))
-
-			template_values = {
-				'pic': user.pic,
-				'name': user.name,
-				'logout': users.create_logout_url(self.request.host_url),
-				'listings': listings,
-				'playlist': playlist,
-				'inventory': inventory,
-				'error': error,
-				'input_title': input_title,
-				'input_platform': input_platform,
-				'input_pic': input_pic,
-				'input_description': input_description,
-				}
-			template = JINJA_ENVIRONMENT.get_template('listings.html')
-			self.response.out.write(template.render(template_values))
-
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
@@ -990,70 +959,12 @@ class ListingsPage(webapp2.RequestHandler):
 				'pic': user.pic,
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'inventory': json.dumps([ndb.Model.to_dict(game) for game in inventory], cls = NdbEncoder),
-				'playlist': json.dumps([ndb.Model.to_dict(game) for game in playlist], cls = NdbEncoder),
-				'listings': json.dumps([ndb.Model.to_dict(listing) for listing in listings], cls = NdbEncoder),
+				'inventory': jsonify(inventory),
+				'playlist': jsonify(playlist),
+				'listings': jsonify(listings),
 				}
 			template = JINJA_ENVIRONMENT.get_template('listings.html')
 			self.response.out.write(template.render(template_values))
-			
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
-			self.redirect('/setup')
-		else:
-			error = ''
-			jdata = json.loads(self.request.body)
-
-			# Validate list of games to trade away
-			try:
-				topup = jdata['topUp']
-				away_list = jdata['toTrade']
-				if len(away_list) == 0 and topup == 0:	
-					raise Exception, 'you must choose at least one game to trade away'
-			except Exception, e:
-				error = error + 'error with list of games chosen. ' + str(e) + '. '
-
-			# Validate list of games to receive in trade
-			try:
-				receive_list = jdata['toReceive']
-				if len(receive_list) == 0 and topup == 0:
-					raise Exception, 'you must choose at least one game you want'
-			except Exception, e:
-				error = error + 'error with list of games chosen. ' + str(e) + '. '
-
-			if error == '':
-				trade_away_titles = []
-				trade_away_platforms = []
-				trade_away_ids = []
-				trade_for_titles = []
-				trade_for_platforms = []
-				trade_for_ids = []
-				
-				for game in away_list:
-					trade_away_titles.append(game['Title'])
-					trade_away_platforms.append(game['Platform'])
-					trade_away_ids.append(int(game['Id']))
-
-				for game in receive_list:
-					trade_for_titles.append(game['Title'])
-					trade_for_platforms.append(game['Platform'])
-					trade_for_ids.append(int(game['Id']))
-
-				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
-				listing.owner_id = users.get_current_user().user_id()
-				listing.top_up = float(topup)
-				listing.trade_away_titles = trade_away_titles
-				listing.trade_away_platforms = trade_away_platforms
-				listing.trade_away_ids = trade_away_ids
-				listing.trade_for_titles = trade_for_titles
-				listing.trade_for_platforms = trade_for_platforms
-				listing.trade_for_ids = trade_for_ids
-				listing.put()
-
-				self.show()
-			else:
-				self.show(error)
 
 class ListingsAdd(webapp2.RequestHandler):
 	def get(self):
@@ -1077,12 +988,18 @@ class ListingsAdd(webapp2.RequestHandler):
 				'pic': user.pic,
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'inventory': json.dumps([ndb.Model.to_dict(game) for game in inventory], cls = NdbEncoder),
-				'playlist': json.dumps([ndb.Model.to_dict(game) for game in playlist], cls = NdbEncoder),
+				'inventory': jsonify(inventory),
+				'playlist': jsonify(playlist),
 				}
 			template = JINJA_ENVIRONMENT.get_template('listings_add.html')
 			self.response.out.write(template.render(template_values))
 
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			pass
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),

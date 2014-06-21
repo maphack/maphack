@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="top-pad-one">
+<div id="tables" class="top-pad-one">
 	<div id="inventory" style="float: left; width: 50%">
 		<h4>inventory</h4><br>
 	</div>
@@ -8,155 +8,256 @@
 		<h4>playlist</h4><br>
 	</div>
 </div>
-<div class="top-pad-one" style="float: right">
+<div id="topup" class="top-pad-one" style="clear: both; float: right">
+	{% if inventory|length and playlist|length %}
 	<input type="button" value="add listing" onclick="addListing()">
+	{% endif %}
 </div>
 <script>
 	var inventory = {{ inventory|safe }};
 	var playlist = {{ playlist|safe }};
 
-	// create inventory table
-	var invDiv = document.getElementById("inventory");
-	if (inventory.length) {
-		// initialise table
-		var inv_table = document.createElement('table');
-		inv_table.className = "table table-bordered table-striped";
+	initialise();
 
-		// initialise header
-		var header = inv_table.createTHead();
+	function initialise() {
+		var tablesDiv = document.getElementById("tables");
+		var invDiv = document.getElementById("inventory");
+		var plDiv = document.getElementById("playlist");
 
-		// initialise row
-		var row = header.insertRow(0);
+		// create inventory table
+		if (inventory.length) {
+			// initialise table
+			var invTable = document.createElement("table");
+			invTable.className = "table table-bordered table-striped";
 
-		//initialise cells
-		var cell = row.insertCell(0);
-		cell.style.width = "5%";
-		cell = row.insertCell(1);
-		cell.innerHTML = "title";
-		cell.style.width = "80%";
-		cell = row.insertCell(2);
-		cell.innerHTML = "platform";
-		cell.style.width = "15%";
+			// initialise header
+			var header = invTable.createTHead();
 
-		// initialise body
-		var body = inv_table.createTBody();
-
-		for (var i = 0; i < inventory.length; i++) {
 			// initialise row
-			var row = body.insertRow(i);
+			var row = header.insertRow(0);
 
-			// initialise cells
-			cell = row.insertCell(0);
-			cell.innerHTML = '<input id="' + i + '" type="checkbox">';
+			//initialise cells
+			var cell = row.insertCell(0);
 			cell.style.width = "5%";
-
 			cell = row.insertCell(1);
-			cell.innerHTML = inventory[i]['title'];
+			cell.innerHTML = "title";
 			cell.style.width = "80%";
-
 			cell = row.insertCell(2);
-			cell.innerHTML = inventory[i]['platform'];
+			cell.innerHTML = "platform";
 			cell.style.width = "15%";
+
+			// initialise body
+			var body = invTable.createTBody();
+
+			for (var i = 0; i < inventory.length; i++) {
+				// initialise row
+				var row = body.insertRow(i);
+
+				// initialise cells
+				cell = row.insertCell(0);
+				cell.style.width = "5%";
+
+				var checkbox = document.createElement("input");
+				checkbox.id = "inv" + i;
+				checkbox.type = "checkbox";
+				cell.appendChild(checkbox);
+
+				cell = row.insertCell(1);
+				cell.innerHTML = inventory[i]["title"];
+				cell.style.width = "80%";
+
+				cell = row.insertCell(2);
+				cell.innerHTML = inventory[i]["platform"];
+				cell.style.width = "15%";
+			}
+
+			invDiv.appendChild(invTable);
+		} else {
+			invDiv.innerHTML += "<center>no games in your inventory!</center>";
 		}
 
-		invDiv.appendChild(inv_table);
-	} else {
-		invDiv.innerHTML += "<center>no games in your inventory!</center>";
-	}
+		// create playlist table
+		if (playlist.length) {
+			// initialise table
+			var plTable = document.createElement("table");
+			plTable.className = "table table-bordered table-striped";
 
-	// create price form input
-	invDiv.innerHTML += '<div align="left">price<br><input class="price" type="number" step="0.01" value="0.00" onclick="clearField(this);" required id="mytopup" /></div>'
+			// initialise header
+			var header = plTable.createTHead();
 
-	// create playlist table
-	var plDiv = document.getElementById("playlist");
-	if (playlist.length) {
-		// initialise table
-		var pl_table = document.createElement('table');
-		pl_table.className = "table table-bordered table-striped";
-
-		// initialise header
-		var header = pl_table.createTHead();
-
-		// initialise row
-		var row = header.insertRow(0);
-
-		//initialise cells
-		var cell = row.insertCell(0);
-		cell.style.width = "5%";
-		cell = row.insertCell(1);
-		cell.innerHTML = "title";
-		cell.style.width = "80%";
-		cell = row.insertCell(2);
-		cell.innerHTML = "platform";
-		cell.style.width = "15%";
-
-		// initialise body
-		var body = pl_table.createTBody();
-
-		for (var i = 0; i < playlist.length; i++) {
 			// initialise row
-			var row = body.insertRow(i);
+			var row = header.insertRow(0);
 
-			// initialise cells
-			cell = row.insertCell(0);
-			cell.innerHTML = '<input id="' + i + '" type="checkbox">';
+			//initialise cells
+			var cell = row.insertCell(0);
 			cell.style.width = "5%";
-
 			cell = row.insertCell(1);
-			cell.innerHTML = playlist[i]['title'];
+			cell.innerHTML = "title";
 			cell.style.width = "80%";
-
 			cell = row.insertCell(2);
-			cell.innerHTML = playlist[i]['platform'];
+			cell.innerHTML = "platform";
 			cell.style.width = "15%";
+
+			// initialise body
+			var body = plTable.createTBody();
+
+			for (var i = 0; i < playlist.length; i++) {
+				// initialise row
+				var row = body.insertRow(i);
+
+				// initialise cells
+				cell = row.insertCell(0);
+				cell.style.width = "5%";
+
+				var checkbox = document.createElement("input");
+				checkbox.id = "pl" + i;
+				checkbox.type = "checkbox";
+				cell.appendChild(checkbox);
+
+				cell = row.insertCell(1);
+				cell.innerHTML = playlist[i]["title"];
+				cell.style.width = "80%";
+
+				cell = row.insertCell(2);
+				cell.innerHTML = playlist[i]["platform"];
+				cell.style.width = "15%";
+			}
+
+			plDiv.appendChild(plTable);
+		} else {
+			plDiv.innerHTML += "<center>no games in your playlist!</center>";
 		}
 
-		plDiv.appendChild(pl_table);
-	} else {
-		plDiv.innerHTML += "<center>no games in your playlist!</center>";
-	}
+		// create topup form inputs
+		var topupDiv = document.createElement("div");
+		topupDiv.style.clear = "both";
 
-	// create price form input
-	plDiv.innerHTML += '<div align="right">price<br><input class="price" type="number" step="0.01" value="0.00" onclick="clearField(this);" required id="yourtopup" /></div>'
+		if (inventory.length) {
+			var priceInputDiv = document.createElement("div");
+			priceInputDiv.style.float = "right";
+
+			if (playlist.length) {
+				priceInputDiv.appendChild(document.createTextNode("topup:"));
+			} else {
+				priceInputDiv.appendChild(document.createTextNode("price:"));
+			}
+
+			var priceInput = document.createElement("input");
+			priceInput.id = "yourtopup";
+			priceInput.type = "number";
+			priceInput.className = "price";
+			priceInput.step = "0.01";
+			priceInput.value = "0.00";
+
+			priceInputDiv.appendChild(priceInput);
+			topupDiv.appendChild(priceInputDiv);
+		}
+
+		if (playlist.length) {
+			var priceInputDiv = document.createElement("div");
+			priceInputDiv.style.float = "left";
+
+			if (inventory.length) {
+				priceInputDiv.appendChild(document.createTextNode("topup:"));
+			} else {
+				priceInputDiv.appendChild(document.createTextNode("price:"));
+			}
+
+			var priceInput = document.createElement("input");
+			priceInput.id = "mytopup";
+			priceInput.type = "number";
+			priceInput.className = "price";
+			priceInput.step = "0.01";
+			priceInput.value = "0.00";
+
+
+			priceInputDiv.appendChild(priceInput);
+			topupDiv.appendChild(priceInputDiv);
+		}
+
+		tablesDiv.appendChild(topupDiv);
+	}
 
 	function addListing() {
 		var listing = {
 			own: [],
 			seek: [],
+			mytopup: 0,
+			yourtopup: 0,
 		};
 
-		mytopup = document.getElementById("mytopup").value;
-		yourtopup = document.getElementById("yourtopup").value;
-
 		try {
-			if (mytopup) {
-				listing.mytopup = currencyFormat(mytopup);
-			} else {
-				throw "invalid topup offered."
+			if (document.getElementById("mytopup")) {
+				listing.mytopup = currencyFormat(document.getElementById("mytopup").value);
 			}
 
-			if (yourtopup) {
-				listing.yourtopup = currencyFormat(yourtopup);
-			} else {
-				throw "invalid topup requested."
+			if (document.getElementById("yourtopup")) {
+				listing.yourtopup = currencyFormat(document.getElementById("yourtopup").value);
 			}
 
-			console.log(listing);
+			// add checked items in the inventory to the trade
+			for (var i = 0; i < inventory.length; i++) {
+				if (document.getElementById("inv" + i).checked) {
+					listing.own.push({"game_id": inventory[i]["game_id"], "title": inventory[i]["title"], "platform": inventory[i]["platform"]});
+				}
+			}
 
+			// add checked items in the playlist to the trade
+			for (var i = 0; i < playlist.length; i++) {
+				if (document.getElementById("pl" + i).checked) {
+					listing.seek.push({"game_id": playlist[i]["game_id"], "title": playlist[i]["title"], "platform": playlist[i]["platform"]});
+				}
+			}
+
+			if (listing.own.length == 0 && listing.seek.length == 0) {
+				throw "please add games to your listing.";
+			}
+
+			if (listing.mytopup > 0 && listing.yourtopup > 0) {
+				throw "you cannot offer and request a topup at the same time.";
+			}
+
+			if ((listing.own.length != 0 || listing.mytopup > 0) && (listing.seek.length == 0 && listing.yourtopup == 0)) {
+				throw "please add games you would like to trade for.";
+			}
+
+			if ((listing.seek.length != 0 || listing.yourtopup > 0) && (listing.own.length == 0 && listing.mytopup == 0)) {
+				throw "please add games you would like to trade for.";
+			}
+
+			console.log(JSON.stringify(listing));
+			/*
+			$.ajax({
+				type: "POST",
+				url: "/listings/add",
+				data: JSON.stringify(listing),
+				contentType: "application/json",
+				success: function(){
+					alert("listing added.");
+				},
+				failure: function() {
+					alert("error.");
+				}
+			});
+			*/
 		} catch (error) {
 			alert(error);
 		}
+
+		console.log(listing);
 	}
 
 	function currencyFormat(input) {
-		console.log(input);
+		if (input == "") {
+			throw "please enter a valid price.";
+		}
+
 		tokens = input.split(".");
 		output = tokens[0];
-		console.log(tokens);
 
 		if (tokens[1]) {
 			if (tokens[1].length > 2) {
-				throw "price should contain up to 2 decimal places."
+				throw "price should contain up to 2 decimal places.";
 			}
 
 			output += ".";
@@ -166,13 +267,7 @@
 				output += tokens[1].substring(0,2);
 			}
 		}
-		return output;
-	}
-
-	function clearField(field) {
-		if (field.value == "0.00") {
-			field.value = "";
-		}
+		return parseFloat(output);
 	}
 
 	$(document).ready(function(){
