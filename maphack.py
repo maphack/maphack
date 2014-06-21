@@ -574,6 +574,11 @@ class InventoryDelete(webapp2.RequestHandler):
 				parent = inventory_key)
 			game = game_key.get()
 
+			for id in game.listing_ids:
+				listing_key = ndb.Key('Person', users.get_current_user().user_id(),
+					'Listing', id)
+				listing_key.delete()
+
 			if game:
 				inventory = inventory_key.get()
 				inventory.count -= 1
@@ -729,6 +734,11 @@ class PlaylistDelete(webapp2.RequestHandler):
 				playlist = playlist_key.get()
 				playlist.count -= 1
 				playlist.put()
+
+				for id in game.listing_ids:
+					listing_key = ndb.Key('Person', users.get_current_user().user_id(),
+						'Listing', id)
+					listing_key.delete()
 
 				game_key.delete()
 

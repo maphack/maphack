@@ -8,7 +8,7 @@
 		<button type="submit">add listing</button>
 	</form>
 </div>
-
+<script src="scripts/sorttable.js"></script>
 <script>
 	var listings = {{ listings|safe }};
 	console.log(listings);
@@ -48,7 +48,7 @@
 				if (listings[i].own_ids.length) {
 					// initialise table
 					var ownTable = document.createElement("table");
-					ownTable.className = "table table-bordered table-striped";
+					ownTable.className = "sortable table table-bordered table-striped";
 
 					// initialise header
 					var header = ownTable.createTHead();
@@ -116,7 +116,7 @@
 				if (listings[i].seek_ids.length) {
 					// initialise table
 					var seekTable = document.createElement("table");
-					seekTable.className = "table table-bordered table-striped";
+					seekTable.className = "sortable table table-bordered table-striped";
 
 					// initialise header
 					var header = seekTable.createTHead();
