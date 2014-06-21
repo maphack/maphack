@@ -1,14 +1,190 @@
 {% extends "base.html" %}
 {% block content %}
-<script>
-  var inventory = {{ inventory|safe }};
-  var playlist = {{ playlist|safe }};
-  var listings = {{ listings|safe }};
-  console.log(listings);
-</script>
-<div class="top-pad-one">
-  <form action="/listings/add" method="get">
-    <button type="submit">add listing</button>
-  </form>
+<div id="listings" class="top-pad-one">
+	<h4>listings</h4><br>
 </div>
+<div class="top-pad-one" style="clear: both">
+	<form action="/listings/add" method="get">
+		<button type="submit">add listing</button>
+	</form>
+</div>
+
+<script>
+	var listings = {{ listings|safe }};
+	console.log(listings);
+
+	initialise();
+
+	function initialise() {
+		var listingsDiv = document.getElementById("listings");
+
+		if (listings.length) {
+			for (var i = 0; i < listings.length; i++) {
+				var listingDiv = document.createElement("div");
+				listingDiv.style.clear = "both";
+				listingDiv.style.border = "solid 1px";
+
+				var ownDiv = document.createElement("div");
+				ownDiv.style.float = "left";	
+				ownDiv.style.width = "45%";
+				ownDiv.style.padding = "16px";
+
+				var textDiv = document.createElement("div");
+				textDiv.style.textAlign = "center";
+				textDiv.appendChild(document.createTextNode("offering"));
+				ownDiv.appendChild(textDiv);
+
+				var seekDiv = document.createElement("div");
+				seekDiv.style.float = "right";
+				seekDiv.style.width = "45%";
+				seekDiv.style.padding = "16px";
+
+				var textDiv = document.createElement("div");
+				textDiv.style.textAlign = "center";
+				textDiv.appendChild(document.createTextNode("for"));
+				seekDiv.appendChild(textDiv);
+
+				// create own table
+				if (listings[i].own_ids.length) {
+					// initialise table
+					var ownTable = document.createElement("table");
+					ownTable.className = "table table-bordered table-striped";
+
+					// initialise header
+					var header = ownTable.createTHead();
+
+					// initialise row
+					var row = header.insertRow(0);
+
+					//initialise cells
+					var cell = row.insertCell(0);
+					cell.innerHTML = "title";
+					cell.style.width = "30%";
+					cell = row.insertCell(1);
+					cell.innerHTML = "platform";
+					cell.style.width = "10%";
+					cell = row.insertCell(2);
+					cell.innerHTML = "description";
+					cell.style.width = "40%";
+					cell = row.insertCell(3);
+					cell.innerHTML = "image";
+					cell.style.width = "20%";
+
+					// initialise body
+					var body = ownTable.createTBody();
+
+					for (var j = 0; j < listings[i].own_ids.length; j++) {
+						// initialise row
+						var row = body.insertRow(j);
+
+						//initialise cells
+						var cell = row.insertCell(0);
+						cell.appendChild(document.createTextNode(listings[i].own_titles[j]))
+						cell.style.width = "30%";
+						cell = row.insertCell(1);
+						cell.appendChild(document.createTextNode(listings[i].own_platforms[j]))
+						cell.style.width = "10%";
+						cell = row.insertCell(2);
+						cell.appendChild(document.createTextNode(listings[i].own_descriptions[j]))
+						cell.style.width = "40%";
+						cell = row.insertCell(3);
+						var img = document.createElement('img');
+						img.src = listings[i].own_pics[j];
+						cell.appendChild(img)
+						cell.style.width = "20%";
+					}
+
+					ownDiv.appendChild(ownTable);
+				}
+
+				var topupDiv = document.createElement("div");
+				topupDiv.style.textAlign = "center";
+
+				if (listings[i].topup > 0) {
+					if (listings[i].own_ids.length) {
+						topupDiv.appendChild(document.createTextNode("topup: $" + listings[i].topup.toFixed(2)));
+					} else {
+						topupDiv.appendChild(document.createTextNode("price: $" + listings[i].topup.toFixed(2)));
+					}
+				}
+
+				ownDiv.appendChild(topupDiv)
+
+				listingDiv.appendChild(ownDiv);
+
+				// create seek table
+				if (listings[i].seek_ids.length) {
+					// initialise table
+					var seekTable = document.createElement("table");
+					seekTable.className = "table table-bordered table-striped";
+
+					// initialise header
+					var header = seekTable.createTHead();
+
+					// initialise row
+					var row = header.insertRow(0);
+
+					//initialise cells
+					var cell = row.insertCell(0);
+					cell.innerHTML = "title";
+					cell.style.width = "30%";
+					cell = row.insertCell(1);
+					cell.innerHTML = "platform";
+					cell.style.width = "10%";
+					cell = row.insertCell(2);
+					cell.innerHTML = "description";
+					cell.style.width = "40%";
+					cell = row.insertCell(3);
+					cell.innerHTML = "image";
+					cell.style.width = "20%";
+
+					// initialise body
+					var body = seekTable.createTBody();
+
+					for (var j = 0; j < listings[i].seek_ids.length; j++) {
+						// initialise row
+						var row = body.insertRow(j);
+
+						//initialise cells
+						var cell = row.insertCell(0);
+						cell.appendChild(document.createTextNode(listings[i].seek_titles[j]))
+						cell.style.width = "30%";
+						cell = row.insertCell(1);
+						cell.appendChild(document.createTextNode(listings[i].seek_platforms[j]))
+						cell.style.width = "10%";
+						cell = row.insertCell(2);
+						cell.appendChild(document.createTextNode(listings[i].seek_descriptions[j]))
+						cell.style.width = "40%";
+						cell = row.insertCell(3);
+						var img = document.createElement('img');
+						img.src = listings[i].seek_pics[j];
+						cell.appendChild(img);
+						cell.style.width = "20%";
+					}
+
+					seekDiv.appendChild(seekTable);
+				}
+
+				var topupDiv = document.createElement("div");
+				topupDiv.style.textAlign = "center";
+
+				if (listings[i].topup < 0) {
+					if (listings[i].seek_ids.length) {
+						topupDiv.appendChild(document.createTextNode("topup: $" + -listings[i].topup.toFixed(2)));
+					} else {
+						topupDiv.appendChild(document.createTextNode("price: $" + -listings[i].topup.toFixed(2)));
+					}
+				}
+
+				seekDiv.appendChild(topupDiv);
+
+				listingDiv.appendChild(seekDiv);
+
+				listingsDiv.appendChild(listingDiv);
+			}
+		} else {
+			listingsDiv.innerHTML += "<center>no listings!</center>"
+		}
+	}
+</script>
 {% endblock %}

@@ -16,6 +16,7 @@
 <script>
 	var inventory = {{ inventory|safe }};
 	var playlist = {{ playlist|safe }};
+	console.log(inventory);
 
 	initialise();
 
@@ -198,14 +199,14 @@
 			// add checked items in the inventory to the trade
 			for (var i = 0; i < inventory.length; i++) {
 				if (document.getElementById("inv" + i).checked) {
-					listing.own.push({"game_id": inventory[i]["game_id"], "title": inventory[i]["title"], "platform": inventory[i]["platform"]});
+					listing.own.push(inventory[i]["game_id"]);
 				}
 			}
 
 			// add checked items in the playlist to the trade
 			for (var i = 0; i < playlist.length; i++) {
 				if (document.getElementById("pl" + i).checked) {
-					listing.seek.push({"game_id": playlist[i]["game_id"], "title": playlist[i]["title"], "platform": playlist[i]["platform"]});
+					listing.seek.push(playlist[i]["game_id"]);
 				}
 			}
 
