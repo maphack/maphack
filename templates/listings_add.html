@@ -218,28 +218,31 @@
 			}
 
 			if ((listing.own.length != 0 || listing.mytopup > 0) && (listing.seek.length == 0 && listing.yourtopup == 0)) {
-				throw "please add games you would like to trade for.";
+				throw "please add a price or games you would like to trade for.";
 			}
 
 			if ((listing.seek.length != 0 || listing.yourtopup > 0) && (listing.own.length == 0 && listing.mytopup == 0)) {
-				throw "please add games you would like to trade for.";
+				throw "please add a price or games you would like to trade away.";
 			}
 
 			console.log(JSON.stringify(listing));
-			/*
+
 			$.ajax({
 				type: "POST",
 				url: "/listings/add",
 				data: JSON.stringify(listing),
 				contentType: "application/json",
-				success: function(){
-					alert("listing added.");
+				success: function(response){
+					if (response == "success") {
+						alert("listing added.");
+					}
 				},
-				failure: function() {
+				failure: function(response) {
 					alert("error.");
+					console.log(response);
 				}
 			});
-			*/
+
 		} catch (error) {
 			alert(error);
 		}
