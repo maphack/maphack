@@ -281,25 +281,11 @@ class ProfileEdit(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/dashboard')
 		else:
-			# Fill form with user attributes
-			if not input_name:
-				input_name = user.name
-			if not input_pic:
-				input_pic = user.pic
-			if input_pic == DISPLAY_PIC:
-				input_pic = ''
-			if not input_bio:
-				input_bio = user.bio
-
 			template_values = {
 				'pic': user.pic,
 				'name': user.name,
 				'bio': user.bio,
 				'logout': users.create_logout_url(self.request.host_url),
-				'error': error,
-				'input_name': input_name,
-				'input_pic': input_pic,
-				'input_bio': input_bio,
 				}
 			template = JINJA_ENVIRONMENT.get_template('profile_edit.html')
 			self.response.out.write(template.render(template_values))
@@ -313,6 +299,12 @@ class ProfileEdit(webapp2.RequestHandler):
 			self.redirect('/dashboard')
 		else:
 			error = []
+
+			# validate bio
+			try:
+				user.bio = self.request.get('bio').rstrip()
+			except Exception, e:
+				error.append(str(e))
 
 			# validate country
 			try:
@@ -334,11 +326,11 @@ class ProfileEdit(webapp2.RequestHandler):
 			except Exception, e:
 				error.append(str(e))
 
-			# Validate name
+			# validate name
 			try:
-				previous_name = user.name
+				old_name = user.name
 				user.name = self.request.get('name').rstrip()
-				if previous_name != user.name:
+				if old_name != user.name:
 					if user.name == '':
 						raise Exception, 'display name cannot be empty.'
 					qry = Person.query(Person.name == user.name)
@@ -347,15 +339,20 @@ class ProfileEdit(webapp2.RequestHandler):
 			except Exception, e:
 				error.append(str(e))
 
-			#Validate bio
-			try:
-				user.bio = self.request.get('bio').rstrip()
-			except Exception, e:
-				error = error  + 'error with bio. ' + str(e) + '. '
-
 			if not len(error):
 				user.setup = True
 				user.put()
+
+				# change names
+				games = Owner.query(Owner.name == old_name)
+				for game in games:
+					game.name = user.name
+					game.put()
+
+				games = Seeker.query(Seeker.name == old_name)
+				for game in games:
+					game.name = user.name
+					game.put()
 
 				self.response.out.write("profile updated.")
 			else:
