@@ -9,6 +9,9 @@
 	</form>
 </div>
 <script>
+	$('#nav-list').addClass("active");
+	$('#nav-list-my').addClass("active");
+
 	var listings = {{ listings|safe }};
 	console.log(listings);
 

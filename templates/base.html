@@ -27,26 +27,26 @@
       </div>
       <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
-          <li class="dropdown">
+          <li id="nav-dash" class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">dashboard <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              <li><a href="/profile">profile</a></li>
-              <li><a href="/locations">locations</a></li>
+              <li id="nav-dash-profile"><a href="/profile">profile</a></li>
+              <li id="nav-dash-loc"><a href="/locations">locations</a></li>
             </ul>
           </li>
-          <li class="dropdown">
+          <li id="nav-list" class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">listings <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              <li><a href="/listings">my listings</a></li>
-              <li><a href="/listings/add">add</a></li>
+              <li id="nav-list-my"><a href="/listings">my listings</a></li>
+              <li id="nav-list-add"><a href="/listings/add">add</a></li>
               <li class="divider"></li>
               <!--<li class="dropdown-header"></li>-->
               <li><a href="/listings/search">search</a></li>
             </ul>
           </li>
-          <li><a href="/inventory">inventory</a></li>
-          <li><a href="/playlist">playlist</a></li>
-          <li><a href="/search">search</a></li>
+          <li id="nav-inv"><a href="/inventory">inventory</a></li>
+          <li id="nav-pl"><a href="/playlist">playlist</a></li>
+          <li id="nav-search"><a href="/search">search</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li><a href="/profile"><img src="{{ pic }}">{{ name }}</a></li>

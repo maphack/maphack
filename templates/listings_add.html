@@ -14,6 +14,9 @@
 	{% endif %}
 </div>
 <script>
+	$('#nav-list').addClass("active");
+	$('#nav-list-add').addClass("active");
+
 	var inventory = {{ inventory|safe }};
 	var playlist = {{ playlist|safe }};
 	console.log(inventory);
