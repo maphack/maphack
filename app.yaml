@@ -20,7 +20,15 @@ handlers:
 
 # Twitter Bootstrap
 - url: /bootstrap
-  static_dir: bootstrap
+  static_dir: bootstrap-3.1.1-dist
+
+# Font Awesome
+- url: /font-awesome
+  static_dir: font-awesome-4.1.0
+
+# Bootstrap Social
+- url: /bootstrap-social
+  static_dir: bootstrap-social
 
 # Handler for front page
 - url: /

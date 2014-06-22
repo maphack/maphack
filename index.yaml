@@ -26,8 +26,3 @@ indexes:
   ancestor: yes
   properties:
   - name: date
-
-- kind: Location
-  ancestor: yes
-  properties:
-  - name: geopt

@@ -16,12 +16,16 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 DISPLAY_PIC = '/images/display_pic.png'
 
+COUNTRY_CODES = ["AF", "AD", "AE", "AG", "AI", "AL", "AM", "AN", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BM", "BN", "BO", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR", "CU", "CV", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "FI", "FJ", "FK", "FM", "FO", "FR", "GA", "GB", "GD", "GE", "GF", "GG", "GH", "GI", "GL", "GM", "GN", "GP", "GQ", "GR", "GS", "GT", "GU", "GW", "GY", "HK", "HM", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IM", "IN", "IO", "IQ", "IR", "IS", "IT", "JE", "JM", "JO", "JP", "KE", "KG", "KH", "KI", "KM", "KN", "KP", "KR", "KW", "KY", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MH", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT", "MU", "MV", "MW", "MX", "MY", "MZ", "NA", "NC", "NE", "NF", "NG", "NI", "NL", "NO", "NP", "NR", "NU", "NZ", "OM", "PA", "PE", "PF", "PG", "PH", "PK", "PL", "PM", "PN", "PR", "PS", "PT", "PW", "PY", "QA", "RE", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM", "SN", "SO", "SR", "ST", "SV", "SY", "SZ", "TC", "TD", "TF", "TG", "TH", "TJ", "TK", "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "ZW"]
+
+
 # Datastore definitions
 class Person(ndb.Model):
 	# Key: person id
 	email = ndb.StringProperty()
 	name = ndb.StringProperty()
 	pic = ndb.StringProperty(default = DISPLAY_PIC, indexed = False)
+	country = ndb.StringProperty()
 	bio = ndb.StringProperty(default = '', indexed = False)
 	setup = ndb.BooleanProperty(default = False, indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
@@ -185,7 +189,7 @@ class Dashboard(webapp2.RequestHandler):
 			self.response.out.write(template.render(template_values))
 
 class Setup(webapp2.RequestHandler):
-	def show(self, error = '', input_name = '', input_pic = ''):
+	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user and user.setup:
 			self.redirect('/dashboard')
@@ -195,67 +199,66 @@ class Setup(webapp2.RequestHandler):
 				user.email = users.get_current_user().email()
 				user.put()
 
-			if input_pic == DISPLAY_PIC:
-				input_pic = ''
-
-			template_values = {
-				'pic': DISPLAY_PIC,
-				'name': users.get_current_user().nickname(),
-				'logout': users.create_logout_url(self.request.host_url),
-				'error': error,
-				'input_name': input_name,
-				'input_pic': input_pic
-				}
-			template = JINJA_ENVIRONMENT.get_template('setup.html')
-			self.response.out.write(template.render(template_values))
-
-	def get(self):
-		self.show()
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None:
-			self.redirect('/setup')
-		else:
-			error = ''
-
-			# Validate name
-			try:
-				input_name = self.request.get('name').rstrip()
-				if input_name == '':
-					raise Exception, 'display name cannot be empty'
-				qry = Person.query(Person.name == input_name)
-				if qry.count():
-					raise Exception, 'name is already taken'
-			except Exception, e:
-				error = error  + 'error with display name. ' + str(e) + '. '
-
-			# Validate pic
-			try:
-				input_pic = self.request.get('pic').rstrip()
-				if input_pic == '':
-					input_pic = DISPLAY_PIC
-				else:
-					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
-						raise Exception, 'image link must be http or https'
-			except Exception, e:
-				error = error  + 'error with image link. ' + str(e) + '. '
-
-			if error == '':
-				user.name = input_name
-				user.pic = input_pic
-				user.setup = True
-				user.put()
-
 				inventory = Inventory(id = users.get_current_user().user_id())
 				inventory.put()
 
 				playlist = Playlist(id = users.get_current_user().user_id())
 				playlist.put()
 
-				self.redirect('/dashboard')
+			template_values = {
+				'pic': DISPLAY_PIC,
+				'name': users.get_current_user().nickname(),
+				'logout': users.create_logout_url(self.request.host_url),
+				}
+			template = JINJA_ENVIRONMENT.get_template('setup.html')
+			self.response.out.write(template.render(template_values))
+
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None:
+			self.redirect('/setup')
+		else:
+			error = []
+
+			# validate country
+			try:
+				user.country = self.request.get('country')
+				if len(user.country) == 0:
+					raise Exception, 'please select a country.'
+				if len(user.country) > 3 or user.country not in COUNTRY_CODES:
+					raise Exception, 'invalid country input.'
+			except Exception, e:
+				error.append(str(e))
+
+			# validate pic
+			try:
+				user.pic = self.request.get('pic').rstrip()
+				if user.pic == '':
+					user.pic = DISPLAY_PIC
+				elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
+					raise Exception, 'image link must be http or https'
+			except Exception, e:
+				error.append(str(e))
+
+			# Validate name
+			try:
+				user.name = self.request.get('name').rstrip()
+				if user.name == '':
+					raise Exception, 'display name cannot be empty.'
+				qry = Person.query(Person.name == user.name)
+				if qry.count():
+					raise Exception, 'display name is already taken.'
+			except Exception, e:
+				error.append(str(e))
+
+			if not len(error):
+				user.setup = True
+				user.put()
+
+				self.response.out.write("setup complete.")
 			else:
-				self.show(error, input_name, input_pic)
+				self.error(403)
+				self.response.out.write(error)
 
 class Profile(webapp2.RequestHandler):
 	def get(self):

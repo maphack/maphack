@@ -1,51 +1,10 @@
-/* For the top bar */
-.top-container {
-    height: 100px;
-    position: relative;
+body {
+  padding-top: 70px;
 }
 
-/* For the logo */
-.logo {
-    height:100px;
-}
-
-/* For the display picture */
-.display_pic {
-    height:100px;
-}
-
-/* For the sign-in on the right of the top bar */
-.signin-align {
-    position: absolute;
-    bottom: 0;
-    text-align: right;
-    padding-right: 40px;
-}
-
-/* For the splash picture */
-.splashpic {
-    max-height: 350px;
-}
-
-/* Shift the text down 1cm */
-.top-pad-one {
-    margin-top: 1cm;
-}
-
-/* For the game picture */
-.game_pic {
-    display: block;
-    max-height: 100px
-}
-
-/* For error messages */
-.error {
-    color: red
-}
-
-/* For currency input */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+.nav > li > a > img {
+  max-height: 20px;
+  width: auto;
+  vertical-align: middle;
+  margin-right: 4px;
 }
