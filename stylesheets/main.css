@@ -8,3 +8,14 @@ body {
   vertical-align: middle;
   margin-right: 4px;
 }
+
+.table > tbody > tr > td > img {
+  max-height: 80px;
+  width: auto;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}

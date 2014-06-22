@@ -59,18 +59,23 @@
 					var row = header.insertRow(0);
 
 					//initialise cells
-					var cell = row.insertCell(0);
-					cell.innerHTML = "title";
-					cell.style.width = "30%";
-					cell = row.insertCell(1);
-					cell.innerHTML = "platform";
-					cell.style.width = "10%";
-					cell = row.insertCell(2);
-					cell.innerHTML = "description";
-					cell.style.width = "40%";
-					cell = row.insertCell(3);
-					cell.innerHTML = "image";
-					cell.style.width = "20%";
+					var th = document.createElement('th');;
+					th.innerHTML = "title";
+					th.style.width = "30%";
+					row.appendChild(th);
+					th = document.createElement('th');;
+					th.innerHTML = "platform";
+					th.style.width = "10%";
+					row.appendChild(th);
+					th = document.createElement('th');;
+					th.innerHTML = "description";
+					th.style.width = "40%";
+					row.appendChild(th);
+					th = document.createElement('th');;
+					th.innerHTML = "image";
+					th.style.width = "20%";
+					th.className = "sorttable_nosort";
+					row.appendChild(th);
 
 					// initialise body
 					var body = ownTable.createTBody();
@@ -128,18 +133,23 @@
 					var row = header.insertRow(0);
 
 					//initialise cells
-					var cell = row.insertCell(0);
-					cell.innerHTML = "title";
-					cell.style.width = "30%";
-					cell = row.insertCell(1);
-					cell.innerHTML = "platform";
-					cell.style.width = "10%";
-					cell = row.insertCell(2);
-					cell.innerHTML = "description";
-					cell.style.width = "40%";
-					cell = row.insertCell(3);
-					cell.innerHTML = "image";
-					cell.style.width = "20%";
+					var th = document.createElement('th');;
+					th.innerHTML = "title";
+					th.style.width = "30%";
+					row.appendChild(th);
+					th = document.createElement('th');;
+					th.innerHTML = "platform";
+					th.style.width = "10%";
+					row.appendChild(th);
+					th = document.createElement('th');;
+					th.innerHTML = "description";
+					th.style.width = "40%";
+					row.appendChild(th);
+					th = document.createElement('th');;
+					th.innerHTML = "image";
+					th.style.width = "20%";
+					th.className = "sorttable_nosort";
+					row.appendChild(th);
 
 					// initialise body
 					var body = seekTable.createTBody();
@@ -211,7 +221,7 @@
 				listingsDiv.appendChild(listingDiv);
 			}
 		} else {
-			listingsDiv.innerHTML += "<center>no listings!</center>"
+			listingsDiv.innerHTML += "<div class='alert alert-info' style='text-align:center;'>no listings have been added yet.</div>"
 		}
 	}
 </script>

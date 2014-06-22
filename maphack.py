@@ -312,57 +312,55 @@ class ProfileEdit(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/dashboard')
 		else:
-			error = ''
+			error = []
+
+			# validate country
+			try:
+				user.country = self.request.get('country')
+				if len(user.country) == 0:
+					raise Exception, 'please select a country.'
+				if len(user.country) > 3 or user.country not in COUNTRY_CODES:
+					raise Exception, 'invalid country input.'
+			except Exception, e:
+				error.append(str(e))
+
+			# validate pic
+			try:
+				user.pic = self.request.get('pic').rstrip()
+				if user.pic == '':
+					user.pic = DISPLAY_PIC
+				elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
+					raise Exception, 'image link must be http or https'
+			except Exception, e:
+				error.append(str(e))
 
 			# Validate name
 			try:
-				input_name = self.request.get('name').rstrip()
-				if input_name == '':
-					raise Exception, 'display name cannot be empty'
-				if input_name != user.name:
-					qry = Person.query(Person.name == input_name)
+				previous_name = user.name
+				user.name = self.request.get('name').rstrip()
+				if previous_name != user.name:
+					if user.name == '':
+						raise Exception, 'display name cannot be empty.'
+					qry = Person.query(Person.name == user.name)
 					if qry.count():
-						raise Exception, 'name is already taken'
+						raise Exception, 'display name is already taken.'
 			except Exception, e:
-				error = error  + 'error with display name. ' + str(e) + '. '
-
-			# Validate pic
-			try:
-				input_pic = self.request.get('pic').rstrip()
-				if input_pic == '':
-					input_pic = DISPLAY_PIC
-				else:
-					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
-						raise Exception, 'image link must be http or https'
-			except Exception, e:
-				error = error  + 'error with image link. ' + str(e) + '. '
+				error.append(str(e))
 
 			#Validate bio
 			try:
-				input_bio = self.request.get('bio').rstrip()
+				user.bio = self.request.get('bio').rstrip()
 			except Exception, e:
 				error = error  + 'error with bio. ' + str(e) + '. '
 
-			if error == '':
-				# Change names
-				games = Owner.query(Owner.name == user.name)
-				for game in games:
-					game.name = input_name
-					game.put()
-
-				games = Seeker.query(Seeker.name == user.name)
-				for game in games:
-					game.name = input_name
-					game.put()
-
-				user.name = input_name
-				user.pic = input_pic
-				user.bio = input_bio
+			if not len(error):
+				user.setup = True
 				user.put()
 
-				self.redirect('/profile')
+				self.response.out.write("profile updated.")
 			else:
-				self.show(error, input_name, input_pic, input_bio)
+				self.error(403)
+				self.response.out.write(error)
 
 class LocationsPage(webapp2.RequestHandler):
 	def get(self):
@@ -794,7 +792,7 @@ class PlaylistDelete(webapp2.RequestHandler):
 
 				seekers_key = ndb.Key('Seekers', game_to_delete.title,
 					parent = ndb.Key('Platform', game_to_delete.platform))
-				seekers = seekers.get()
+				seekers = seekers_key.get()
 				seekers.count -= 1
 				seekers.put()
 

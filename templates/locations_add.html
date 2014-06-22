@@ -93,6 +93,7 @@
         geocoder.geocode({'latLng': marker.getPosition(), 'componentRestrictions': {country: 'SG'}}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
             var address = results[0].formatted_address;
+            console.log(results);
 
             $.ajax({
               type: 'POST',
@@ -145,7 +146,7 @@
 <body>
   <div id="panel">
     <input id="address" type="textbox" placeholder="address">
-    <input type="button" value="geocode" onclick="codeAddress()"><br>
+    <input type="button" value="locate" onclick="codeAddress()"><br>
     <input id="name" type="textbox" placeholder="custom name">
     <input type="button" value="add location" onclick="addLocation()"><br>
     <input type="button" value="show my locations" onclick="showLocations()">

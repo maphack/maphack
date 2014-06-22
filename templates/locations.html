@@ -3,6 +3,7 @@
 {% block content %}
 <div class="top-pad-one">
 	{% if locations.count() %}
+	<h4>locations</h4>
 	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
@@ -20,7 +21,7 @@
 				<td width = "50%">{{ location.address }}</td>
 				<td width = "10%">{{ location.geopt.lat }}</td>
 				<td width = "10%">{{ location.geopt.lon }}</td>
-				<td width = "10%">
+				<td width = "10%" style="text-align:center;">
 					<form action="/locations/delete" method="post">
 						<input type="hidden" name="location_id" value="{{ location.key.id() }}">
 						<input type="submit" value="delete">
