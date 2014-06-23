@@ -294,14 +294,16 @@
 	$('#submit').click(function(event) {
 		event.preventDefault();
 
-		$('.alertdiv').remove();
+		$('.alert-dismissable').fadeTo(500, 0).slideUp(500, function() {
+			$(this).remove();
+		});
 
 		var name = $('#name').val().trim();
 		var pic = $('#pic').val().trim();
 		var country = $('#country').val();
 
 		if (!name) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -322,7 +324,7 @@
 					var errors = eval(jqXHR.responseText);
 
 					for (var i = 0; i < errors.length; i ++) {
-						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
 				}
 			});
