@@ -1,26 +1,19 @@
-<!-- Profile page -->
 {% extends "base.html" %}
 {% block content %}
-<div class="row-fluid">
-	<div class="span6" style ="text-align: center;">
-		<img class="splashpic" src="/images/splashpic.png">
-	</div>
-	<div class="span6">
-		<div class="top-pad-one" style ="text-align: center;">
-			<h4>profile</h4>
-			about me: 
-			{% if bio %}
-			{{ bio }}
-			{% else %}
-			none
-			{% endif %}
-			<br>
-			<br>
-			<form action="/profile/edit" method="get">
-				<button type="submit">edit profile</button>
-			</form>
-		</div>
-	</div>
+<div style="text-align:center;">
+	<img class="splashpic" src="/images/splashpic.png">
+	<h3>profile</h3>
+	<h4>country code</h4>
+	<p>{{ country }}</p>
+	<h4>about me</h4>
+	<p>
+	{% if bio %}
+	{{ bio }}
+	{% else %}
+	none
+	{% endif %}
+	</p>
+	<a class="btn btn-default" href="/profile/edit">edit profile</a>
 </div>
 <script>
 	$('#nav-dash').addClass("active");

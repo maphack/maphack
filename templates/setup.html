@@ -13,7 +13,7 @@
 				<span class="input-group-addon" style="background-color: #ffffff">
 					<i class="glyphicon glyphicon-user"></i>
 				</span>
-				<input type="text" class="form-control" id="name" placeholder="display name">
+				<input id="name" type="text" class="form-control" placeholder="display name">
 			</div>
 		</div>
 	</div>
@@ -24,7 +24,7 @@
 				<span class="input-group-addon" style="background-color: #ffffff">
 					<i class="glyphicon glyphicon-picture"></i>
 				</span>
-				<input type="text" class="form-control" id="pic" placeholder="display picture">
+				<input id="pic" type="text" class="form-control" placeholder="display picture">
 			</div>
 		</div>
 	</div>
@@ -35,7 +35,7 @@
 				<span class="input-group-addon" style="background-color: #ffffff">
 					<i class="glyphicon glyphicon-globe"></i>
 				</span>
-				<select class="form-control" id="country">
+				<select id="country"class="form-control">
 					<option value="AF">Afghanistan</option>
 					<option value="AX">Åland Islands</option>
 					<option value="AL">Albania</option>
@@ -291,18 +291,18 @@
 	</div>
 </form>
 <script>
-	$("#submit").click( function(event) {
+	$('#submit').click(function(event) {
 		event.preventDefault();
+
+		$('.alertdiv').remove();
 
 		var name = $('#name').val().trim();
 		var pic = $('#pic').val().trim();
 		var country = $('#country').val();
 
 		if (!name) {
-			alert('please enter a valid name.');
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
 		} else {
-			$('.alertdiv').remove();
-
 			$.ajax({
 				type: 'POST',
 				url: '/setup',
@@ -313,7 +313,7 @@
 					console.log(jqXHR);
 					alert('setup complete');
 
-					window.location.href = "/dashboard";
+					window.location.href = '/dashboard';
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);

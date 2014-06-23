@@ -16,8 +16,7 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 DISPLAY_PIC = '/images/display_pic.png'
 
-COUNTRY_CODES = ["AF", "AD", "AE", "AG", "AI", "AL", "AM", "AN", "AO", "AQ", "AR", "AS", "AT", "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI", "BJ", "BM", "BN", "BO", "BR", "BS", "BT", "BV", "BW", "BY", "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN", "CO", "CR", "CU", "CV", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM", "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "FI", "FJ", "FK", "FM", "FO", "FR", "GA", "GB", "GD", "GE", "GF", "GG", "GH", "GI", "GL", "GM", "GN", "GP", "GQ", "GR", "GS", "GT", "GU", "GW", "GY", "HK", "HM", "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IM", "IN", "IO", "IQ", "IR", "IS", "IT", "JE", "JM", "JO", "JP", "KE", "KG", "KH", "KI", "KM", "KN", "KP", "KR", "KW", "KY", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS", "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MG", "MH", "MK", "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT", "MU", "MV", "MW", "MX", "MY", "MZ", "NA", "NC", "NE", "NF", "NG", "NI", "NL", "NO", "NP", "NR", "NU", "NZ", "OM", "PA", "PE", "PF", "PG", "PH", "PK", "PL", "PM", "PN", "PR", "PS", "PT", "PW", "PY", "QA", "RE", "RO", "RS", "RU", "RW", "SA", "SB", "SC", "SD", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM", "SN", "SO", "SR", "ST", "SV", "SY", "SZ", "TC", "TD", "TF", "TG", "TH", "TJ", "TK", "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TW", "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI", "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "ZW"]
-
+COUNTRY_CODES = ['AF', 'AD', 'AE', 'AG', 'AI', 'AL', 'AM', 'AN', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BM', 'BN', 'BO', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 'HM', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'ST', 'SV', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW']
 
 # Datastore definitions
 class Person(ndb.Model):
@@ -98,32 +97,32 @@ class Seeker(ndb.Model):
 class NdbEncoder(json.JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, datetime.datetime):
-			return {"y": obj.year,
-				"m": obj.month,
-				"d": obj.day,
-				"h": obj.hour,
-				"s": obj.second,}
+			return {'y': obj.year,
+				'm': obj.month,
+				'd': obj.day,
+				'h': obj.hour,
+				's': obj.second,}
 
 		if isinstance(obj, ndb.GeoPt):
-			return {"lat": obj.lat, "lon": obj.lon}
+			return {'lat': obj.lat, 'lon': obj.lon}
 
 		if isinstance(obj, ndb.Key):
-			return "key"
+			return 'key'
 
 		return json.JSONEncoder.default(self, obj)
 
 # Helper functions:
 def user_game_map(result):
-	my_locations = ndb.gql("SELECT * "
-		"FROM Location "
-		"WHERE ANCESTOR IS :1 "
-		"ORDER BY date ASC",
+	my_locations = ndb.gql('SELECT * '
+		'FROM Location '
+		'WHERE ANCESTOR IS :1 '
+		'ORDER BY date ASC',
 		ndb.Key('Person', users.get_current_user().user_id()))
 
-	your_locations = ndb.gql("SELECT * "
-		"FROM Location "
-		"WHERE ANCESTOR IS :1 "
-		"ORDER BY date ASC",
+	your_locations = ndb.gql('SELECT * '
+		'FROM Location '
+		'WHERE ANCESTOR IS :1 '
+		'ORDER BY date ASC',
 		ndb.Key('Person', result.key.id()))
 
 	nearest_distance = min_dist(my_locations, your_locations)
@@ -134,10 +133,10 @@ def locations_map(result):
 	return [result.geopt.lat, result.geopt.lon]
 
 def haversine(lat1, lon1, lat2, lon2):
-    """
+    '''
     Calculate the great circle distance between two points
     on the earth (specified in decimal degrees)
-    """
+    '''
     # convert decimal degrees to radians
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
 
@@ -162,7 +161,7 @@ def min_dist(locs1, locs2):
 
 def jsonify(query):
 	if type(query) is not ndb.Query:
-		raise Exception, "input is not of type ndb.Query"
+		raise Exception, 'input is not of type ndb.Query'
 	return json.dumps([ndb.Model.to_dict(result) for result in query], cls = NdbEncoder)
 
 class MainPage(webapp2.RequestHandler):
@@ -220,30 +219,30 @@ class Setup(webapp2.RequestHandler):
 		else:
 			error = []
 
+			user.setup = True
+
 			# validate country
 			try:
 				user.country = self.request.get('country')
-				if len(user.country) == 0:
-					raise Exception, 'please select a country.'
-				if len(user.country) > 3 or user.country not in COUNTRY_CODES:
-					raise Exception, 'invalid country input.'
+				if user.country not in COUNTRY_CODES:
+					raise Exception, 'invalid country.'
 			except Exception, e:
 				error.append(str(e))
 
 			# validate pic
 			try:
 				user.pic = self.request.get('pic').rstrip()
-				if user.pic == '':
+				if not user.pic:
 					user.pic = DISPLAY_PIC
 				elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
-					raise Exception, 'image link must be http or https'
+					raise Exception, 'image link must be http or https.'
 			except Exception, e:
 				error.append(str(e))
 
-			# Validate name
+			# validate name
 			try:
 				user.name = self.request.get('name').rstrip()
-				if user.name == '':
+				if not user.name:
 					raise Exception, 'display name cannot be empty.'
 				qry = Person.query(Person.name == user.name)
 				if qry.count():
@@ -251,14 +250,13 @@ class Setup(webapp2.RequestHandler):
 			except Exception, e:
 				error.append(str(e))
 
-			if not len(error):
-				user.setup = True
-				user.put()
-
-				self.response.out.write("setup complete.")
-			else:
+			if error:
 				self.error(403)
 				self.response.out.write(error)
+			else:
+				user.put()
+
+				self.response.out.write('setup complete.')
 
 class Profile(webapp2.RequestHandler):
 	def get(self):
@@ -270,13 +268,14 @@ class Profile(webapp2.RequestHandler):
 				'pic': user.pic,
 				'name': user.name,
 				'bio': user.bio,
+				'country': user.country,
 				'logout': users.create_logout_url(self.request.host_url),
 				}
 			template = JINJA_ENVIRONMENT.get_template('profile.html')
 			self.response.out.write(template.render(template_values))
 
 class ProfileEdit(webapp2.RequestHandler):
-	def show(self, error = '', input_name = '', input_pic = '', input_bio = ''):
+	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/dashboard')
@@ -284,14 +283,12 @@ class ProfileEdit(webapp2.RequestHandler):
 			template_values = {
 				'pic': user.pic,
 				'name': user.name,
+				'country': user.country,
 				'bio': user.bio,
 				'logout': users.create_logout_url(self.request.host_url),
 				}
 			template = JINJA_ENVIRONMENT.get_template('profile_edit.html')
 			self.response.out.write(template.render(template_values))
-
-	def get(self):
-		self.show()
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
@@ -302,36 +299,37 @@ class ProfileEdit(webapp2.RequestHandler):
 
 			# validate bio
 			try:
-				user.bio = self.request.get('bio').rstrip()
+				if user.bio != self.request.get('bio').rstrip():
+					user.bio = self.request.get('bio').rstrip()
 			except Exception, e:
 				error.append(str(e))
 
 			# validate country
 			try:
-				user.country = self.request.get('country')
-				if len(user.country) == 0:
-					raise Exception, 'please select a country.'
-				if len(user.country) > 3 or user.country not in COUNTRY_CODES:
-					raise Exception, 'invalid country input.'
+				if user.country != self.request.get('country'):
+					user.country = self.request.get('country')
+					if user.country not in COUNTRY_CODES:
+						raise Exception, 'invalid country.'
 			except Exception, e:
 				error.append(str(e))
 
 			# validate pic
 			try:
-				user.pic = self.request.get('pic').rstrip()
-				if user.pic == '':
-					user.pic = DISPLAY_PIC
-				elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
-					raise Exception, 'image link must be http or https'
+				if user.pic != self.request.get('pic').rstrip() and not user.pic == DISPLAY_PIC and self.request.get('pic').rstrip() == '':
+					user.pic = self.request.get('pic').rstrip()
+					if not user.pic:
+						user.pic = DISPLAY_PIC
+					elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
+						raise Exception, 'image link must be http or https.'
 			except Exception, e:
 				error.append(str(e))
 
 			# validate name
 			try:
 				old_name = user.name
-				user.name = self.request.get('name').rstrip()
-				if old_name != user.name:
-					if user.name == '':
+				if user.name != self.request.get('name').rstrip():
+					user.name = self.request.get('name').rstrip()
+					if not user.name:
 						raise Exception, 'display name cannot be empty.'
 					qry = Person.query(Person.name == user.name)
 					if qry.count():
@@ -339,25 +337,25 @@ class ProfileEdit(webapp2.RequestHandler):
 			except Exception, e:
 				error.append(str(e))
 
-			if not len(error):
-				user.setup = True
-				user.put()
-
-				# change names
-				games = Owner.query(Owner.name == old_name)
-				for game in games:
-					game.name = user.name
-					game.put()
-
-				games = Seeker.query(Seeker.name == old_name)
-				for game in games:
-					game.name = user.name
-					game.put()
-
-				self.response.out.write("profile updated.")
-			else:
+			if error:
 				self.error(403)
 				self.response.out.write(error)
+			else:
+				user.put()
+
+				if user.name != old_name:
+					# change names
+					games = Owner.query(Owner.name == old_name)
+					for game in games:
+						game.name = user.name
+						game.put()
+
+					games = Seeker.query(Seeker.name == old_name)
+					for game in games:
+						game.name = user.name
+						game.put()
+
+				self.response.out.write('profile updated.')
 
 class LocationsPage(webapp2.RequestHandler):
 	def get(self):
@@ -365,10 +363,10 @@ class LocationsPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
+			locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date ASC',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
@@ -386,10 +384,10 @@ class LocationsAdd(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
+			locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date ASC',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
@@ -451,7 +449,7 @@ class LocationsView(webapp2.RequestHandler):
 
 		if location == None:
 			self.error(403)
-			self.response.out.write("invalid location id; you are being redirected.")
+			self.response.out.write('invalid location id; you are being redirected.')
 		else:
 			location.name = self.request.get('name')
 			location.put()
@@ -462,10 +460,10 @@ class InventoryPage(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			inventory = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
+			inventory = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
 			template_values = {
@@ -637,10 +635,10 @@ class PlaylistPage(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			playlist = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
+			playlist = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
@@ -838,9 +836,9 @@ class SearchResults(webapp2.RequestHandler):
 				owners_key = ndb.Key('Owners', title,
 					parent = ndb.Key('Platform', platform))
 
-				owners = ndb.gql("SELECT * "
-					"FROM Owner "
-					"WHERE ANCESTOR IS :1 ",
+				owners = ndb.gql('SELECT * '
+					'FROM Owner '
+					'WHERE ANCESTOR IS :1 ',
 					owners_key)
 
 				results = owners.map(user_game_map)
@@ -855,9 +853,9 @@ class SearchResults(webapp2.RequestHandler):
 				seekers_key = ndb.Key('Seekers', title,
 					parent = ndb.Key('Platform', platform))
 
-				seekers = ndb.gql("SELECT * "
-					"FROM Seeker "
-					"WHERE ANCESTOR IS :1 ",
+				seekers = ndb.gql('SELECT * '
+					'FROM Seeker '
+					'WHERE ANCESTOR IS :1 ',
 					seekers_key)
 
 				results = seekers.map(user_game_map)
@@ -882,40 +880,40 @@ class UserPage(webapp2.RequestHandler):
 				if person == None:
 					self.redirect('/dashboard')
 				else:
-					my_inventory = ndb.gql("SELECT * "
-						"FROM Game "
-						"WHERE ANCESTOR IS :1 "
-						"ORDER BY date DESC",
+					my_inventory = ndb.gql('SELECT * '
+						'FROM Game '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date DESC',
 						ndb.Key('Inventory', users.get_current_user().user_id()))
 
-					my_playlist = ndb.gql("SELECT * "
-						"FROM Game "
-						"WHERE ANCESTOR IS :1 "
-						"ORDER BY date DESC",
+					my_playlist = ndb.gql('SELECT * '
+						'FROM Game '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date DESC',
 						ndb.Key('Playlist', users.get_current_user().user_id()))
 
-					your_inventory = ndb.gql("SELECT * "
-						"FROM Game "
-						"WHERE ANCESTOR IS :1 "
-						"ORDER BY date DESC",
+					your_inventory = ndb.gql('SELECT * '
+						'FROM Game '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date DESC',
 						ndb.Key('Inventory', person_id))
 
-					your_playlist = ndb.gql("SELECT * "
-						"FROM Game "
-						"WHERE ANCESTOR IS :1 "
-						"ORDER BY date DESC",
+					your_playlist = ndb.gql('SELECT * '
+						'FROM Game '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date DESC',
 						ndb.Key('Playlist', person_id))
 
-					my_locations = ndb.gql("SELECT * "
-						"FROM Location "
-						"WHERE ANCESTOR IS :1 "
-						"ORDER BY date ASC",
+					my_locations = ndb.gql('SELECT * '
+						'FROM Location '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date ASC',
 						ndb.Key('Person', users.get_current_user().user_id()))
 
-					your_locations = ndb.gql("SELECT * "
-						"FROM Location "
-						"WHERE ANCESTOR IS :1 "
-						"ORDER BY date ASC",
+					your_locations = ndb.gql('SELECT * '
+						'FROM Location '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date ASC',
 						ndb.Key('Person', person_id))
 
 					my_diff = []
@@ -971,16 +969,16 @@ class UserLocations(webapp2.RequestHandler):
 			if person == None:
 				self.redirect('/dashboard')
 
-			my_locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
+			my_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date ASC',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
-			your_locations = ndb.gql("SELECT * "
-				"FROM Location "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date ASC",
+			your_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date ASC',
 				ndb.Key('Person', person_id))
 
 			my_locations = my_locations.map(locations_map)
@@ -1000,10 +998,10 @@ class ListingsPage(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			listings = ndb.gql("SELECT * "
-				"FROM Listing "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
+			listings = ndb.gql('SELECT * '
+				'FROM Listing '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
@@ -1021,16 +1019,16 @@ class ListingsAdd(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			inventory = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
+			inventory = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
-			playlist = ndb.gql("SELECT * "
-				"FROM Game "
-				"WHERE ANCESTOR IS :1 "
-				"ORDER BY date DESC",
+			playlist = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
@@ -1058,22 +1056,22 @@ class ListingsAdd(webapp2.RequestHandler):
 				yourtopup = jdata['yourtopup']
 
 				if len(own_list) == 0 and len(seek_list) == 0:
-					raise Exception, "empty listing."
+					raise Exception, 'empty listing.'
 
 				if (type(mytopup) is not int and type(mytopup) is not float) or (type (yourtopup) is not int and type (yourtopup) is not float):
-					raise Exception, "topup values are not floats."
+					raise Exception, 'topup values are not floats.'
 
 				if mytopup < 0 or yourtopup < 0:
-					raise Exception, "topup values must be non-negative."
+					raise Exception, 'topup values must be non-negative.'
 
 				if mytopup > 0 and yourtopup > 0:
-					raise Exception, "topup values cannot be positive at the same time."
+					raise Exception, 'topup values cannot be positive at the same time.'
 
 				if (len(own_list) > 0 or mytopup > 0) and len(seek_list) == 0 and yourtopup == 0:
-					raise Exception, "listing is empty on receiving side."
+					raise Exception, 'listing is empty on receiving side.'
 				
 				if (len(seek_list) > 0 or yourtopup > 0) and len(own_list) == 0 and mytopup == 0:
-					raise Exception, "listing is empty on sending side."
+					raise Exception, 'listing is empty on sending side.'
 
 				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
 				listing.owner_id = users.get_current_user().user_id()
@@ -1090,7 +1088,7 @@ class ListingsAdd(webapp2.RequestHandler):
 
 				for game_id in own_list:
 					if type(game_id) is not int and type(game_id) is not long:
-						raise Exception, "invalid game id."
+						raise Exception, 'invalid game id.'
 
 					game_key = ndb.Key('Game', game_id,
 						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
@@ -1105,11 +1103,11 @@ class ListingsAdd(webapp2.RequestHandler):
 						listing.own_descriptions.append(game.description)
 
 					else:
-						raise Exception, "no such game in inventory."
+						raise Exception, 'no such game in inventory.'
 
 				for game_id in seek_list:
 					if type(game_id) is not int and type(game_id) is not long:
-						raise Exception, "invalid game id."
+						raise Exception, 'invalid game id.'
 
 					game_key = ndb.Key('Game', game_id,
 						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
@@ -1124,7 +1122,7 @@ class ListingsAdd(webapp2.RequestHandler):
 						listing.seek_descriptions.append(game.description)
 
 					else:
-						raise Exception, "no such game in playlist."
+						raise Exception, 'no such game in playlist.'
 
 				listing.put()
 				listing.listing_id = listing.key.id()
@@ -1145,7 +1143,7 @@ class ListingsAdd(webapp2.RequestHandler):
 					game.listing_ids.append(listing.key.id())
 					game.put()
 
-				self.response.out.write("success")
+				self.response.out.write('success')
 			except Exception, e:
 				self.response.out.write(e)
 
@@ -1179,7 +1177,7 @@ class ListingsDelete(webapp2.RequestHandler):
 
 				self.redirect('/listings');
 			else:
-				self.response.out.write("no such listing id.")
+				self.response.out.write('no such listing id.')
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
