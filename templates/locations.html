@@ -1,45 +1,89 @@
-<!-- Locations page -->
 {% extends "base.html" %}
 {% block content %}
-<div class="top-pad-one">
-	{% if locations.count() %}
-	<h4>locations</h4>
-	<table class="sortable table table-bordered table-striped">
+<h3>locations</h3>
+<div id="alerts">
+	{% if not locations.count() %}
+	<div class="alert alert-info">
+		no locations added! add the locations you want to trade at.
+	</div>
+	{% endif %}
+</div>
+{% if locations.count() %}
+<div class="table-responsive">
+	<table id="locations" class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
 				<th width = "20%">name</th>
 				<th width = "50%">address</th>
-				<th width = "10%">latitude</th>
-				<th width = "10%">longitude</th>
-				<th width = "10%">delete</th>
+				<th class="text-center" width = "10%">latitude</th>
+				<th class="text-center" width = "10%">longitude</th>
+				<th class="text-center" width = "10%">delete</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for location in locations %}
-			<tr>
-				<td width = "20%"><a href="/locations/view?name={{ location.name }}&location_id={{ location.key.id() }}&latitude={{ location.geopt.lat }}&longitude={{ location.geopt.lon }}">{{ location.name }}</a></td>
+			<tr id="{{ location.key.id() }}">
+				<td width = "20%"><a href="/locations/view?name={{ location.name }}&amp;location_id={{ location.key.id() }}&amp;latitude={{ location.geopt.lat }}&amp;longitude={{ location.geopt.lon }}">{{ location.name }}</a></td>
 				<td width = "50%">{{ location.address }}</td>
-				<td width = "10%">{{ location.geopt.lat }}</td>
-				<td width = "10%">{{ location.geopt.lon }}</td>
-				<td width = "10%" style="text-align:center;">
-					<form action="/locations/delete" method="post">
-						<input type="hidden" name="location_id" value="{{ location.key.id() }}">
-						<input type="submit" value="delete">
-					</form>
+				<td class="text-center" width = "10%">{{ location.geopt.lat }}</td>
+				<td class="text-center" width = "10%">{{ location.geopt.lon }}</td>
+				<td class="text-center" width = "10%">
+					<button type="button" type="submit" class="btn btn-default delete">
+						<span class="glyphicon glyphicon-trash"></span>
+					</button>
 				</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
-	{% else %}
-	<p>no locations added! add the locations you want to trade at.</p>
-	{% endif %}
 </div>
-<div class="top-pad-one">
-	<form action="/locations/add" method="get">
-		<button type="submit">add location</button>
-	</form>
-</div>
+{% endif %}
+<a class="btn btn-default" href="/locations/add">add location</a>
+<script>
+	$('.delete').click(function(event) {
+		event.preventDefault();
+
+		var location_id = $(this).closest('tr').attr('id');
+
+		$.ajax({
+			type: 'POST',
+			url: '/locations/delete',
+			data: {location_id: location_id},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#' + location_id).remove();
+				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location deleted.</div>');
+				alertTimeout(5000);
+
+				if ($('#locations tr').length == 1) {
+					$('#locations').remove();
+					$('#alerts').append('<div class="alert alert-info">no locations added! add the locations you want to trade at.</div>');
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+				}
+			}
+		});
+	});
+
+	function alertTimeout(wait){
+		setTimeout(function(){
+			$('#alerts').children('.alert-dismissable:first-child').fadeTo(500, 0).slideUp(500, function() {
+				$(this).remove();
+			});
+		}, wait);
+	}
+</script>
 <script>
 	$('#nav-dash').addClass("active");
 	$('#nav-dash-loc').addClass("active");

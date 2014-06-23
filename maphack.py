@@ -421,11 +421,17 @@ class LocationsDelete(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			location_key = ndb.Key('Person', users.get_current_user().user_id(),
-				'Location', int(self.request.get('location_id')))
-			location_key.delete()
+			try:
+				location_id = int(self.request.get('location_id'))
 
-			self.redirect('/locations')
+				location_key = ndb.Key('Person', users.get_current_user().user_id(),
+					'Location', location_id)
+				location_key.delete()
+
+				self.response.out.write('location deleted.')
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(error)
 
 class LocationsView(webapp2.RequestHandler):
 	def get(self):
