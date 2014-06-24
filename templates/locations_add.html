@@ -55,50 +55,61 @@
     var country = '{{ country }}';
     var locations = {{ locations|safe }};
 
-    var geocoder;
     var map;
+    var geocoder;
     var location_markers = [];
     var marker;
 
     function initialize() {
+      map = new google.maps.Map(document.getElementById('map-canvas'));
       geocoder = new google.maps.Geocoder();
-      geocoder.geocode({'componentRestrictions': {country: country}}, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          map = new google.maps.Map(document.getElementById('map-canvas'));
-          map.setCenter(results[0].geometry.location);
-          map.fitBounds(results[0].geometry.viewport);
 
-          for (var i = 0; i < locations.length; i++) {
-            var latlng = new google.maps.LatLng(locations[i].geopt.lat, locations[i].geopt.lon);
-            var location_marker = new google.maps.Marker({
-              position: latlng,
-              map: map,
-              icon: "/images/red_MarkerU.png",
-            });
-            location_markers.push(location_marker);
-          }
+      if (locations.length) {
+        var bounds = new google.maps.LatLngBounds();
 
-          google.maps.event.addListener(map, 'click', function(event) {
-            placeMarker(event.latLng);
+        for (var i = 0; i < locations.length; i++) {
+          var latlng = new google.maps.LatLng(locations[i].geopt.lat, locations[i].geopt.lon);
+          bounds.extend(latlng);
+
+          var location_marker = new google.maps.Marker({
+            position: latlng,
+            map: map,
+            icon: "/images/red_MarkerU.png",
           });
-        } else {
-          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+          location_markers.push(location_marker);
         }
+
+        map.fitBounds(bounds);
+        map.panToBounds(bounds);
+      } else {
+        geocoder.geocode({'componentRestrictions': {country: country}}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            map = new google.maps.Map(document.getElementById('map-canvas'));
+            map.setCenter(results[0].geometry.location);
+            map.fitBounds(results[0].geometry.viewport);
+          } else {
+            $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+          }
+        });
+      }
+
+      google.maps.event.addListener(map, 'click', function(event) {
+        placeMarker(event.latLng);
       });
     }
 
-    function placeMarker(location) {
+    function placeMarker(latlng) {
       if (marker) {
-        marker.setPosition(location);
+        marker.setPosition(latlng);
       } else {
         marker = new google.maps.Marker({
-          position: location,
+          position: latlng,
           map: map,
           draggable: true,
         });
       }
 
-      map.setCenter(location);
+      map.setCenter(latlng);
     }
 
     function setAllMap(map) {
