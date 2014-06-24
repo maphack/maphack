@@ -467,7 +467,7 @@ class LocationsView(webapp2.RequestHandler):
 				location = location_key.get()
 
 				if location == None:
-					raise Exception
+					raise Exception, 'no such location.'
 
 				template_values = {
 					'location_id': location.key.id(),
@@ -482,22 +482,29 @@ class LocationsView(webapp2.RequestHandler):
 				self.redirect('/locations')
 
 	def post(self):
-		try:
-			location_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Location', int(self.request.get('location_id')))
-			location = location_key.get()
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				location_key = ndb.Key('Person', users.get_current_user().user_id(),
+						'Location', int(self.request.get('location_id')))
+				location = location_key.get()
 
-			if location == None:
-				raise Exception
+				if location == None:
+					raise Exception, 'no such location.'
 
-			location.name = self.request.get('name')
-			location.put()
+				if self.request.get('name').rstrip()
+					location.name = self.request.get('name').rstrip()
+					location.put()
 
-			self.response.out.write('name changed.')
+					self.response.out.write('name changed.')
+				else:
+					raise Exception, 'location name cannot be empty.'
 
-		except:
-			self.error(403)
-			self.response.out.write('location deleted.')
+			except:
+				self.error(403)
+				self.response.out.write(['an error has occurred.'])
 
 class InventoryPage(webapp2.RequestHandler):
 	def get(self):
