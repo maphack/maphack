@@ -391,6 +391,7 @@ class LocationsAdd(webapp2.RequestHandler):
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
+				'country': user.country,
 				'locations': jsonify(locations),
 				}
 			template = JINJA_ENVIRONMENT.get_template('locations_add.html')

@@ -12,47 +12,78 @@
     }
     #panel {
       position: absolute;
-      top: 5px;
-      left: 50%;
-      margin-left: -180px;
       z-index: 5;
-      background-color: #fff;
+      right: 16px;
+      bottom: 16px;
+      width: 25%;
       padding: 5px;
       border: 1px solid #999;
     }
   </style>
+  <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="/bootstrap/js/bootstrap.min.js"></script>
+  </head>
+<body>
+  <div id="panel" class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">locations</h3>
+    </div>
+    <div class="panel-body">
+      <div class="input-group">
+        <input id="address" type="textbox" class="form-control" placeholder="address">
+        <span class="input-group-btn">
+          <button id="locate" type="button" class="btn btn-default">locate</button>
+        </span>
+      </div>
+      <div class="input-group">
+        <input id="name" type="textbox" class="form-control" placeholder="custom name">
+        <span class="input-group-btn">
+          <button id="add" type="button" class="btn btn-default">add location</button>
+        </span>
+      </div>
+      <div id="alerts"></div>
+      <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
+      <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+      <a class="btn btn-default" href="/locations">back</a>
+    </div>
+  </div>
+  <div id="map-canvas"></div>
   <script>
+    var country = '{{ country }}';
     var locations = {{ locations|safe }};
-    var locmarkers = [];
 
-    console.log(locations);
     var geocoder;
     var map;
+    var location_markers = [];
     var marker;
 
     function initialize() {
       geocoder = new google.maps.Geocoder();
-      var latlng = new google.maps.LatLng(1.2939106, 103.7810538);
-      var mapOptions = {
-        zoom: 17,
-        center: latlng
-      }
-      map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+      geocoder.geocode({'componentRestrictions': {country: country}}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          map = new google.maps.Map(document.getElementById('map-canvas'));
+          map.setCenter(results[0].geometry.location);
+          map.fitBounds(results[0].geometry.viewport);
 
-      for (var i = 0; i < locations.length; i++) {
-        var latlng = new google.maps.LatLng(locations[i].geopt.lat, locations[i].geopt.lon);
-        var locmarker = new google.maps.Marker({
-          position: latlng,
-          map: map,
-          icon: "/images/red_MarkerU.png",
-        });
-        locmarkers.push(locmarker);
-      }
+          for (var i = 0; i < locations.length; i++) {
+            var latlng = new google.maps.LatLng(locations[i].geopt.lat, locations[i].geopt.lon);
+            var location_marker = new google.maps.Marker({
+              position: latlng,
+              map: map,
+              icon: "/images/red_MarkerU.png",
+            });
+            location_markers.push(location_marker);
+          }
 
-      google.maps.event.addListener(map, 'click', function(event) {
-        placeMarker(event.latLng);
+          google.maps.event.addListener(map, 'click', function(event) {
+            placeMarker(event.latLng);
+          });
+        } else {
+          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+        }
       });
     }
 
@@ -70,91 +101,106 @@
       map.setCenter(location);
     }
 
-    function codeAddress() {
-      var address = document.getElementById('address').value;
-      geocoder.geocode({'address': address, 'componentRestrictions': {country: 'SG'}}, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          placeMarker(results[0].geometry.location);
+    function setAllMap(map) {
+      for (var i = 0; i < location_markers.length; i++) {
+        location_markers[i].setMap(map);
+      }
+    }
 
-          if (results[0].partial_match) {
-            alert('geocode has returned a partial match. drag the marker to the correct location before adding it.');
-          }
-        } else {
-          alert('geocode was not successful for the following reason: ' + status);
-        }
+    function clearAlerts() {
+      $('.alert-dismissable').fadeTo(500, 0).slideUp(500, function() {
+        $(this).remove();
       });
     }
 
-    function addLocation() {
+    function alertTimeout(wait){
+      setTimeout(function(){
+        $('#alerts').children('.alert-success:first-child').fadeTo(500, 0).slideUp(500, function() {
+          $(this).remove();
+        });
+      }, wait);
+    }
+
+    $('#locate').click(function(event) {
+      clearAlerts();
+
+      var address = $('#address').val();
+      geocoder.geocode({'address': address, 'componentRestrictions': {country: country}}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          placeMarker(results[0].geometry.location);
+          map.fitBounds(results[0].geometry.viewport);
+
+          if (results[0].partial_match) {
+            $('#alerts').append('<div class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location may be inaccurate. drag the marker to the correct location before adding it.</div>');
+          }
+        } else {
+          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+        }
+      });
+    });
+
+    $('#add').click(function(event) {
+      clearAlerts();
+
       var name = $('#name').val();
-      if (!name || name.trim() == '') {
-        alert('please enter a valid name.');
-      } else if (marker) {
-        geocoder.geocode({'latLng': marker.getPosition(), 'componentRestrictions': {country: 'SG'}}, function(results, status) {
+      if (name.trim() == '') {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please enter a valid name.</div>');
+      } else if (!marker) {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please set a location.</div>');
+      } else {
+        geocoder.geocode({'latLng': marker.getPosition()}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
             var address = results[0].formatted_address;
-            console.log(results);
 
             $.ajax({
               type: 'POST',
               url: '/locations/add',
               data: {name: name, address: address, latitude: marker.getPosition().lat(), longitude: marker.getPosition().lng()},
-              success: function(){
-                alert('location added.');
+              success: function(data, textStatus, jqXHR) {
+                console.log(data);
+                console.log(textStatus);
+                console.log(jqXHR);
 
-                var locmarker = new google.maps.Marker({
+                $('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location added.</div>');
+                alertTimeout(5000);
+
+                var location_marker = new google.maps.Marker({
                   position: marker.getPosition(),
                   map: map,
                   icon: "/images/red_MarkerU.png",
                 });
-                locmarkers.push(locmarker);
+                location_markers.push(location_marker);
 
                 marker.setMap(null);
                 marker = null;
               },
-              error: function(response) {
-                alert('an error has occured.');
-                console.log(response);
-              }
+              error: function(jqXHR, textStatus, errorThrown) {
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+                $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>an error has occurred.</div>');
+                }
             });
           } else {
-            alert('reverse geocoder failed due to: ' + status);
+            $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>reverse geocode was not successful for the following reason: ' + status + '</div>');
           }
         });
-      } else {
-        alert('please set a location.');
       }
-    }
+    });
 
-    function setAllMap(map) {
-      for (var i = 0; i < locmarkers.length; i++) {
-        locmarkers[i].setMap(map);
-      }
-    }
-
-    function showLocations() {
+    $('#show').click(function(event) {
       setAllMap(map);
-    }
+      $('#show').hide();
+      $('#hide').show();
+    });
 
-    function hideLocations() {
+    $('#hide').click(function(event) {
       setAllMap(null);
-    }
+      $('#show').show();
+      $('#hide').hide();
+    });
 
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
-</head>
-<body>
-  <div id="panel">
-    <input id="address" type="textbox" placeholder="address">
-    <input type="button" value="locate" onclick="codeAddress()"><br>
-    <input id="name" type="textbox" placeholder="custom name">
-    <input type="button" value="add location" onclick="addLocation()"><br>
-    <input type="button" value="show my locations" onclick="showLocations()">
-    <input type="button" value="hide my locations" onclick="hideLocations()"><br>
-    <form action="/locations">
-      <input type="submit" value="go back">
-    </form>
-  </div>
-  <div id="map-canvas"></div>
 </body>
 </html>
