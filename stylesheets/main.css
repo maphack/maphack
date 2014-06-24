@@ -9,7 +9,9 @@ body {
 	margin-right: 4px;
 }
 
+.table > thead > tr > th,
 .table > tbody > tr > td {
+	text-align: center;
 	vertical-align: middle;
 }
 

@@ -608,61 +608,65 @@ class InventoryDelete(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-			
-			game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
-				parent = inventory_key)
-			game_to_delete = game_to_delete_key.get()
+			try:
+				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+				
+				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
+					parent = inventory_key)
+				game_to_delete = game_to_delete_key.get()
 
-			if game_to_delete:
-				for listing_id in game_to_delete.listing_ids:
-					listing_key = ndb.Key('Listing', listing_id,
-						parent = ndb.Key('Person', users.get_current_user().user_id()))
-					listing = listing_key.get()
+				if game_to_delete:
+					for listing_id in game_to_delete.listing_ids:
+						listing_key = ndb.Key('Listing', listing_id,
+							parent = ndb.Key('Person', users.get_current_user().user_id()))
+						listing = listing_key.get()
 
-					for game_id in listing.own_ids:
-						game_key = ndb.Key('Game', game_id,
-							parent = inventory_key)
-						game = game_key.get()
+						for game_id in listing.own_ids:
+							game_key = ndb.Key('Game', game_id,
+								parent = inventory_key)
+							game = game_key.get()
 
-						game.listing_ids.remove(listing_id)
-						game.put()
+							game.listing_ids.remove(listing_id)
+							game.put()
 
-					for game_id in listing.seek_ids:
-						game_key = ndb.Key('Game', game_id,
-							parent = playlist_key)
-						game = game_key.get()
+						for game_id in listing.seek_ids:
+							game_key = ndb.Key('Game', game_id,
+								parent = playlist_key)
+							game = game_key.get()
 
-						game.listing_ids.remove(listing_id)
-						game.put()
+							game.listing_ids.remove(listing_id)
+							game.put()
 
-					listing_key.delete()
+						listing_key.delete()
 
-				game_to_delete_key.delete()
+					game_to_delete_key.delete()
 
-				inventory = inventory_key.get()
-				inventory.count -= 1
-				inventory.put()
+					inventory = inventory_key.get()
+					inventory.count -= 1
+					inventory.put()
 
-				owners_key = ndb.Key('Owners', game_to_delete.title,
-					parent = ndb.Key('Platform', game_to_delete.platform))
-				owners = owners_key.get()
-				owners.count -= 1
-				owners.put()
+					owners_key = ndb.Key('Owners', game_to_delete.title,
+						parent = ndb.Key('Platform', game_to_delete.platform))
+					owners = owners_key.get()
+					owners.count -= 1
+					owners.put()
 
-				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
-					parent = owners_key)
-				owner = owner_key.get()
-				owner.game_ids.remove(game_to_delete.key.id())
-				owner.descriptions.remove(game_to_delete.description)
-			
-				if owner.game_ids == []:
-					owner_key.delete()
-				else:
-					owner.put()
+					owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+						parent = owners_key)
+					owner = owner_key.get()
+					owner.game_ids.remove(game_to_delete.key.id())
+					owner.descriptions.remove(game_to_delete.description)
+				
+					if owner.game_ids == []:
+						owner_key.delete()
+					else:
+						owner.put()
 
-			self.redirect('/inventory')
+					self.response.out.write('game deleted.')
+			except:
+				self.error(403)
+				self.response.out.write(['an error has occurred.'])
 
 class PlaylistPage(webapp2.RequestHandler):
 	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
@@ -1235,4 +1239,4 @@ application = webapp2.WSGIApplication([
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
 	('/*', Dashboard),
-], debug=True)
+	], debug=True)

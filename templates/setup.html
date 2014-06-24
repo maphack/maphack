@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+<div class="page-header">
+	<h1>setup</h1>
+</div>
 <div id="alerts">
 	<div class="alert alert-info">
 		please set up your profile before continuing to use maphack.
@@ -292,9 +295,7 @@
 </form>
 <script>
 	$('#submit').click(function(event) {
-		$('.alert-dismissable').fadeTo(500, 0).slideUp(500, function() {
-			$(this).remove();
-		});
+		clearAlerts();
 
 		var name = $('#name').val().trim();
 		var pic = $('#pic').val().trim();

@@ -1,36 +1,48 @@
-<!-- Inventory page -->
 {% extends "base.html" %}
 {% block content %}
-<div class="top-pad-one">
-	{% if inventory.count() %}
-	<h4>inventory</h4>
-	<table class="sortable table table-bordered table-striped">
+<div class="page-header">
+	<h1>inventory
+		<a class="btn btn-default" href="/inventory/add">
+			<span class="glyphicon glyphicon-plus"></span>
+		</a>
+	</h1>
+</div>
+<div id="alerts">
+	{% if not inventory.count() %}
+	<div class="alert alert-info">
+		no games in your inventory! add the games you want to trade away.
+	</div>
+	{% endif %}
+</div>
+{% if inventory.count() %}
+<div class="table-responsive">
+	<table id="inventory" class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "20%">title</th>
+				<th width = "20%" style="text-align: left">title</th>
 				<th width = "10%">platform</th>
-				<th width = "20%">description</th>
+				<th width = "20%" style="text-align: left">description</th>
 				<th class="sorttable_nosort" width = "20%">image</th>
 				<th width = "10%">date</th>
-				<th width = "10%">search</th>
-				<th width = "10%">delete</th>
+				<th class="sorttable_nosort" width = "10%">search</th>
+				<th class="sorttable_nosort" width = "10%">delete</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in inventory %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
+			<tr id="{{ game.key.id() }}">
+				<td width = "20%" style="text-align: left">{{ game.title }}</td>
 				<td width = "10%">{{ game.platform }}</td>
-				<td width = "20%">{{ game.description }} </td>
+				<td width = "20%" style="text-align: left">{{ game.description }} </td>
 				<td width = "20%">
-					{% if game.pic != "" %}
+					{% if game.pic %}
 					<img class="game_pic" src="{{ game.pic }}">
 					{% endif %}
 				</td>
 				<td width = "10%">
 					{{ game.date.strftime('%d/%m/%Y') }}<br>
 				</td>
-				<td width = "10%" style="text-align:center;">
+				<td width = "10%">
 					<form action="/search/results" method="get">
 						<input type="hidden" name="title" value="{{ game.title }}">
 						<input type="hidden" name="platform" value="{{ game.platform }}">
@@ -38,29 +50,17 @@
 						<input type="submit" value="search">
 					</form>
 				</td>
-				<td width = "10%" style="text-align:center;">
-					<form action="/inventory/delete" method="post">
-						<input type="hidden" name="game_id" value="{{ game.key.id() }}">
-						<input type="submit" value="delete">
-					</form>
+				<td width = "10%">
+					<button type="button" class="btn btn-default delete">
+						<span class="glyphicon glyphicon-trash"></span>
+					</button>
 				</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
-	{% else %}
-	<div class="alert alert-info">
-		no games in your inventory! add the games you want to trade away.
-	</div>
-	{% endif %}
 </div>
-<div class="top-pad-one">
-	{% if error %}
-	<div class="error"><p>{{ error }}</p></div>
-	{% endif %}
-</div>
-<div id="alerts">
-</div>
+{% endif %}
 <h4>add a game to your inventory</h4>
 <form class="form-horizontal" role="form">
 	<div class="form-group">
@@ -114,6 +114,42 @@
 	</div>
 </form>
 <script>
+	$('.delete').click(function(event) {
+		clearAlerts();
+
+		var game_id = $(this).closest('tr').attr('id');
+
+		$.ajax({
+			type: 'POST',
+			url: '/inventory/delete',
+			data: {game_id: game_id},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>game deleted.</div>');
+				alertTimeout(5000);
+
+				$('#' + game_id).remove();
+				if ($('#inventory tr').length == 1) {
+					$('#inventory').remove();
+					$('#alerts').append('<div class="alert alert-info">no games in your inventory! add the games you want to trade away.</div>');
+				}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+				}
+			}
+		});
+	});
+
 	$("#submit").click( function(event) {
 		event.preventDefault();
 
