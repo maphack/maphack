@@ -402,18 +402,34 @@ class LocationsAdd(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			error = []
+			location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()))
+
+			# validate name
 			try:
-				location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()))
-				location.name = self.request.get('name')
-				location.address = self.request.get('address')
+				location.name = self.request.get('name').rstrip()
+				if not location.name:
+					raise Exception, 'location name cannot be empty.'
+			except Exception, e:
+				error.append(str(e))
+
+			try:
+				location.address = self.request.get('address').rstrip()
+			except Exception, e:
+				error.append(str(e))
+
+			try:
 				location.geopt = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
+			except Exception, e:
+				error.append(str(e))
+
+			if error:
+				self.error(403)
+				self.response.out.write(error)	
+			else:
 				location.put()
 
 				self.response.out.write('location added.')
-
-			except:
-				self.error(403)
-				self.response.out.write(['an error has occurred.'])
 
 class LocationsDelete(webapp2.RequestHandler):
 	def get(self):
@@ -429,10 +445,8 @@ class LocationsDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				location_id = int(self.request.get('location_id'))
-
 				location_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Location', location_id)
+					'Location', int(self.request.get('location_id')))
 				location_key.delete()
 
 				self.response.out.write('location deleted.')
@@ -448,10 +462,8 @@ class LocationsView(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				location_id = int(self.request.get('location_id'))
-
-				location_key = ndb.Key('Person', users.get_current_user().user_id(),
-						'Location', location_id)
+				location_key = ndb.Key('Person', users.get_current_user().user_id(), 
+					'Location', int(self.request.get('location_id')))
 				location = location_key.get()
 
 				if location == None:
@@ -471,10 +483,8 @@ class LocationsView(webapp2.RequestHandler):
 
 	def post(self):
 		try:
-			location_id = int(self.request.get('location_id'))
-
 			location_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Location', location_id)
+					'Location', int(self.request.get('location_id')))
 			location = location_key.get()
 
 			if location == None:
@@ -490,7 +500,7 @@ class LocationsView(webapp2.RequestHandler):
 			self.response.out.write('location deleted.')
 
 class InventoryPage(webapp2.RequestHandler):
-	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
+	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
@@ -506,63 +516,69 @@ class InventoryPage(webapp2.RequestHandler):
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
-				'error': error,
-				'input_title': input_title,
-				'input_platform': input_platform,
-				'input_pic': input_pic,
-				'input_description': input_description,
 				}
 			template = JINJA_ENVIRONMENT.get_template('inventory.html')
 			self.response.out.write(template.render(template_values))
 
+class InventoryAdd(webapp2.RequestHandler):
 	def get(self):
-		self.show()
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			template_values = {
+				'pic': user.pic,
+				'name': user.name,
+				'logout': users.create_logout_url(self.request.host_url),
+				}
+			template = JINJA_ENVIRONMENT.get_template('inventory_add.html')
+			self.response.out.write(template.render(template_values))
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			error = ''
+			error = []
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+			game = Game(parent = inventory_key)
 
-			# Validate title
+			# validate title
 			try:
-				input_title = self.request.get('title').rstrip()
-				if input_title == '':
-					raise Exception, 'title cannot be empty'
+				game.title = self.request.get('title').rstrip()
+				if not game.title:
+					raise Exception, 'title cannot be empty.'
 			except Exception, e:
-				error = error + 'error with game title. ' + str(e) + '. '
+				error.append(str(e))
 
-			# Validate platform
+			# validate platform
 			try:
-				input_platform = self.request.get('platform').rstrip()
-				if input_platform == '':
-					raise Exception, 'platform cannot be empty'
+				game.platform = self.request.get('platform').rstrip()
+				if not game.platform:
+					raise Exception, 'platform cannot be empty.'
 			except Exception, e:
-				error = error + 'error with game platform. ' + str(e) + '. '
+				error.append(str(e))
 
-			# Validate pic
+			# validate pic
 			try:
-				input_pic = self.request.get('pic').rstrip()
-				if input_pic != '':
+				game.pic = self.request.get('pic').rstrip()
+				if game.pic:
 					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
 						raise Exception, 'image link must be http or https'
 			except Exception, e:
-				error = error  + 'error with image link. ' + str(e) + '. '
+				error.append(str(e))
 
-			#Validate description
+			# validate description
 			try:
-				input_description = self.request.get('description').rstrip()
+				game.description = self.request.get('description').rstrip()
 			except Exception, e:
-				error = error  + 'error with description. ' + str(e) + '. '
+				error.append(str(e))
 
-			if error == '':
-				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				game = Game(parent = inventory_key)
-				game.title = input_title
-				game.platform = input_platform
-				game.description = input_description
-				game.pic = input_pic
+
+			if error:
+				self.error(403)
+				self.response.out.write(error)
+			else:
 				game.put()
 				game.game_id = game.key.id()
 				game.put()
@@ -591,9 +607,7 @@ class InventoryPage(webapp2.RequestHandler):
 				owner.descriptions.append(game.description)
 				owner.put()
 
-				self.show()
-			else:
-				self.show(error, input_title, input_platform, input_pic, input_description)
+				self.response.out.write('game added.')
 
 class InventoryDelete(webapp2.RequestHandler):
 	def get(self):
@@ -669,7 +683,7 @@ class InventoryDelete(webapp2.RequestHandler):
 				self.response.out.write(['an error has occurred.'])
 
 class PlaylistPage(webapp2.RequestHandler):
-	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
+	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
@@ -685,63 +699,69 @@ class PlaylistPage(webapp2.RequestHandler):
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
 				'playlist': playlist,
-				'error': error,
-				'input_title': input_title,
-				'input_platform': input_platform,
-				'input_pic': input_pic,
-				'input_description': input_description,
 				}
 			template = JINJA_ENVIRONMENT.get_template('playlist.html')
 			self.response.out.write(template.render(template_values))
 
+class PlaylistAdd(webapp2.RequestHandler):
 	def get(self):
-		self.show()
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user == None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			template_values = {
+				'pic': user.pic,
+				'name': user.name,
+				'logout': users.create_logout_url(self.request.host_url),
+				}
+			template = JINJA_ENVIRONMENT.get_template('playlist_add.html')
+			self.response.out.write(template.render(template_values))
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			error = ''
+			error = []
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+			game = Game(parent = playlist_key)
 
-			# Validate title
+			# validate title
 			try:
-				input_title = self.request.get('title').rstrip()
-				if input_title == '':
-					raise Exception, 'title cannot be empty'
+				game.title = self.request.get('title').rstrip()
+				if not game.title:
+					raise Exception, 'title cannot be empty.'
 			except Exception, e:
-				error = error + 'error with game title. ' + str(e) + '. '
+				error.append(str(e))
 
-			# Validate platform
+			# validate platform
 			try:
-				input_platform = self.request.get('platform').rstrip()
-				if input_platform == '':
-					raise Exception, 'platform cannot be empty'
+				game.platform = self.request.get('platform').rstrip()
+				if not game.platform:
+					raise Exception, 'platform cannot be empty.'
 			except Exception, e:
-				error = error + 'error with game platform. ' + str(e) + '. '
+				error.append(str(e))
 
-			# Validate pic
+			# validate pic
 			try:
-				input_pic = self.request.get('pic').rstrip()
-				if input_pic != '':
+				game.pic = self.request.get('pic').rstrip()
+				if game.pic:
 					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
 						raise Exception, 'image link must be http or https'
 			except Exception, e:
-				error = error  + 'error with image link. ' + str(e) + '. '
+				error.append(str(e))
 
-			#Validate description
+			# validate description
 			try:
-				input_description = self.request.get('description').rstrip()
+				game.description = self.request.get('description').rstrip()
 			except Exception, e:
-				error = error  + 'error with description. ' + str(e) + '. '
+				error.append(str(e))
 
-			if error == '':
-				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-				game = Game(parent = playlist_key)
-				game.title = input_title
-				game.platform = input_platform
-				game.description = input_description
-				game.pic = input_pic
+
+			if error:
+				self.error(403)
+				self.response.out.write(error)
+			else:
 				game.put()
 				game.game_id = game.key.id()
 				game.put()
@@ -770,9 +790,7 @@ class PlaylistPage(webapp2.RequestHandler):
 				seeker.descriptions.append(game.description)
 				seeker.put()
 
-				self.show()
-			else:
-				self.show(error, input_title, input_platform, input_pic, input_description)
+				self.response.out.write('game added.')
 
 class PlaylistDelete(webapp2.RequestHandler):
 	def get(self):
@@ -787,61 +805,65 @@ class PlaylistDelete(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-			
-			game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
-				parent = playlist_key)
-			game_to_delete = game_to_delete_key.get()
+			try:
+				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+				
+				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
+					parent = playlist_key)
+				game_to_delete = game_to_delete_key.get()
 
-			if game_to_delete:
-				for listing_id in game_to_delete.listing_ids:
-					listing_key = ndb.Key('Listing', listing_id,
-						parent = ndb.Key('Person', users.get_current_user().user_id()))
-					listing = listing_key.get()
+				if game_to_delete:
+					for listing_id in game_to_delete.listing_ids:
+						listing_key = ndb.Key('Listing', listing_id,
+							parent = ndb.Key('Person', users.get_current_user().user_id()))
+						listing = listing_key.get()
 
-					for game_id in listing.own_ids:
-						game_key = ndb.Key('Game', game_id,
-							parent = inventory_key)
-						game = game_key.get()
+						for game_id in listing.own_ids:
+							game_key = ndb.Key('Game', game_id,
+								parent = playlist_key)
+							game = game_key.get()
 
-						game.listing_ids.remove(listing_id)
-						game.put()
+							game.listing_ids.remove(listing_id)
+							game.put()
 
-					for game_id in listing.seek_ids:
-						game_key = ndb.Key('Game', game_id,
-							parent = playlist_key)
-						game = game_key.get()
+						for game_id in listing.seek_ids:
+							game_key = ndb.Key('Game', game_id,
+								parent = inventory_key)
+							game = game_key.get()
 
-						game.listing_ids.remove(listing_id)
-						game.put()
+							game.listing_ids.remove(listing_id)
+							game.put()
 
-					listing_key.delete()
+						listing_key.delete()
 
-				game_to_delete_key.delete()
+					game_to_delete_key.delete()
 
-				playlist = playlist_key.get()
-				playlist.count -= 1
-				playlist.put()
+					playlist = playlist_key.get()
+					playlist.count -= 1
+					playlist.put()
 
-				seekers_key = ndb.Key('Seekers', game_to_delete.title,
-					parent = ndb.Key('Platform', game_to_delete.platform))
-				seekers = seekers_key.get()
-				seekers.count -= 1
-				seekers.put()
+					seekers_key = ndb.Key('Seekers', game_to_delete.title,
+						parent = ndb.Key('Platform', game_to_delete.platform))
+					seekers = seekers_key.get()
+					seekers.count -= 1
+					seekers.put()
 
-				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
-					parent = seekers_key)
-				seeker = seeker_key.get()
-				seeker.game_ids.remove(game_to_delete.key.id())
-				seeker.descriptions.remove(game_to_delete.description)
-			
-				if seeker.game_ids == []:
-					seeker_key.delete()
-				else:
-					seeker.put()
+					seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+						parent = seekers_key)
+					seeker = seeker_key.get()
+					seeker.game_ids.remove(game_to_delete.key.id())
+					seeker.descriptions.remove(game_to_delete.description)
+				
+					if seeker.game_ids == []:
+						seeker_key.delete()
+					else:
+						seeker.put()
 
-			self.redirect('/playlist')
+					self.response.out.write('game deleted.')
+			except:
+				self.error(403)
+				self.response.out.write(['an error has occurred.'])
 
 class SearchResults(webapp2.RequestHandler):
 	def show(self, query_type = '', title = '', platform = '', results = '', distances = '', error = ''):
@@ -1229,8 +1251,10 @@ application = webapp2.WSGIApplication([
 	('/locations/delete', LocationsDelete),
 	('/locations/view', LocationsView),
 	('/inventory', InventoryPage),
+	('/inventory/add', InventoryAdd),
 	('/inventory/delete', InventoryDelete),
 	('/playlist', PlaylistPage),
+	('/playlist', PlaylistAdd),
 	('/playlist/delete', PlaylistDelete),
 	('/listings', ListingsPage),
 	('/listings/add', ListingsAdd),

@@ -1,36 +1,48 @@
-<!-- Playlist page -->
 {% extends "base.html" %}
 {% block content %}
-<div class="top-pad-one">
-	{% if playlist.count() %}
-	<h4>playlist</h4>
-	<table class="sortable table table-bordered table-striped">
+<div class="page-header">
+	<h1>playlist
+		<a class="btn btn-default" href="/playlist/add">
+			<span class="glyphicon glyphicon-plus"></span>
+		</a>
+	</h1>
+</div>
+<div id="alerts">
+	{% if not playlist.count() %}
+	<div class="alert alert-info">
+		no games in your playlist! add the games you want to trade for.
+	</div>
+	{% endif %}
+</div>
+{% if playlist.count() %}
+<div class="table-responsive">
+	<table id="playlist" class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "20%">title</th>
+				<th width = "20%" style="text-align: left">title</th>
 				<th width = "10%">platform</th>
-				<th width = "20%">description</th>
+				<th width = "20%" style="text-align: left">description</th>
 				<th class="sorttable_nosort" width = "20%">image</th>
 				<th width = "10%">date</th>
-				<th width = "10%">search</th>
-				<th width = "10%">delete</th>
+				<th class="sorttable_nosort" width = "10%">search</th>
+				<th class="sorttable_nosort" width = "10%">delete</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in playlist %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
+			<tr id="{{ game.key.id() }}">
+				<td width = "20%" style="text-align: left">{{ game.title }}</td>
 				<td width = "10%">{{ game.platform }}</td>
-				<td width = "20%">{{ game.description }} </td>
+				<td width = "20%" style="text-align: left">{{ game.description }} </td>
 				<td width = "20%">
-					{% if game.pic != "" %}
+					{% if game.pic %}
 					<img class="game_pic" src="{{ game.pic }}">
 					{% endif %}
 				</td>
 				<td width = "10%">
 					{{ game.date.strftime('%d/%m/%Y') }}<br>
 				</td>
-				<td width = "10%" style="text-align:center;">
+				<td width = "10%">
 					<form action="/search/results" method="get">
 						<input type="hidden" name="title" value="{{ game.title }}">
 						<input type="hidden" name="platform" value="{{ game.platform }}">
@@ -38,124 +50,55 @@
 						<input type="submit" value="search">
 					</form>
 				</td>
-				<td width = "10%" style="text-align:center;">
-					<form action="/playlist/delete" method="post">
-						<input type="hidden" name="game_id" value="{{ game.key.id() }}">
-						<input type="submit" value="delete">
-					</form>
+				<td width = "10%">
+					<button type="button" class="btn btn-default delete">
+						<span class="glyphicon glyphicon-trash"></span>
+					</button>
 				</td>
 			</tr>
 			{% endfor %}
 		</tbody>
 	</table>
-	{% else %}
-	<div class="alert alert-info">
-		no games in your playlist! add the games you want to trade for.
-	</div>
-	{% endif %}
 </div>
-<div class="top-pad-one">
-	{% if error %}
-	<div class="error"><p>{{ error }}</p></div>
-	{% endif %}
-</div>
-<div id="alerts">	
-</div>
-<h4>add a game to your playlist</h4>
-<form class="form-horizontal" role="form">
-	<div class="form-group">
-		<label for="title" class="col-sm-2 control-label">title</label>
-		<div class="col-sm-10">
-			<div class="input-group">
-				<span class="input-group-addon" style="background-color: #ffffff">
-					<i class="glyphicon glyphicon-book"></i>
-				</span>
-				<input type="text" class="form-control" id="title" placeholder="title">
-			</div>
-		</div>
-	</div>
-	<div class="form-group">
-		<label for="platform" class="col-sm-2 control-label">platform</label>
-		<div class="col-sm-10">
-			<div class="input-group">
-				<span class="input-group-addon" style="background-color: #ffffff">
-					<i class="glyphicon glyphicon-tower"></i>
-				</span>
-				<input type="text" class="form-control" id="platform" placeholder="PS4 / XBOX360 / PC etc.">
-			</div>
-		</div>
-	</div>
-	<div class="form-group">
-		<label for="image url" class="col-sm-2 control-label">picture</label>
-		<div class="col-sm-10">
-			<div class="input-group">
-				<span class="input-group-addon" style="background-color: #ffffff">
-					<i class="glyphicon glyphicon-picture"></i>
-				</span>
-				<input type="text" class="form-control" id="pic" placeholder="image url">
-			</div>
-		</div>
-	</div>
-	<div class="form-group">
-		<label for="description" class="col-sm-2 control-label">description</label>
-		<div class="col-sm-10">
-			<div class="input-group">
-				<span class="input-group-addon" style="background-color: #ffffff">
-					<i class="glyphicon glyphicon-italic"></i>
-				</span>
-				<textarea class="form-control" id="description" rows="3" placeholder="write a short description of the game (e.g. requirements)"></textarea>
-			</div>
-		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-2 col-sm-10">
-			<button type="submit" class="btn btn-default" id="submit">add</button>
-		</div>
-	</div>
-</form>
+{% endif %}
 <script>
-	$("#submit").click( function(event) {
-		event.preventDefault();
+	$('.delete').click(function(event) {
+		clearAlerts();
 
-		var title = $('#title').val().trim();
-		var platform = $('#platform').val().trim();
-		var pic = $('#pic').val().trim();
-		var description = $('#description').val().trim();
+		var game_id = $(this).closest('tr').attr('id');
 
-		if (!title) {
-			alert('please enter a valid title.');
-		} else if (!platform) {
-			alert('please enter a valid platform.');
-		} else {
-			$('.alertdiv').remove();
+		$.ajax({
+			type: 'POST',
+			url: '/playlist/delete',
+			data: {game_id: game_id},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
 
-			$.ajax({
-				type: 'POST',
-				url: '/playlist',
-				data: {title: title, platform: platform, pic: pic, description: description},
-				success: function(data, textStatus, jqXHR) {
-					console.log(data);
-					console.log(textStatus);
-					console.log(jqXHR);
-					alert('game added.');
+				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>game deleted.</div>');
+				alertTimeout(5000);
 
-					window.location.href = "/playlist";
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					console.log(jqXHR);
-					console.log(textStatus);
-					console.log(errorThrown);
-					var errors = eval(jqXHR.responseText);
-
-					for (var i = 0; i < errors.length; i ++) {
-						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
-					}
+				$('#' + game_id).remove();
+				if ($('#playlist tr').length == 1) {
+					$('#playlist').remove();
+					$('#alerts').append('<div class="alert alert-info">no games in your playlist! add the games you want to trade away.</div>');
 				}
-			});
-		}
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+				}
+			}
+		});
 	});
 </script>
 <script>
-	$('#nav-pl').addClass("active");
+	$('#nav-inv').addClass("active");
 </script>
 {% endblock %}
