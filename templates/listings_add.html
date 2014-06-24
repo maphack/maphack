@@ -14,9 +14,6 @@
 	{% endif %}
 </div>
 <script>
-	$('#nav-list').addClass("active");
-	$('#nav-list-add').addClass("active");
-
 	var inventory = {{ inventory|safe }};
 	var playlist = {{ playlist|safe }};
 	console.log(inventory);
@@ -239,7 +236,7 @@
 						alert("listing added.");
 					}
 				},
-				failure: function(response) {
+				error: function(response) {
 					alert("error.");
 					console.log(response);
 				}
@@ -298,5 +295,9 @@
 			}
 		});
 	});
+</script>
+<script>
+	$('#nav-list').addClass("active");
+	$('#nav-list-add').addClass("active");
 </script>
 {% endblock %}

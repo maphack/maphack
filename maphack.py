@@ -30,10 +30,10 @@ class Person(ndb.Model):
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Location(ndb.Model):
-	name = ndb.StringProperty()
+	name = ndb.StringProperty(indexed = False)
 	address = ndb.StringProperty(indexed = False)
-	geopt = ndb.GeoPtProperty()
-	date = ndb.DateTimeProperty(auto_now_add = True)
+	geopt = ndb.GeoPtProperty(indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
 class Inventory(ndb.Model):
 	# Key: person id
@@ -50,7 +50,7 @@ class Game(ndb.Model):
 	pic = ndb.StringProperty(indexed = False)
 	description = ndb.TextProperty(indexed = False)
 	listing_ids = ndb.IntegerProperty(repeated = True, indexed = False)
-	date = ndb.DateTimeProperty(auto_now_add = True)
+	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
 class Listing(ndb.Model):
 	listing_id = ndb.IntegerProperty(indexed = False)
@@ -68,7 +68,7 @@ class Listing(ndb.Model):
 	seek_descriptions = ndb.TextProperty(repeated = True, indexed = False)
 	seek_pics = ndb.StringProperty(repeated = True, indexed = False)
 	topup = ndb.FloatProperty()	
-	date = ndb.DateTimeProperty(auto_now_add = True)
+	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
 class Platform(ndb.Model):
 	pass
@@ -115,14 +115,12 @@ class NdbEncoder(json.JSONEncoder):
 def user_game_map(result):
 	my_locations = ndb.gql('SELECT * '
 		'FROM Location '
-		'WHERE ANCESTOR IS :1 '
-		'ORDER BY date ASC',
+		'WHERE ANCESTOR IS :1 ',
 		ndb.Key('Person', users.get_current_user().user_id()))
 
 	your_locations = ndb.gql('SELECT * '
 		'FROM Location '
-		'WHERE ANCESTOR IS :1 '
-		'ORDER BY date ASC',
+		'WHERE ANCESTOR IS :1 ',
 		ndb.Key('Person', result.key.id()))
 
 	nearest_distance = min_dist(my_locations, your_locations)
@@ -365,8 +363,7 @@ class LocationsPage(webapp2.RequestHandler):
 		else:
 			locations = ndb.gql('SELECT * '
 				'FROM Location '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date ASC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
@@ -386,8 +383,7 @@ class LocationsAdd(webapp2.RequestHandler):
 		else:
 			locations = ndb.gql('SELECT * '
 				'FROM Location '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date ASC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
@@ -514,8 +510,7 @@ class InventoryPage(webapp2.RequestHandler):
 		else:
 			inventory = ndb.gql('SELECT * '
 				'FROM Game '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date DESC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
 			template_values = {
@@ -697,8 +692,7 @@ class PlaylistPage(webapp2.RequestHandler):
 		else:
 			playlist = ndb.gql('SELECT * '
 				'FROM Game '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date DESC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
@@ -950,38 +944,32 @@ class UserPage(webapp2.RequestHandler):
 				else:
 					my_inventory = ndb.gql('SELECT * '
 						'FROM Game '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date DESC',
+						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Inventory', users.get_current_user().user_id()))
 
 					my_playlist = ndb.gql('SELECT * '
 						'FROM Game '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date DESC',
+						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Playlist', users.get_current_user().user_id()))
 
 					your_inventory = ndb.gql('SELECT * '
 						'FROM Game '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date DESC',
+						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Inventory', person_id))
 
 					your_playlist = ndb.gql('SELECT * '
 						'FROM Game '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date DESC',
+						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Playlist', person_id))
 
 					my_locations = ndb.gql('SELECT * '
 						'FROM Location '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date ASC',
+						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Person', users.get_current_user().user_id()))
 
 					your_locations = ndb.gql('SELECT * '
 						'FROM Location '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date ASC',
+						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Person', person_id))
 
 					my_diff = []
@@ -1039,14 +1027,12 @@ class UserLocations(webapp2.RequestHandler):
 
 			my_locations = ndb.gql('SELECT * '
 				'FROM Location '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date ASC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			your_locations = ndb.gql('SELECT * '
 				'FROM Location '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date ASC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Person', person_id))
 
 			my_locations = my_locations.map(locations_map)
@@ -1068,8 +1054,7 @@ class ListingsPage(webapp2.RequestHandler):
 		else:
 			listings = ndb.gql('SELECT * '
 				'FROM Listing '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date DESC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
@@ -1089,14 +1074,12 @@ class ListingsAdd(webapp2.RequestHandler):
 		else:
 			inventory = ndb.gql('SELECT * '
 				'FROM Game '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date DESC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
 			playlist = ndb.gql('SELECT * '
 				'FROM Game '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date DESC',
+				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
@@ -1213,6 +1196,7 @@ class ListingsAdd(webapp2.RequestHandler):
 
 				self.response.out.write('success')
 			except Exception, e:
+				self.error(403)
 				self.response.out.write(e)
 
 class ListingsDelete(webapp2.RequestHandler):

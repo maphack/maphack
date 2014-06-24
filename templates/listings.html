@@ -9,9 +9,6 @@
 	</form>
 </div>
 <script>
-	$('#nav-list').addClass("active");
-	$('#nav-list-my').addClass("active");
-
 	var listings = {{ listings|safe }};
 	console.log(listings);
 
@@ -224,5 +221,9 @@
 			listingsDiv.innerHTML += "<div class='alert alert-info' style='text-align:center;'>no listings have been added yet.</div>"
 		}
 	}
+</script>
+<script>
+	$('#nav-list').addClass("active");
+	$('#nav-list-my').addClass("active");
 </script>
 {% endblock %}
