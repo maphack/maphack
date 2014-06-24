@@ -4,27 +4,13 @@
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8">
   <title>maphack | search. trade. play.</title>
-  <style>
-    html, body, #map-canvas {
-      height: 100%;
-      margin: 0px;
-      padding: 0px
-    }
-    #panel {
-      position: absolute;
-      z-index: 5;
-      right: 16px;
-      bottom: 16px;
-      width: 25%;
-      padding: 5px;
-      border: 1px solid #999;
-    }
-  </style>
   <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/stylesheets/map.css" rel="stylesheet">
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/scripts/alerts.js"></script>
   </head>
 <body>
   <div id="panel" class="panel panel-primary">
@@ -84,7 +70,6 @@
       } else {
         geocoder.geocode({'componentRestrictions': {country: country}}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
-            map = new google.maps.Map(document.getElementById('map-canvas'));
             map.setCenter(results[0].geometry.location);
             map.fitBounds(results[0].geometry.viewport);
           } else {
@@ -118,20 +103,6 @@
       }
     }
 
-    function clearAlerts() {
-      $('.alert-dismissable').fadeTo(500, 0).slideUp(500, function() {
-        $(this).remove();
-      });
-    }
-
-    function alertTimeout(wait){
-      setTimeout(function(){
-        $('#alerts').children('.alert-success:first-child').fadeTo(500, 0).slideUp(500, function() {
-          $(this).remove();
-        });
-      }, wait);
-    }
-
     $('#locate').click(function(event) {
       clearAlerts();
 
@@ -154,7 +125,7 @@
       clearAlerts();
 
       var name = $('#name').val();
-      if (name.trim() == '') {
+      if (!name.trim()) {
         $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please enter a valid name.</div>');
       } else if (!marker) {
         $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please set a location.</div>');

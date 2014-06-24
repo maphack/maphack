@@ -4,38 +4,49 @@
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8">
   <title>maphack | search. trade. play.</title>
-  <style>
-    html, body, #map-canvas {
-      height: 100%;
-      margin: 0px;
-      padding: 0px
-    }
-    #panel {
-      position: absolute;
-      top: 5px;
-      left: 50%;
-      margin-left: -180px;
-      z-index: 5;
-      background-color: #fff;
-      padding: 5px;
-      border: 1px solid #999;
-    }
-  </style>
+  <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/stylesheets/map.css" rel="stylesheet">
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/scripts/alerts.js"></script>
+  </head>
+<body>
+  <div id="panel" class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">locations</h3>
+    </div>
+    <div class="panel-body">
+      <div style="vertical-align: middle">
+        <span class="glyphicon glyphicon-map-marker"></span>
+        <span >{{ address }}</span>
+      </div>
+      <div class="input-group">
+        <input id="name" type="textbox" class="form-control" placeholder="custom name" value="{{ name }}">
+        <span class="input-group-btn">
+          <button id="change" type="button" class="btn btn-default">change name</button>
+        </span>
+      </div>
+      <div id="alerts"></div>
+      <button id="delete" type="button" class="btn btn-default">
+        <span class="glyphicon glyphicon-trash"></span>
+      </button>
+      <a class="btn btn-default" href="/locations">back</a>
+    </div>
+  </div>
+  <div id="map-canvas"></div>
   <script>
     var map;
-    var name = '{{ name }}';
     var location_id = {{ location_id }};
-    var latitude = {{ latitude }};
-    var longitude = {{ longitude }};
-
+    var latitude = {{ geopt.lat }};
+    var longitude = {{ geopt.lon }};
+    
     function initialize() {
-      document.getElementById('name').value = name;
-
+      $('#name').val(name);
       var latlng = new google.maps.LatLng(latitude, longitude);
       var mapOptions = {
-        zoom: 17,
+        zoom: 15,
         center: latlng
       }
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
@@ -45,46 +56,68 @@
       });
     }
 
-    function changeName() {
+    $('#change').click(function(event) {
+      clearAlerts();
+
       var name = $('#name').val();
 
-      if (!name || name.trim() == '') {
-        alert('please enter a valid name.');
+      if (!name.trim()) {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please enter a valid name.</div>');
       } else {
         $.ajax({
+            type: 'POST',
+            url: '/locations/view',
+            data: {name: name, location_id: location_id},
+            success: function(data, textStatus, jqXHR) {
+              console.log(data);
+              console.log(textStatus);
+              console.log(jqXHR);
+
+              $('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location name changed.</div>');
+              alertTimeout(5000);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+              console.log(jqXHR);
+              console.log(textStatus);
+              console.log(errorThrown);
+              var errors = eval(jqXHR.responseText);
+
+              for (var i = 0; i < errors.length; i ++) {
+                $('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+              }
+            }
+          });
+      }
+    });
+
+    $('#delete').click(function(event) {
+        clearAlerts();
+
+        $.ajax({
           type: 'POST',
-          url: '/locations/view',
-          data: {name: name, location_id: {{ location_id }}},
-          success: function(){
-            alert('name changed.');
+          url: '/locations/delete',
+          data: {location_id: location_id},
+          success: function(data, textStatus, jqXHR) {
+            console.log(data);
+            console.log(textStatus);
+            console.log(jqXHR);
+
+            window.location.href = '/locations';
           },
           error: function(jqXHR, textStatus, errorThrown) {
-            alert(jqXHR.responseText);
             console.log(jqXHR);
             console.log(textStatus);
             console.log(errorThrown);
+            var errors = eval(jqXHR.responseText);
 
-            window.location.href = '/locations';
+            for (var i = 0; i < errors.length; i ++) {
+              $('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+            }
           }
         });
-      }
-    }
+      });
 
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
-</head>
-<body>
-  <div id="panel">
-    <input id="name" type="textbox" placeholder="new name">
-    <input type="button" value="change name" onclick="changeName()"><br>
-    <form action="/locations/delete" method="post">
-      <input type="hidden" name="location_id" value="{{ location_id }}">
-      <input type="submit" value="delete">
-    </form>
-    <form action="/locations">
-      <input type="submit" value="go back">
-    </form>
-  </div>
-  <div id="map-canvas"></div>
 </body>
 </html>

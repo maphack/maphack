@@ -402,12 +402,18 @@ class LocationsAdd(webapp2.RequestHandler):
 		if user == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()))
-			location.name = self.request.get('name')
-			location.address = self.request.get('address')
-			location.geopt = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
+			try:
+				location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()))
+				location.name = self.request.get('name')
+				location.address = self.request.get('address')
+				location.geopt = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
+				location.put()
 
-			location.put()
+				self.response.out.write('location added.')
+
+			except:
+				self.error(403)
+				self.response.out.write(['an error has occurred.'])
 
 class LocationsDelete(webapp2.RequestHandler):
 	def get(self):
@@ -430,9 +436,10 @@ class LocationsDelete(webapp2.RequestHandler):
 				location_key.delete()
 
 				self.response.out.write('location deleted.')
-			except Exception, e:
+
+			except:
 				self.error(403)
-				self.response.out.write(error)
+				self.response.out.write(['an error has occurred.'])
 
 class LocationsView(webapp2.RequestHandler):
 	def get(self):
@@ -440,26 +447,47 @@ class LocationsView(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			template_values = {
-				'name': self.request.get('name'),
-				'location_id': self.request.get('location_id'),
-				'latitude': self.request.get('latitude'),
-				'longitude': self.request.get('longitude'),
-			}
-			template = JINJA_ENVIRONMENT.get_template('locations_view.html')
-			self.response.out.write(template.render(template_values))
+			try:
+				location_id = int(self.request.get('location_id'))
+
+				location_key = ndb.Key('Person', users.get_current_user().user_id(),
+						'Location', location_id)
+				location = location_key.get()
+
+				if location == None:
+					raise Exception
+
+				template_values = {
+					'location_id': location.key.id(),
+					'name': location.name,
+					'address': location.address,
+					'geopt': location.geopt,
+				}
+				template = JINJA_ENVIRONMENT.get_template('locations_view.html')
+				self.response.out.write(template.render(template_values))
+
+			except:
+				self.redirect('/locations')
 
 	def post(self):
-		location_key = ndb.Key('Person', users.get_current_user().user_id(),
-				'Location', int(self.request.get('location_id')))
-		location = location_key.get()
+		try:
+			location_id = int(self.request.get('location_id'))
 
-		if location == None:
-			self.error(403)
-			self.response.out.write('invalid location id; you are being redirected.')
-		else:
+			location_key = ndb.Key('Person', users.get_current_user().user_id(),
+					'Location', location_id)
+			location = location_key.get()
+
+			if location == None:
+				raise Exception
+
 			location.name = self.request.get('name')
 			location.put()
+
+			self.response.out.write('name changed.')
+
+		except:
+			self.error(403)
+			self.response.out.write('location deleted.')
 
 class InventoryPage(webapp2.RequestHandler):
 	def show(self, error = '', input_title = '', input_platform = '', input_pic = '', input_description = ''):
