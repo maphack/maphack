@@ -494,7 +494,7 @@ class LocationsView(webapp2.RequestHandler):
 				if location == None:
 					raise Exception, 'no such location.'
 
-				if self.request.get('name').rstrip()
+				if self.request.get('name').rstrip():
 					location.name = self.request.get('name').rstrip()
 					location.put()
 
@@ -1261,7 +1261,7 @@ application = webapp2.WSGIApplication([
 	('/inventory/add', InventoryAdd),
 	('/inventory/delete', InventoryDelete),
 	('/playlist', PlaylistPage),
-	('/playlist', PlaylistAdd),
+	('/playlist/add', PlaylistAdd),
 	('/playlist/delete', PlaylistDelete),
 	('/listings', ListingsPage),
 	('/listings/add', ListingsAdd),

@@ -3,6 +3,7 @@
 <div class="page-header">
 	<h1>add game to playlist</h1>
 </div>
+<div id="alerts"></div>
 <form class="form-horizontal" role="form">
 	<div class="form-group">
 		<label for="title" class="col-sm-2 control-label">title</label>
@@ -50,14 +51,14 @@
 	</div>
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button id="submit" type="submit" class="btn btn-default">add</button>
+			<button id="add" type="button" class="btn btn-default">add</button>
 			<a class="btn btn-default" href="/playlist">back</a>
 		</div>
 	</div>
 </form>
 <script>
-	$("#submit").click( function(event) {
-		event.preventDefault();
+	$("#add").click( function(event) {
+		clearAlerts();
 
 		var title = $('#title').val().trim();
 		var platform = $('#platform').val().trim();
@@ -65,23 +66,23 @@
 		var description = $('#description').val().trim();
 
 		if (!title) {
-			alert('please enter a valid title.');
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>title cannot be empty.</div>');
 		} else if (!platform) {
-			alert('please enter a valid platform.');
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>platform cannot be empty.</div>');
 		} else {
-			$('.alertdiv').remove();
-
 			$.ajax({
 				type: 'POST',
-				url: '/playlist',
+				url: '/playlist/add',
 				data: {title: title, platform: platform, pic: pic, description: description},
 				success: function(data, textStatus, jqXHR) {
 					console.log(data);
 					console.log(textStatus);
 					console.log(jqXHR);
-					alert('game added.');
+					
+					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + title + ' added to playlist.</div>');
+					alertTimeout(5000);
 
-					window.location.href = "/playlist";
+					$('#form')[0].reset()
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);
