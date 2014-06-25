@@ -1255,6 +1255,11 @@ class ListingsSearchResults(webapp2.RequestHandler):
 					else:
 						raise Exception, 'no such game in playlist.'
 
+				if offer_amt:
+					qry.filter(Listing.topup <= offer_amt)
+				elif request_amt:
+					qry.filter(Listing.topup <= offer_amt)
+
 				listings = qry.map(listing_games)
 
 				template_values = {
