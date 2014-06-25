@@ -558,7 +558,7 @@ class InventoryAdd(webapp2.RequestHandler):
 			try:
 				game.pic = self.request.get('pic').rstrip()
 				if game.pic:
-					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
+					if (urlparse(game.pic).scheme != 'http') and (urlparse(game.pic).scheme != 'https'):
 						raise Exception, 'image link must be http or https'
 			except Exception, e:
 				error.append(str(e))
@@ -727,7 +727,7 @@ class PlaylistAdd(webapp2.RequestHandler):
 			try:
 				game.pic = self.request.get('pic').rstrip()
 				if game.pic:
-					if (urlparse(input_pic).scheme != 'http') and (urlparse(input_pic).scheme != 'https'):
+					if (urlparse(game.pic).scheme != 'http') and (urlparse(game.pic).scheme != 'https'):
 						raise Exception, 'image link must be http or https'
 			except Exception, e:
 				error.append(str(e))
