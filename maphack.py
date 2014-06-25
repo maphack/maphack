@@ -164,7 +164,7 @@ class MainPage(webapp2.RequestHandler):
 class Dashboard(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			template_values = {
@@ -181,7 +181,7 @@ class Setup(webapp2.RequestHandler):
 		if user and user.setup:
 			self.redirect('/dashboard')
 		else:
-			if user == None:
+			if user is None:
 				user = Person(id = users.get_current_user().user_id())
 				user.email = users.get_current_user().email()
 				user.put()
@@ -202,7 +202,7 @@ class Setup(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None:
+		if user is None:
 			self.redirect('/setup')
 		else:
 			error = []
@@ -249,7 +249,7 @@ class Setup(webapp2.RequestHandler):
 class Profile(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/dashboard')
 		else:
 			template_values = {
@@ -265,7 +265,7 @@ class Profile(webapp2.RequestHandler):
 class ProfileEdit(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/dashboard')
 		else:
 			template_values = {
@@ -280,7 +280,7 @@ class ProfileEdit(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/dashboard')
 		else:
 			error = []
@@ -348,7 +348,7 @@ class ProfileEdit(webapp2.RequestHandler):
 class LocationsPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			locations = ndb.gql('SELECT * '
@@ -368,7 +368,7 @@ class LocationsPage(webapp2.RequestHandler):
 class LocationsAdd(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			locations = ndb.gql('SELECT * '
@@ -385,7 +385,7 @@ class LocationsAdd(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			error = []
@@ -420,14 +420,14 @@ class LocationsAdd(webapp2.RequestHandler):
 class LocationsDelete(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			self.redirect('/locations')
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -444,7 +444,7 @@ class LocationsDelete(webapp2.RequestHandler):
 class LocationsView(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -452,7 +452,7 @@ class LocationsView(webapp2.RequestHandler):
 					'Location', int(self.request.get('location_id')))
 				location = location_key.get()
 
-				if not location:
+				if location is None:
 					raise Exception, 'no such location.'
 
 				template_values = {
@@ -469,7 +469,7 @@ class LocationsView(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -477,7 +477,7 @@ class LocationsView(webapp2.RequestHandler):
 					'Location', int(self.request.get('location_id')))
 				location = location_key.get()
 
-				if not location:
+				if location is None:
 					raise Exception, 'no such location.'
 
 				if location.name != self.request.get('name').rstrip():
@@ -498,7 +498,7 @@ class LocationsView(webapp2.RequestHandler):
 class InventoryPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			inventory = ndb.gql('SELECT * '
@@ -518,7 +518,7 @@ class InventoryPage(webapp2.RequestHandler):
 class InventoryAdd(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			template_values = {
@@ -531,7 +531,7 @@ class InventoryAdd(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			error = []
@@ -583,7 +583,7 @@ class InventoryAdd(webapp2.RequestHandler):
 				owners_key = ndb.Key('Owners', game.title,
 					parent = ndb.Key('Platform', game.platform))
 				owners = owners_key.get()
-				if owners == None:
+				if owners is None:
 					owners = Owners(parent = ndb.Key('Platform', game.platform),
 						id = game.title)
 				owners.count += 1
@@ -592,7 +592,7 @@ class InventoryAdd(webapp2.RequestHandler):
 				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
 					parent = owners_key)
 				owner = owner_key.get()
-				if owner == None:
+				if owner is None:
 					owner = Owner(parent = owners_key,
 						id = users.get_current_user().user_id())
 				owner.name = user.name
@@ -604,14 +604,14 @@ class InventoryAdd(webapp2.RequestHandler):
 class InventoryDelete(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			self.redirect('/inventory')
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -667,7 +667,7 @@ class InventoryDelete(webapp2.RequestHandler):
 class PlaylistPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			playlist = ndb.gql('SELECT * '
@@ -687,7 +687,7 @@ class PlaylistPage(webapp2.RequestHandler):
 class PlaylistAdd(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			template_values = {
@@ -700,7 +700,7 @@ class PlaylistAdd(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			error = []
@@ -752,7 +752,7 @@ class PlaylistAdd(webapp2.RequestHandler):
 				seekers_key = ndb.Key('Seekers', game.title,
 					parent = ndb.Key('Platform', game.platform))
 				seekers = seekers_key.get()
-				if seekers == None:
+				if seekers is None:
 					seekers = Seekers(parent = ndb.Key('Platform', game.platform),
 						id = game.title)
 				seekers.count += 1
@@ -761,7 +761,7 @@ class PlaylistAdd(webapp2.RequestHandler):
 				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
 					parent = seekers_key)
 				seeker = seeker_key.get()
-				if seeker == None:
+				if seeker is None:
 					seeker = Seeker(parent = seekers_key,
 						id = users.get_current_user().user_id())
 				seeker.name = user.name
@@ -773,14 +773,14 @@ class PlaylistAdd(webapp2.RequestHandler):
 class PlaylistDelete(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			self.redirect('/playlist')
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -836,7 +836,7 @@ class PlaylistDelete(webapp2.RequestHandler):
 class SearchResults(webapp2.RequestHandler):
 	def show(self, query_type = '', title = '', platform = '', results = '', distances = '', error = ''):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			template_values = {
@@ -854,7 +854,7 @@ class SearchResults(webapp2.RequestHandler):
 
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			query_type = self.request.get('query_type')
@@ -899,14 +899,14 @@ class SearchResults(webapp2.RequestHandler):
 class UserPage(webapp2.RequestHandler):
 	def get(self, person_id):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			if user.key.id() == person_id:
 				self.redirect('/dashboard')
 			else:
 				person = ndb.Key('Person', person_id).get()
-				if person == None:
+				if person is None:
 					self.redirect('/dashboard')
 				else:
 					my_inventory = ndb.gql('SELECT * '
@@ -985,11 +985,11 @@ class UserPage(webapp2.RequestHandler):
 class UserLocations(webapp2.RequestHandler):
 	def get(self, person_id):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			person = ndb.Key('Person', person_id).get()
-			if person == None:
+			if person is None:
 				self.redirect('/dashboard')
 
 			my_locations = ndb.gql('SELECT * '
@@ -1016,7 +1016,7 @@ class UserLocations(webapp2.RequestHandler):
 class ListingsPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			listings = ndb.gql('SELECT * '
@@ -1038,7 +1038,7 @@ class ListingsPage(webapp2.RequestHandler):
 class ListingsAdd(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			inventory = ndb.gql('SELECT * '
@@ -1063,7 +1063,7 @@ class ListingsAdd(webapp2.RequestHandler):
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -1124,13 +1124,12 @@ class ListingsAdd(webapp2.RequestHandler):
 
 				listing.put()
 
-				# iterate over games and add listing id
 				for game_key in listing.own_keys:
 					game = game_key.get()
 					game.listing_keys.append(listing.key)
 					game.put()
 
-				for game_id in listing.seek_keys:
+				for game_key in listing.seek_keys:
 					game = game_key.get()
 					game.listing_keys.append(listing.key)
 					game.put()
@@ -1144,7 +1143,7 @@ class ListingsAdd(webapp2.RequestHandler):
 class ListingsDelete(webapp2.RequestHandler):
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user == None or user.setup == None or user.setup == False:
+		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
 			try:
@@ -1159,7 +1158,7 @@ class ListingsDelete(webapp2.RequestHandler):
 						game.listing_keys.remove(listing.key)
 						game.put()
 
-					for game_id in listing.seek_keys:
+					for game_key in listing.seek_keys:
 						game = game_key.get()
 						game.listing_keys.remove(listing.key)
 						game.put()
