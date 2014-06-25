@@ -1170,6 +1170,32 @@ class ListingsDelete(webapp2.RequestHandler):
 				self.error(403)
 				self.response.out.write(e)
 
+class ListingsSearch(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			inventory = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Inventory', users.get_current_user().user_id()))
+
+			playlist = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Playlist', users.get_current_user().user_id()))
+
+			template_values = {
+				'pic': user.pic,
+				'name': user.name,
+				'logout': users.create_logout_url(self.request.host_url),
+				'inventory': inventory,
+				'playlist': playlist,
+				}
+			template = JINJA_ENVIRONMENT.get_template('listings_search.html')
+			self.response.out.write(template.render(template_values))
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1189,6 +1215,7 @@ application = webapp2.WSGIApplication([
 	('/listings', ListingsPage),
 	('/listings/add', ListingsAdd),
 	('/listings/delete', ListingsDelete),
+	('/listings/search', ListingsSearch),
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
