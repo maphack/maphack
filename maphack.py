@@ -620,7 +620,6 @@ class InventoryDelete(webapp2.RequestHandler):
 				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
 					parent = inventory_key)
 				game_to_delete = game_to_delete_key.get()
-				game_to_delete_key.delete()
 
 				if game_to_delete:
 					for listing_key in game_to_delete.listing_keys:
@@ -636,6 +635,8 @@ class InventoryDelete(webapp2.RequestHandler):
 							game = game_key.get()
 							game.listing_keys.remove(listing_key)
 							game.put()
+
+					game_to_delete_key.delete()
 
 					inventory = inventory_key.get()
 					inventory.count -= 1
@@ -789,7 +790,6 @@ class PlaylistDelete(webapp2.RequestHandler):
 				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
 					parent = playlist_key)
 				game_to_delete = game_to_delete_key.get()
-				game_to_delete_key.delete()
 
 				if game_to_delete:
 					for listing_key in game_to_delete.listing_keys:
@@ -805,6 +805,8 @@ class PlaylistDelete(webapp2.RequestHandler):
 							game = game_key.get()
 							game.listing_keys.remove(listing_key)
 							game.put()
+
+					game_to_delete_key.delete()
 
 					playlist = playlist_key.get()
 					playlist.count -= 1
