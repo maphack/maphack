@@ -1,226 +1,142 @@
 {% extends "base.html" %}
 {% block content %}
-<div id="listings" class="top-pad-one">
-	<h4>listings</h4><br>
+<div class="page-header">
+	<h1>listings
+		<a class="btn btn-default" href="/listings/add">
+			<span class="glyphicon glyphicon-plus"></span>
+		</a>
+	</h1>
 </div>
-<div class="top-pad-one" style="clear: both">
-	<form action="/listings/add" method="get">
-		<button type="submit">add listing</button>
-	</form>
+<div id="alerts">
+	{% if not listings|length %}
+	<div class="alert alert-info">
+		no listings!
+	</div>
+	{% endif %}
 </div>
+{% if listings|length %}
+{% for listing, own_list, seek_list in listings %}
+<div id="{{ listing.key.id() }}" class="row" style="margin-top: 20px; border-bottom: 1px solid #eeeeee">
+	<div class="col-md-6">
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				<h3 class="panel-title">offering</h3>
+			</div>
+			{% if own_list|length %}
+			<div class="table-responsive">
+				<table class="sortable table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th width = "80%" style="text-align: left">title</th>
+							<th width = "20%">platform</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for game in own_list %}
+						<tr id="{{ game.key.id() }}">
+							<td width = "80%" style="text-align: left">{{ game.title }}</td>
+							<td width = "20%">{{ game.platform }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="panel-body">
+				<div class="alert alert-info">
+					no games here!
+				</div>
+			</div>
+			{% endif %}
+			{% if listing.topup > 0 %}
+			<div class="panel-footer" style="padding: 0">
+				<div class="input-group">
+					<span class="input-group-addon">topup: ${{ listing.topup }}</span>
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				<h3 class="panel-title">requesting</h3>
+			</div>
+			{% if seek_list|length %}
+			<div class="table-responsive">
+				<table class="sortable table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th width = "80%" style="text-align: left">title</th>
+							<th width = "20%">platform</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for game in seek_list %}
+						<tr id="{{ game.key.id() }}">
+							<td width = "80%" style="text-align: left">{{ game.title }}</td>
+							<td width = "20%">{{ game.platform }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="panel-body">
+				<div class="alert alert-info">
+					no games here!
+				</div>
+			</div>
+			{% endif %}
+			{% if listing.topup < 0 %}
+			<div class="panel-footer" style="padding: 0">
+				<div class="input-group">
+					<span class="input-group-addon">topup: ${{ -listing.topup }}</span>
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	<div class="list-menu">
+		<button type="button" class="btn btn-default delete" value="{{ listing.key.id() }}">
+			<span class="glyphicon glyphicon-trash"></span>
+		</button>
+	</div>
+</div>
+{% endfor %}
+{% endif %}
 <script>
-	var listings = {{ listings|safe }};
-	console.log(listings);
+	$('.delete').click(function(event) {
+		clearAlerts();
 
-	initialise();
+		var listing_id = $(this).attr("value");
 
-	function initialise() {
-		var listingsDiv = document.getElementById("listings");
+		$.ajax({
+			type: 'POST',
+			url: '/listings/delete',
+			data: {listing_id: listing_id},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
 
-		if (listings.length) {
-			for (var i = 0; i < listings.length; i++) {
-				var listingDiv = document.createElement("div");
-				listingDiv.style.clear = "both";
-				listingDiv.style.border = "solid 1px";
+				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing deleted.</div>');
+				alertTimeout(5000);
 
-				var ownDiv = document.createElement("div");
-				ownDiv.style.float = "left";	
-				ownDiv.style.width = "45%";
-				ownDiv.style.padding = "16px";
+				$('#' + listing_id).remove();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
 
-				var textDiv = document.createElement("div");
-				textDiv.style.textAlign = "center";
-				textDiv.appendChild(document.createTextNode("offering"));
-				ownDiv.appendChild(textDiv);
-
-				var seekDiv = document.createElement("div");
-				seekDiv.style.float = "right";
-				seekDiv.style.width = "45%";
-				seekDiv.style.padding = "16px";
-
-				var textDiv = document.createElement("div");
-				textDiv.style.textAlign = "center";
-				textDiv.appendChild(document.createTextNode("for"));
-				seekDiv.appendChild(textDiv);
-
-				// create own table
-				if (listings[i].own_ids.length) {
-					// initialise table
-					var ownTable = document.createElement("table");
-					ownTable.className = "sortable table table-bordered table-striped";
-
-					// initialise header
-					var header = ownTable.createTHead();
-
-					// initialise row
-					var row = header.insertRow(0);
-
-					//initialise cells
-					var th = document.createElement('th');;
-					th.innerHTML = "title";
-					th.style.width = "30%";
-					row.appendChild(th);
-					th = document.createElement('th');;
-					th.innerHTML = "platform";
-					th.style.width = "10%";
-					row.appendChild(th);
-					th = document.createElement('th');;
-					th.innerHTML = "description";
-					th.style.width = "40%";
-					row.appendChild(th);
-					th = document.createElement('th');;
-					th.innerHTML = "image";
-					th.style.width = "20%";
-					th.className = "sorttable_nosort";
-					row.appendChild(th);
-
-					// initialise body
-					var body = ownTable.createTBody();
-
-					for (var j = 0; j < listings[i].own_ids.length; j++) {
-						// initialise row
-						var row = body.insertRow(j);
-
-						//initialise cells
-						var cell = row.insertCell(0);
-						cell.appendChild(document.createTextNode(listings[i].own_titles[j]))
-						cell.style.width = "30%";
-						cell = row.insertCell(1);
-						cell.appendChild(document.createTextNode(listings[i].own_platforms[j]))
-						cell.style.width = "10%";
-						cell = row.insertCell(2);
-						cell.appendChild(document.createTextNode(listings[i].own_descriptions[j]))
-						cell.style.width = "40%";
-						cell = row.insertCell(3);
-						var img = document.createElement('img');
-						img.src = listings[i].own_pics[j];
-						img.className = "game_pic";
-						cell.appendChild(img)
-						cell.style.width = "20%";
-					}
-
-					ownDiv.appendChild(ownTable);
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 				}
-
-				var topupDiv = document.createElement("div");
-				topupDiv.style.textAlign = "center";
-
-				if (listings[i].topup > 0) {
-					if (listings[i].own_ids.length) {
-						topupDiv.appendChild(document.createTextNode("topup: $" + listings[i].topup.toFixed(2)));
-					} else {
-						topupDiv.appendChild(document.createTextNode("price: $" + listings[i].topup.toFixed(2)));
-					}
-				}
-
-				ownDiv.appendChild(topupDiv)
-
-				listingDiv.appendChild(ownDiv);
-
-				// create seek table
-				if (listings[i].seek_ids.length) {
-					// initialise table
-					var seekTable = document.createElement("table");
-					seekTable.className = "sortable table table-bordered table-striped";
-
-					// initialise header
-					var header = seekTable.createTHead();
-
-					// initialise row
-					var row = header.insertRow(0);
-
-					//initialise cells
-					var th = document.createElement('th');;
-					th.innerHTML = "title";
-					th.style.width = "30%";
-					row.appendChild(th);
-					th = document.createElement('th');;
-					th.innerHTML = "platform";
-					th.style.width = "10%";
-					row.appendChild(th);
-					th = document.createElement('th');;
-					th.innerHTML = "description";
-					th.style.width = "40%";
-					row.appendChild(th);
-					th = document.createElement('th');;
-					th.innerHTML = "image";
-					th.style.width = "20%";
-					th.className = "sorttable_nosort";
-					row.appendChild(th);
-
-					// initialise body
-					var body = seekTable.createTBody();
-
-					for (var j = 0; j < listings[i].seek_ids.length; j++) {
-						// initialise row
-						var row = body.insertRow(j);
-
-						//initialise cells
-						var cell = row.insertCell(0);
-						cell.appendChild(document.createTextNode(listings[i].seek_titles[j]))
-						cell.style.width = "30%";
-						cell = row.insertCell(1);
-						cell.appendChild(document.createTextNode(listings[i].seek_platforms[j]))
-						cell.style.width = "10%";
-						cell = row.insertCell(2);
-						cell.appendChild(document.createTextNode(listings[i].seek_descriptions[j]))
-						cell.style.width = "40%";
-						cell = row.insertCell(3);
-						var img = document.createElement('img');
-						img.src = listings[i].seek_pics[j];
-						img.className = "game_pic";
-						cell.appendChild(img);
-						cell.style.width = "20%";
-					}
-
-					seekDiv.appendChild(seekTable);
-				}
-
-				var topupDiv = document.createElement("div");
-				topupDiv.style.textAlign = "center";
-
-				if (listings[i].topup < 0) {
-					if (listings[i].seek_ids.length) {
-						topupDiv.appendChild(document.createTextNode("topup: $" + -listings[i].topup.toFixed(2)));
-					} else {
-						topupDiv.appendChild(document.createTextNode("price: $" + -listings[i].topup.toFixed(2)));
-					}
-				}
-
-				seekDiv.appendChild(topupDiv);
-
-				listingDiv.appendChild(seekDiv);
-
-				// create delete button
-				var delDiv = document.createElement("div");
-				delDiv.style.clear = "both";
-				delDiv.style.float = "right";
-				delDiv.style.padding = "16px";
-
-				var delForm = document.createElement("form");
-				delForm.method = "POST";
-				delForm.action = "/listings/delete";
-
-				var delButton = document.createElement("input");
-				delButton.type = "submit";
-				delButton.value = "delete listing";
-
-				var delVal = document.createElement("input");
-				delVal.type = "hidden";
-				delVal.name = "listing_id";
-				delVal.value = listings[i].listing_id;
-
-				delForm.appendChild(delButton);
-				delForm.appendChild(delVal);
-				delDiv.appendChild(delForm);
-				listingDiv.appendChild(delDiv);
-
-				listingsDiv.appendChild(listingDiv);
 			}
-		} else {
-			listingsDiv.innerHTML += "<div class='alert alert-info' style='text-align:center;'>no listings have been added yet.</div>"
-		}
-	}
+		});
+	});
 </script>
 <script>
 	$('#nav-list').addClass("active");

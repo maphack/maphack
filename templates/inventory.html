@@ -51,7 +51,7 @@
 					</form>
 				</td>
 				<td width = "10%">
-					<button type="button" class="btn btn-default delete">
+					<button type="button" class="btn btn-default delete" value="{{ game.key.id() }}">
 						<span class="glyphicon glyphicon-trash"></span>
 					</button>
 				</td>
@@ -65,7 +65,7 @@
 	$('.delete').click(function(event) {
 		clearAlerts();
 
-		var game_id = $(this).closest('tr').attr('id');
+		var game_id = $(this).attr("value");
 
 		$.ajax({
 			type: 'POST',

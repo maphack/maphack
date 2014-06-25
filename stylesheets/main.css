@@ -24,6 +24,12 @@ body {
 	width: auto;
 }
 
+.list-menu {
+	float: right !important;
+	margin-bottom: 20px;
+	padding-right: 15px
+}
+
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
 	-webkit-appearance: none;

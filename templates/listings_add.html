@@ -1,12 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>add listing</h1>
+	<h1>add listing
+		<a class="btn btn-default" href="/listings">back</a>
+	</h1>
 </div>
 <div id="alerts">
 	{% if not inventory.count() and not playlist.count() %}
 	<div class="alert alert-info">
-		no games in your inventory! add the games you want to trade away.
+		no games in your inventory and playlist!
 	</div>
 	{% endif %}
 </div>
@@ -14,12 +16,10 @@
 <form id="form">
 <div class="row">
 	<div class="col-md-6">
-		<div class="panel panel-default">
+		<div class="panel panel-primary">
 			<div class="panel-heading">
 				<h3 class="panel-title">inventory</h3>
 			</div>
-			<!-- inventory -->
-
 			{% if inventory.count() %}
 			<div class="table-responsive">
 				<table id="inventory" class="sortable table table-bordered table-striped">
@@ -53,7 +53,7 @@
 			{% endif %}
 			<div id="offer" class="panel-footer" style="padding: 0; display: none">
 				<div class="input-group">
-					<span class="input-group-addon">price: $</span>
+					<span class="input-group-addon">topup: $</span>
 					<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
 					<span class="input-group-addon">.00</span>
 				</div>
@@ -61,12 +61,10 @@
 		</div>
 	</div>
 	<div class="col-md-6">
-		<div class="panel panel-default">
+		<div class="panel panel-primary">
 			<div class="panel-heading">
 				<h3 class="panel-title">playlist</h3>
 			</div>
-			<!-- playlist -->
-
 			{% if playlist.count() %}
 			<div class="table-responsive">
 				<table id="playlist" class="sortable table table-bordered table-striped">
@@ -100,7 +98,7 @@
 			{% endif %}
 			<div id="request" class="panel-footer" style="padding: 0; display: none">
 				<div class="input-group">
-					<span class="input-group-addon">price: $</span>
+					<span class="input-group-addon">topup: $</span>
 					<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
 					<span class="input-group-addon">.00</span>
 				</div>

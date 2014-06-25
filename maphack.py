@@ -44,33 +44,20 @@ class Playlist(ndb.Model):
 	count = ndb.IntegerProperty(default = 0, indexed = False)
 
 class Game(ndb.Model):
-	game_id = ndb.IntegerProperty(indexed = False)
 	title = ndb.StringProperty()
 	platform = ndb.StringProperty()
 	pic = ndb.StringProperty(indexed = False)
 	description = ndb.TextProperty(indexed = False)
-	listing_ids = ndb.IntegerProperty(repeated = True, indexed = False)
+	listing_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
 class Listing(ndb.Model):
-	listing_id = ndb.IntegerProperty(indexed = False)
-	owner_id = ndb.StringProperty(indexed = False)
-	own_ids = ndb.IntegerProperty(repeated = True, indexed = False)
-	seek_ids = ndb.IntegerProperty(repeated = True, indexed = False)
+	own_keys = ndb.KeyProperty(repeated = True, indexed = False)
+	seek_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	own_games = ndb.StringProperty(repeated = True)
 	seek_games = ndb.StringProperty(repeated = True)
-	own_titles = ndb.StringProperty(repeated = True, indexed = False)
-	own_platforms = ndb.StringProperty(repeated = True, indexed = False)
-	own_descriptions = ndb.TextProperty(repeated = True, indexed = False)
-	own_pics = ndb.StringProperty(repeated = True, indexed = False)
-	seek_titles = ndb.StringProperty(repeated = True, indexed = False)
-	seek_platforms = ndb.StringProperty(repeated = True, indexed = False)
-	seek_descriptions = ndb.TextProperty(repeated = True, indexed = False)
-	seek_pics = ndb.StringProperty(repeated = True, indexed = False)
-	topup = ndb.FloatProperty()	
+	topup = ndb.IntegerProperty()	
 	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
-
-	own_keys = ndb.KeyProperty(repeated = True, indexed = False)
 
 class Platform(ndb.Model):
 	pass
@@ -82,8 +69,7 @@ class Owners(ndb.Model):
 class Owner(ndb.Model):
 	# Key: person id
 	name = ndb.StringProperty()
-	game_ids = ndb.IntegerProperty(repeated = True, indexed = False)
-	descriptions = ndb.TextProperty(repeated = True, indexed = False)
+	game_keys = ndb.KeyProperty(repeated = True, indexed = False)
 
 class Seekers(ndb.Model):
 	# Key: game title
@@ -92,8 +78,7 @@ class Seekers(ndb.Model):
 class Seeker(ndb.Model):
 	# Key: person id
 	name = ndb.StringProperty()
-	game_ids = ndb.IntegerProperty(repeated = True, indexed = False)
-	descriptions = ndb.TextProperty(repeated = True, indexed = False)
+	game_keys = ndb.KeyProperty(repeated = True, indexed = False)
 
 # JSON encoder
 class NdbEncoder(json.JSONEncoder):
@@ -452,9 +437,9 @@ class LocationsDelete(webapp2.RequestHandler):
 
 				self.response.out.write('location deleted.')
 
-			except:
+			except Exception, e:
 				self.error(403)
-				self.response.out.write(['an error has occurred.'])
+				self.response.out.write(e)
 
 class LocationsView(webapp2.RequestHandler):
 	def get(self):
@@ -506,9 +491,9 @@ class LocationsView(webapp2.RequestHandler):
 
 					self.response.out.write('name changed.')
 
-			except:
+			except Exception, e:
 				self.error(403)
-				self.response.out.write(['an error has occurred.'])
+				self.response.out.write(e)
 
 class InventoryPage(webapp2.RequestHandler):
 	def get(self):
@@ -590,8 +575,6 @@ class InventoryAdd(webapp2.RequestHandler):
 				self.response.out.write(error)
 			else:
 				game.put()
-				game.game_id = game.key.id()
-				game.put()
 
 				inventory = inventory_key.get()
 				inventory.count += 1
@@ -613,8 +596,7 @@ class InventoryAdd(webapp2.RequestHandler):
 					owner = Owner(parent = owners_key,
 						id = users.get_current_user().user_id())
 				owner.name = user.name
-				owner.game_ids.append(game.key.id())
-				owner.descriptions.append(game.description)
+				owner.game_keys.append(game.key)
 				owner.put()
 
 				self.response.out.write('game added.')
@@ -634,37 +616,26 @@ class InventoryDelete(webapp2.RequestHandler):
 		else:
 			try:
 				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 				
 				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
 					parent = inventory_key)
 				game_to_delete = game_to_delete_key.get()
+				game_to_delete_key.delete()
 
 				if game_to_delete:
-					for listing_id in game_to_delete.listing_ids:
-						listing_key = ndb.Key('Listing', listing_id,
-							parent = ndb.Key('Person', users.get_current_user().user_id()))
+					for listing_key in game_to_delete.listing_keys:
 						listing = listing_key.get()
-
-						for game_id in listing.own_ids:
-							game_key = ndb.Key('Game', game_id,
-								parent = inventory_key)
-							game = game_key.get()
-
-							game.listing_ids.remove(listing_id)
-							game.put()
-
-						for game_id in listing.seek_ids:
-							game_key = ndb.Key('Game', game_id,
-								parent = playlist_key)
-							game = game_key.get()
-
-							game.listing_ids.remove(listing_id)
-							game.put()
-
 						listing_key.delete()
 
-					game_to_delete_key.delete()
+						for game_key in listing.own_keys:
+							game = game_key.get()
+							game.listing_keys.remove(listing_key)
+							game.put()
+
+						for game_key in listing.seek_keys:
+							game = game_key.get()
+							game.listing_keys.remove(listing_key)
+							game.put()
 
 					inventory = inventory_key.get()
 					inventory.count -= 1
@@ -679,18 +650,19 @@ class InventoryDelete(webapp2.RequestHandler):
 					owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
 						parent = owners_key)
 					owner = owner_key.get()
-					owner.game_ids.remove(game_to_delete.key.id())
-					owner.descriptions.remove(game_to_delete.description)
+					owner.game_keys.remove(game_to_delete.key)
 				
-					if owner.game_ids == []:
+					if owner.game_keys == []:
 						owner_key.delete()
 					else:
 						owner.put()
 
 					self.response.out.write('game deleted.')
-			except:
+				else:
+					raise Exception, 'no such game in your inventory. refresh your page and try again.'
+			except Exception, e:
 				self.error(403)
-				self.response.out.write(['an error has occurred.'])
+				self.response.out.write(e)
 
 class PlaylistPage(webapp2.RequestHandler):
 	def get(self):
@@ -772,8 +744,6 @@ class PlaylistAdd(webapp2.RequestHandler):
 				self.response.out.write(error)
 			else:
 				game.put()
-				game.game_id = game.key.id()
-				game.put()
 
 				playlist = playlist_key.get()
 				playlist.count += 1
@@ -795,8 +765,7 @@ class PlaylistAdd(webapp2.RequestHandler):
 					seeker = Seeker(parent = seekers_key,
 						id = users.get_current_user().user_id())
 				seeker.name = user.name
-				seeker.game_ids.append(game.key.id())
-				seeker.descriptions.append(game.description)
+				seeker.game_keys.append(game.key)
 				seeker.put()
 
 				self.response.out.write('game added.')
@@ -815,38 +784,27 @@ class PlaylistDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
 				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 				
 				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
 					parent = playlist_key)
 				game_to_delete = game_to_delete_key.get()
+				game_to_delete_key.delete()
 
 				if game_to_delete:
-					for listing_id in game_to_delete.listing_ids:
-						listing_key = ndb.Key('Listing', listing_id,
-							parent = ndb.Key('Person', users.get_current_user().user_id()))
+					for listing_key in game_to_delete.listing_keys:
 						listing = listing_key.get()
-
-						for game_id in listing.own_ids:
-							game_key = ndb.Key('Game', game_id,
-								parent = playlist_key)
-							game = game_key.get()
-
-							game.listing_ids.remove(listing_id)
-							game.put()
-
-						for game_id in listing.seek_ids:
-							game_key = ndb.Key('Game', game_id,
-								parent = inventory_key)
-							game = game_key.get()
-
-							game.listing_ids.remove(listing_id)
-							game.put()
-
 						listing_key.delete()
 
-					game_to_delete_key.delete()
+						for game_key in listing.own_keys:
+							game = game_key.get()
+							game.listing_keys.remove(listing_key)
+							game.put()
+
+						for game_key in listing.seek_keys:
+							game = game_key.get()
+							game.listing_keys.remove(listing_key)
+							game.put()
 
 					playlist = playlist_key.get()
 					playlist.count -= 1
@@ -861,18 +819,19 @@ class PlaylistDelete(webapp2.RequestHandler):
 					seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
 						parent = seekers_key)
 					seeker = seeker_key.get()
-					seeker.game_ids.remove(game_to_delete.key.id())
-					seeker.descriptions.remove(game_to_delete.description)
+					seeker.game_keys.remove(game_to_delete.key)
 				
-					if seeker.game_ids == []:
+					if seeker.game_keys == []:
 						seeker_key.delete()
 					else:
 						seeker.put()
 
 					self.response.out.write('game deleted.')
+				else:
+					raise Exception, 'no such game in your playlist. refresh your page and try again.'
 			except:
 				self.error(403)
-				self.response.out.write(['an error has occurred.'])
+				self.response.out.write(e)
 
 class SearchResults(webapp2.RequestHandler):
 	def show(self, query_type = '', title = '', platform = '', results = '', distances = '', error = ''):
@@ -1065,11 +1024,13 @@ class ListingsPage(webapp2.RequestHandler):
 				'WHERE ANCESTOR IS :1 ',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
+			listings = listings.map(listing_games)
+
 			template_values = {
 				'pic': user.pic,
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'listings': jsonify(listings),
+				'listings': listings,
 				}
 			template = JINJA_ENVIRONMENT.get_template('listings.html')
 			self.response.out.write(template.render(template_values))
@@ -1105,104 +1066,80 @@ class ListingsAdd(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			# validate list of games to trade away
+			try:
+				jdata = json.loads(self.request.body)
+				own_ids = jdata['own_ids']
+				seek_ids = jdata['seek_ids']
+				offer_amt = int(jdata['offer_amt'])
+				request_amt = int(jdata['request_amt'])
 
-			jdata = json.loads(self.request.body)
+				if len(own_ids) == 0 and len(seek_ids) == 0:
+					raise Exception, 'empty listing.'
 
-			own_list = jdata['own_ids']
-			seek_list = jdata['seek_ids']
-			mytopup = int(jdata['offer_amt'])
-			yourtopup = int(jdata['request_amt'])
+				if offer_amt < 0 or request_amt < 0:
+					raise Exception, 'topup amounts must be non-negative.'
 
-			if len(own_list) == 0 and len(seek_list) == 0:
-				raise Exception, 'empty listing.'
+				if offer_amt > 0 and request_amt > 0:
+					raise Exception, 'topup amounts cannot be positive at the same time.'
 
-			if type(mytopup) is not int or type (yourtopup) is not int:
-				raise Exception, 'topup values are not floats.'
+				if (len(own_ids) > 0 or offer_amt > 0) and len(seek_ids) == 0 and request_amt == 0:
+					raise Exception, 'listing is empty on receiving side.'
+				
+				if (len(seek_ids) > 0 or request_amt > 0) and len(own_ids) == 0 and offer_amt == 0:
+					raise Exception, 'listing is empty on sending side.'
 
-			if mytopup < 0 or yourtopup < 0:
-				raise Exception, 'topup values must be non-negative.'
-
-			if mytopup > 0 and yourtopup > 0:
-				raise Exception, 'topup values cannot be positive at the same time.'
-
-			if (len(own_list) > 0 or mytopup > 0) and len(seek_list) == 0 and yourtopup == 0:
-				raise Exception, 'listing is empty on receiving side.'
-			
-			if (len(seek_list) > 0 or yourtopup > 0) and len(own_list) == 0 and mytopup == 0:
-				raise Exception, 'listing is empty on sending side.'
-
-			listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
-			listing.owner_id = users.get_current_user().user_id()
-			if mytopup > 0:
-				listing.topup = mytopup
-			else:
-				listing.topup = -yourtopup
-
-			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-			inventory = inventory_key.get()
-
-			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-			playlist = playlist_key.get()
-
-			for game_id in own_list:
-				if type(game_id) is not int and type(game_id) is not long:
-					raise Exception, 'invalid game id.'
-
-				game_key = ndb.Key('Game', game_id,
-					parent = ndb.Key('Inventory', users.get_current_user().user_id()))
-				game = game_key.get()
-
-				if game:
-					listing.own_ids.append(game.key.id())
-					listing.own_games.append(game.title + game.platform)
-					listing.own_titles.append(game.title)
-					listing.own_platforms.append(game.platform)
-					listing.own_pics.append(game.pic)
-					listing.own_descriptions.append(game.description)
-
+				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
+				if offer_amt > 0:
+					listing.topup = offer_amt
 				else:
-					raise Exception, 'no such game in inventory.'
+					listing.topup = -request_amt
 
-			for game_id in seek_list:
-				if type(game_id) is not int and type(game_id) is not long:
-					raise Exception, 'invalid game id.'
+				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+				inventory = inventory_key.get()
 
-				game_key = ndb.Key('Game', game_id,
-					parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-				game = game_key.get()
+				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+				playlist = playlist_key.get()
 
-				if game:
-					listing.seek_ids.append(game.key.id())
-					listing.seek_games.append(game.title + game.platform)
-					listing.seek_titles.append(game.title)
-					listing.seek_platforms.append(game.platform)
-					listing.seek_pics.append(game.pic)
-					listing.seek_descriptions.append(game.description)
+				for game_id in own_ids:
+					game_key = ndb.Key('Game', int(game_id),
+						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
+					game = game_key.get()
 
-				else:
-					raise Exception, 'no such game in playlist.'
+					if game:
+						listing.own_keys.append(game_key)
+						listing.own_games.append(game.title + game.platform)
+					else:
+						raise Exception, 'no such game in inventory.'
 
-			listing.put()
-			listing.listing_id = listing.key.id()
-			listing.put()
+				for game_id in seek_ids:
+					game_key = ndb.Key('Game', int(game_id),
+						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
+					game = game_key.get()
 
-			# iterate over games and add listing id
-			for game_id in listing.own_ids:
-				game_key = ndb.Key('Game', game_id,
-					parent = ndb.Key('Inventory', users.get_current_user().user_id()))
-				game = game_key.get()
-				game.listing_ids.append(listing.key.id())
-				game.put()
+					if game:
+						listing.seek_keys.append(game_key)
+						listing.seek_games.append(game.title + game.platform)
+					else:
+						raise Exception, 'no such game in playlist.'
 
-			for game_id in listing.seek_ids:
-				game_key = ndb.Key('Game', game_id,
-					parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-				game = game_key.get()
-				game.listing_ids.append(listing.key.id())
-				game.put()
+				listing.put()
 
-			self.response.out.write('success')
+				# iterate over games and add listing id
+				for game_key in listing.own_keys:
+					game = game_key.get()
+					game.listing_keys.append(listing.key)
+					game.put()
+
+				for game_id in listing.seek_keys:
+					game = game_key.get()
+					game.listing_keys.append(listing.key)
+					game.put()
+
+				self.response.out.write('listing added.')
+
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
 
 class ListingsDelete(webapp2.RequestHandler):
 	def post(self):
@@ -1210,31 +1147,29 @@ class ListingsDelete(webapp2.RequestHandler):
 		if user == None or user.setup == None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			listing_key = ndb.Key('Person', users.get_current_user().user_id(),
-				'Listing', int(self.request.get('listing_id')))
-			listing = listing_key.get()
-
-			if listing:
-				# iterate over games and remove listing id
-				for game_id in listing.own_ids:
-					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
-					game = game_key.get()
-					game.listing_ids.remove(listing.key.id())
-					game.put()
-
-				for game_id in listing.seek_ids:
-					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-					game = game_key.get()
-					game.listing_ids.remove(listing.key.id())
-					game.put()
-
+			try:
+				listing_key = ndb.Key('Person', users.get_current_user().user_id(),
+					'Listing', int(self.request.get('listing_id')))
+				listing = listing_key.get()
 				listing_key.delete()
 
-				self.redirect('/listings');
-			else:
-				self.response.out.write('no such listing id.')
+				if listing:
+					for game_key in listing.own_keys:
+						game = game_key.get()
+						game.listing_keys.remove(listing.key)
+						game.put()
+
+					for game_id in listing.seek_keys:
+						game = game_key.get()
+						game.listing_keys.remove(listing.key)
+						game.put()
+
+					self.response.out.write('listing deleted.')
+				else:
+					raise Exception, 'no such game in your playlist. refresh your page and try again.'
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
