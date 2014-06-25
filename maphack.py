@@ -569,7 +569,6 @@ class InventoryAdd(webapp2.RequestHandler):
 			except Exception, e:
 				error.append(str(e))
 
-
 			if error:
 				self.error(403)
 				self.response.out.write(error)
@@ -653,10 +652,10 @@ class InventoryDelete(webapp2.RequestHandler):
 					owner = owner_key.get()
 					owner.game_keys.remove(game_to_delete.key)
 				
-					if owner.game_keys == []:
-						owner_key.delete()
-					else:
+					if owner.game_keys:
 						owner.put()
+					else:
+						owner_key.delete()
 
 					self.response.out.write('game deleted.')
 				else:
@@ -738,7 +737,6 @@ class PlaylistAdd(webapp2.RequestHandler):
 				game.description = self.request.get('description').rstrip()
 			except Exception, e:
 				error.append(str(e))
-
 
 			if error:
 				self.error(403)
@@ -823,10 +821,10 @@ class PlaylistDelete(webapp2.RequestHandler):
 					seeker = seeker_key.get()
 					seeker.game_keys.remove(game_to_delete.key)
 				
-					if seeker.game_keys == []:
-						seeker_key.delete()
-					else:
+					if seeker.game_keys:
 						seeker.put()
+					else:
+						seeker_key.delete()
 
 					self.response.out.write('game deleted.')
 				else:
