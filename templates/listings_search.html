@@ -1,118 +1,121 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page-header">
-	<h1>search listings
-		<a class="btn btn-default" href="/listings">back</a>
-	</h1>
-</div>
-<div id="alerts">
-	{% if not inventory.count() and not playlist.count() %}
-	<div class="alert alert-info">
-		no games in your inventory and playlist!
+<div id="search">
+	<div class="page-header">
+		<h1>search listings
+			<a class="btn btn-default" href="/listings">back</a>
+		</h1>
 	</div>
+	<div id="alerts">
+		{% if not inventory.count() and not playlist.count() %}
+		<div class="alert alert-info">
+			no games in your inventory and playlist!
+		</div>
+		{% endif %}
+	</div>
+	{% if inventory.count() or playlist.count() %}
+	<form id="form">
+		<div class="row">
+			<div class="col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">inventory</h3>
+					</div>
+					{% if inventory.count() %}
+					<div class="table-responsive">
+						<table id="inventory" class="sortable table table-bordered table-striped">
+							<thead>
+								<tr>
+									<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
+									<th width = "75%" style="text-align: left">title</th>
+									<th width = "15%">platform</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for game in inventory %}
+								<tr id="{{ game.key.id() }}">
+									<td width = "10%"> <input type="checkbox" class="own" value="{{ game.key.id() }}"></td>
+									<td width = "75%" style="text-align: left">{{ game.title }}</td>
+									<td width = "15%">{{ game.platform }}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% else %}
+					<div class="panel-body">
+						<div class="alert alert-info">
+							no games in your inventory!
+							<a class="btn btn-default btn-sm" href="/inventory/add">
+								<span class="glyphicon glyphicon-plus"></span>
+							</a>
+						</div>
+					</div>
+					{% endif %}
+					<div id="offer" class="panel-footer" style="padding: 0; display: none">
+						<div class="input-group">
+							<span class="input-group-addon">topup &#60; $</span>
+							<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
+							<span class="input-group-addon">.00</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">playlist</h3>
+					</div>
+					{% if playlist.count() %}
+					<div class="table-responsive">
+						<table id="playlist" class="sortable table table-bordered table-striped">
+							<thead>
+								<tr>
+									<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
+									<th width = "75%" style="text-align: left">title</th>
+									<th width = "15%">platform</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for game in playlist %}
+								<tr>
+									<td width = "10%"> <input type="checkbox" class="seek" value="{{ game.key.id() }}"></td>
+									<td width = "75%" style="text-align: left">{{ game.title }}</td>
+									<td width = "15%">{{ game.platform }}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% else %}
+					<div class="panel-body">
+						<div class="alert alert-info">
+							no games in your playlist!
+							<a class="btn btn-default btn-sm" href="/playlist/add">
+								<span class="glyphicon glyphicon-plus"></span>
+							</a>
+						</div>
+					</div>
+					{% endif %}
+					<div id="request" class="panel-footer" style="padding: 0; display: none">
+						<div class="input-group">
+							<span class="input-group-addon">topup > $</span>
+							<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
+							<span class="input-group-addon">.00</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="pull-right" style="padding-right: 15px">
+				<button id="add" type="button" class="btn btn-default">search</button>
+			</div>
+		</div>
+	</form>
 	{% endif %}
 </div>
-{% if inventory.count() or playlist.count() %}
-<form id="form">
-<div class="row">
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">inventory</h3>
-			</div>
-			{% if inventory.count() %}
-			<div class="table-responsive">
-				<table id="inventory" class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
-							<th width = "75%" style="text-align: left">title</th>
-							<th width = "15%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in inventory %}
-						<tr id="{{ game.key.id() }}">
-							<td width = "10%"> <input type="checkbox" class="own" value="{{ game.key.id() }}"></td>
-							<td width = "75%" style="text-align: left">{{ game.title }}</td>
-							<td width = "15%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games in your inventory!
-					<a class="btn btn-default btn-sm" href="/inventory/add">
-						<span class="glyphicon glyphicon-plus"></span>
-					</a>
-				</div>
-			</div>
-			{% endif %}
-			<div id="offer" class="panel-footer" style="padding: 0; display: none">
-				<div class="input-group">
-					<span class="input-group-addon">topup: $</span>
-					<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
-					<span class="input-group-addon">.00</span>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">playlist</h3>
-			</div>
-			{% if playlist.count() %}
-			<div class="table-responsive">
-				<table id="playlist" class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
-							<th width = "75%" style="text-align: left">title</th>
-							<th width = "15%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in playlist %}
-						<tr>
-							<td width = "10%"> <input type="checkbox" class="seek" value="{{ game.key.id() }}"></td>
-							<td width = "75%" style="text-align: left">{{ game.title }}</td>
-							<td width = "15%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games in your playlist!
-					<a class="btn btn-default btn-sm" href="/playlist/add">
-						<span class="glyphicon glyphicon-plus"></span>
-					</a>
-				</div>
-			</div>
-			{% endif %}
-			<div id="request" class="panel-footer" style="padding: 0; display: none">
-				<div class="input-group">
-					<span class="input-group-addon">topup: $</span>
-					<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
-					<span class="input-group-addon">.00</span>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-<div class="row">
-	<div class="pull-right" style="padding-right: 15px">
-		<button id="add" type="button" class="btn btn-default">add</button>
-	</div>
-</div>
-</form>
-{% endif %}
+<div id="search-results"></div>
 <script>
 	var num_own = 0;
 	var num_seek = 0;
@@ -180,26 +183,26 @@
 		if (listing.offer_amt > 0 && listing.request_amt > 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
 		} else if (!listing.own_ids.length && !listing.seek_ids.length) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your search query.</div>');
 		} else if (listing.own_ids.length && !listing.seek_ids.length && listing.request_amt == 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
 		} else if (!listing.own_ids.length  && listing.seek_ids.length && listing.offer_amt == 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
 		} else {
 			$.ajax({
-				type: "POST",
-				url: "/listings/add",
+				type: 'POST',
+				url: '/listings/search/results',
 				data: JSON.stringify(listing),
-				contentType: "application/json",
+				contentType: 'application/json',
 				success: function(data, textStatus, jqXHR) {
 					console.log(data);
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing added.</div>');
-					alertTimeout(5000);
-
-					$('#form')[0].reset()
+					$('#search').fadeTo(500, 0).slideUp(500, function() {
+						$(this).remove();
+					});
+					$('#search-results').append(data);
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);
@@ -241,6 +244,6 @@
 </script>
 <script>
 	$('#nav-list').addClass("active");
-	$('#nav-list-add').addClass("active");
+	$('#nav-list-search').addClass("active");
 </script>
 {% endblock %}

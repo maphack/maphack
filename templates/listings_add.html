@@ -53,7 +53,7 @@
 			{% endif %}
 			<div id="offer" class="panel-footer" style="padding: 0; display: none">
 				<div class="input-group">
-					<span class="input-group-addon">topup: $</span>
+					<span class="input-group-addon">topup $</span>
 					<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
 					<span class="input-group-addon">.00</span>
 				</div>
@@ -98,7 +98,7 @@
 			{% endif %}
 			<div id="request" class="panel-footer" style="padding: 0; display: none">
 				<div class="input-group">
-					<span class="input-group-addon">topup: $</span>
+					<span class="input-group-addon">topup $</span>
 					<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
 					<span class="input-group-addon">.00</span>
 				</div>
@@ -187,10 +187,10 @@
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
 		} else {
 			$.ajax({
-				type: "POST",
-				url: "/listings/add",
+				type: 'POST',
+				url: '/listings/add',
 				data: JSON.stringify(listing),
-				contentType: "application/json",
+				contentType: 'application/json',
 				success: function(data, textStatus, jqXHR) {
 					console.log(data);
 					console.log(textStatus);

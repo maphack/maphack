@@ -1196,6 +1196,73 @@ class ListingsSearch(webapp2.RequestHandler):
 			template = JINJA_ENVIRONMENT.get_template('listings_search.html')
 			self.response.out.write(template.render(template_values))
 
+class ListingsSearchResults(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				jdata = json.loads(self.request.body)
+				own_ids = jdata['own_ids']
+				seek_ids = jdata['seek_ids']
+				offer_amt = int(jdata['offer_amt'])
+				request_amt = int(jdata['request_amt'])
+
+				if len(own_ids) == 0 and len(seek_ids) == 0:
+					raise Exception, 'empty listing.'
+
+				if offer_amt < 0 or request_amt < 0:
+					raise Exception, 'topup amounts must be non-negative.'
+
+				if offer_amt > 0 and request_amt > 0:
+					raise Exception, 'topup amounts cannot be positive at the same time.'
+
+				if (len(own_ids) > 0 or offer_amt > 0) and len(seek_ids) == 0 and request_amt == 0:
+					raise Exception, 'listing is empty on receiving side.'
+				
+				if (len(seek_ids) > 0 or request_amt > 0) and len(own_ids) == 0 and offer_amt == 0:
+					raise Exception, 'listing is empty on sending side.'
+
+				qry = None;
+
+				for game_id in own_ids:
+					game_key = ndb.Key('Game', int(game_id),
+						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
+					game = game_key.get()
+
+					if game:
+						if qry is None:
+							qry = Listing.query(Listing.own_games == game.title + game.platform)
+						else:
+							qry = qry.filter(Listing.own_games == game.title + game.platform)
+					else:
+						raise Exception, 'no such game in inventory.'
+
+				for game_id in seek_ids:
+					game_key = ndb.Key('Game', int(game_id),
+						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
+					game = game_key.get()
+
+					if game:
+						if qry is None:
+							qry = Listing.query(Listing.seek_games == game.title + game.platform)
+						else:
+							qry = qry.filter(Listing.seek_games == game.title + game.platform)
+					else:
+						raise Exception, 'no such game in playlist.'
+
+				listings = qry.map(listing_games)
+
+				template_values = {
+					'listings': listings,
+					}
+				template = JINJA_ENVIRONMENT.get_template('listings_search_results.html')
+				self.response.out.write(template.render(template_values))
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1216,6 +1283,7 @@ application = webapp2.WSGIApplication([
 	('/listings/add', ListingsAdd),
 	('/listings/delete', ListingsDelete),
 	('/listings/search', ListingsSearch),
+	('/listings/search/results', ListingsSearchResults),
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),

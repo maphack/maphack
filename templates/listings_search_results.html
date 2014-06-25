@@ -1,16 +1,16 @@
-{% extends "base.html" %}
-{% block content %}
 <div class="page-header">
-	<h1>listings
-		<a class="btn btn-default" href="/listings/add">
-			<span class="glyphicon glyphicon-plus"></span>
-		</a>
+	<h1>search results
+		<a class="btn btn-default" href="/listings/search">back</a>
 	</h1>
 </div>
-<div id="alerts">
-	{% if not listings|length %}
+<div id="results-alerts">
+	{% if listings %}
+	<div class="alert alert-success alert-dismissable">
+		{{ listings|length }} search result(s)!
+	</div>
+	{% else %}
 	<div class="alert alert-info">
-		no listings!
+		no search results!
 	</div>
 	{% endif %}
 </div>
@@ -97,49 +97,6 @@
 			{% endif %}
 		</div>
 	</div>
-	<div class="list-menu">
-		<button type="button" class="btn btn-default delete" value="{{ listing.key.id() }}">
-			<span class="glyphicon glyphicon-trash"></span>
-		</button>
-	</div>
 </div>
 {% endfor %}
 {% endif %}
-<script>
-	$('.delete').click(function(event) {
-		clearAlerts();
-
-		var listing_id = $(this).attr("value");
-
-		$.ajax({
-			type: 'POST',
-			url: '/listings/delete',
-			data: {listing_id: listing_id},
-			success: function(data, textStatus, jqXHR) {
-				console.log(data);
-				console.log(textStatus);
-				console.log(jqXHR);
-
-				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing deleted.</div>');
-				alertTimeout(5000);
-
-				$('#' + listing_id).remove();
-			},
-			error: function(jqXHR, textStatus, errorThrown) {
-				console.log(jqXHR);
-				console.log(textStatus);
-				console.log(errorThrown);
-				var errors = eval(jqXHR.responseText);
-
-				for (var i = 0; i < errors.length; i ++) {
-					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
-				}
-			}
-		});
-	});
-</script>
-<script>
-	$('#nav-list').addClass("active");
-	$('#nav-list-my').addClass("active");
-</script>
-{% endblock %}
