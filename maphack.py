@@ -70,6 +70,8 @@ class Listing(ndb.Model):
 	topup = ndb.FloatProperty()	
 	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
+	own_keys = ndb.KeyProperty(repeated = True, indexed = False)
+
 class Platform(ndb.Model):
 	pass
 
@@ -129,6 +131,9 @@ def user_game_map(result):
 
 def locations_map(result):
 	return [result.geopt.lat, result.geopt.lon]
+
+def listing_games(listing):
+	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys)
 
 def haversine(lat1, lon1, lat2, lon2):
     '''
@@ -462,7 +467,7 @@ class LocationsView(webapp2.RequestHandler):
 					'Location', int(self.request.get('location_id')))
 				location = location_key.get()
 
-				if location == None:
+				if not location:
 					raise Exception, 'no such location.'
 
 				template_values = {
@@ -484,19 +489,22 @@ class LocationsView(webapp2.RequestHandler):
 		else:
 			try:
 				location_key = ndb.Key('Person', users.get_current_user().user_id(),
-						'Location', int(self.request.get('location_id')))
+					'Location', int(self.request.get('location_id')))
 				location = location_key.get()
 
-				if location == None:
+				if not location:
 					raise Exception, 'no such location.'
 
-				if self.request.get('name').rstrip():
+				if location.name != self.request.get('name').rstrip():
 					location.name = self.request.get('name').rstrip()
+					if not location.name:
+						raise Exception, 'location name cannot be empty.'
+				else:
+					raise Exception, 'no changes were made.'
+
 					location.put()
 
 					self.response.out.write('name changed.')
-				else:
-					raise Exception, 'location name cannot be empty.'
 
 			except:
 				self.error(403)
@@ -1086,8 +1094,8 @@ class ListingsAdd(webapp2.RequestHandler):
 				'pic': user.pic,
 				'name': user.name,
 				'logout': users.create_logout_url(self.request.host_url),
-				'inventory': jsonify(inventory),
-				'playlist': jsonify(playlist),
+				'inventory': inventory,
+				'playlist': playlist,
 				}
 			template = JINJA_ENVIRONMENT.get_template('listings_add.html')
 			self.response.out.write(template.render(template_values))
@@ -1098,106 +1106,103 @@ class ListingsAdd(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			# validate list of games to trade away
-			try:
-				jdata = json.loads(self.request.body)
 
-				own_list = jdata['own']
-				seek_list = jdata['seek']
-				mytopup = jdata['mytopup']
-				yourtopup = jdata['yourtopup']
+			jdata = json.loads(self.request.body)
 
-				if len(own_list) == 0 and len(seek_list) == 0:
-					raise Exception, 'empty listing.'
+			own_list = jdata['own_ids']
+			seek_list = jdata['seek_ids']
+			mytopup = int(jdata['offer_amt'])
+			yourtopup = int(jdata['request_amt'])
 
-				if (type(mytopup) is not int and type(mytopup) is not float) or (type (yourtopup) is not int and type (yourtopup) is not float):
-					raise Exception, 'topup values are not floats.'
+			if len(own_list) == 0 and len(seek_list) == 0:
+				raise Exception, 'empty listing.'
 
-				if mytopup < 0 or yourtopup < 0:
-					raise Exception, 'topup values must be non-negative.'
+			if type(mytopup) is not int or type (yourtopup) is not int:
+				raise Exception, 'topup values are not floats.'
 
-				if mytopup > 0 and yourtopup > 0:
-					raise Exception, 'topup values cannot be positive at the same time.'
+			if mytopup < 0 or yourtopup < 0:
+				raise Exception, 'topup values must be non-negative.'
 
-				if (len(own_list) > 0 or mytopup > 0) and len(seek_list) == 0 and yourtopup == 0:
-					raise Exception, 'listing is empty on receiving side.'
-				
-				if (len(seek_list) > 0 or yourtopup > 0) and len(own_list) == 0 and mytopup == 0:
-					raise Exception, 'listing is empty on sending side.'
+			if mytopup > 0 and yourtopup > 0:
+				raise Exception, 'topup values cannot be positive at the same time.'
 
-				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
-				listing.owner_id = users.get_current_user().user_id()
-				if mytopup > 0:
-					listing.topup = mytopup
+			if (len(own_list) > 0 or mytopup > 0) and len(seek_list) == 0 and yourtopup == 0:
+				raise Exception, 'listing is empty on receiving side.'
+			
+			if (len(seek_list) > 0 or yourtopup > 0) and len(own_list) == 0 and mytopup == 0:
+				raise Exception, 'listing is empty on sending side.'
+
+			listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
+			listing.owner_id = users.get_current_user().user_id()
+			if mytopup > 0:
+				listing.topup = mytopup
+			else:
+				listing.topup = -yourtopup
+
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+			inventory = inventory_key.get()
+
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+			playlist = playlist_key.get()
+
+			for game_id in own_list:
+				if type(game_id) is not int and type(game_id) is not long:
+					raise Exception, 'invalid game id.'
+
+				game_key = ndb.Key('Game', game_id,
+					parent = ndb.Key('Inventory', users.get_current_user().user_id()))
+				game = game_key.get()
+
+				if game:
+					listing.own_ids.append(game.key.id())
+					listing.own_games.append(game.title + game.platform)
+					listing.own_titles.append(game.title)
+					listing.own_platforms.append(game.platform)
+					listing.own_pics.append(game.pic)
+					listing.own_descriptions.append(game.description)
+
 				else:
-					listing.topup = -yourtopup
+					raise Exception, 'no such game in inventory.'
 
-				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				inventory = inventory_key.get()
+			for game_id in seek_list:
+				if type(game_id) is not int and type(game_id) is not long:
+					raise Exception, 'invalid game id.'
 
-				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-				playlist = playlist_key.get()
+				game_key = ndb.Key('Game', game_id,
+					parent = ndb.Key('Playlist', users.get_current_user().user_id()))
+				game = game_key.get()
 
-				for game_id in own_list:
-					if type(game_id) is not int and type(game_id) is not long:
-						raise Exception, 'invalid game id.'
+				if game:
+					listing.seek_ids.append(game.key.id())
+					listing.seek_games.append(game.title + game.platform)
+					listing.seek_titles.append(game.title)
+					listing.seek_platforms.append(game.platform)
+					listing.seek_pics.append(game.pic)
+					listing.seek_descriptions.append(game.description)
 
-					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
-					game = game_key.get()
+				else:
+					raise Exception, 'no such game in playlist.'
 
-					if game:
-						listing.own_ids.append(game.key.id())
-						listing.own_games.append(game.title + game.platform)
-						listing.own_titles.append(game.title)
-						listing.own_platforms.append(game.platform)
-						listing.own_pics.append(game.pic)
-						listing.own_descriptions.append(game.description)
+			listing.put()
+			listing.listing_id = listing.key.id()
+			listing.put()
 
-					else:
-						raise Exception, 'no such game in inventory.'
+			# iterate over games and add listing id
+			for game_id in listing.own_ids:
+				game_key = ndb.Key('Game', game_id,
+					parent = ndb.Key('Inventory', users.get_current_user().user_id()))
+				game = game_key.get()
+				game.listing_ids.append(listing.key.id())
+				game.put()
 
-				for game_id in seek_list:
-					if type(game_id) is not int and type(game_id) is not long:
-						raise Exception, 'invalid game id.'
+			for game_id in listing.seek_ids:
+				game_key = ndb.Key('Game', game_id,
+					parent = ndb.Key('Playlist', users.get_current_user().user_id()))
+				game = game_key.get()
+				game.listing_ids.append(listing.key.id())
+				game.put()
 
-					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-					game = game_key.get()
-
-					if game:
-						listing.seek_ids.append(game.key.id())
-						listing.seek_games.append(game.title + game.platform)
-						listing.seek_titles.append(game.title)
-						listing.seek_platforms.append(game.platform)
-						listing.seek_pics.append(game.pic)
-						listing.seek_descriptions.append(game.description)
-
-					else:
-						raise Exception, 'no such game in playlist.'
-
-				listing.put()
-				listing.listing_id = listing.key.id()
-				listing.put()
-
-				# iterate over games and add listing id
-				for game_id in listing.own_ids:
-					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
-					game = game_key.get()
-					game.listing_ids.append(listing.key.id())
-					game.put()
-
-				for game_id in listing.seek_ids:
-					game_key = ndb.Key('Game', game_id,
-						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-					game = game_key.get()
-					game.listing_ids.append(listing.key.id())
-					game.put()
-
-				self.response.out.write('success')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
+			self.response.out.write('success')
 
 class ListingsDelete(webapp2.RequestHandler):
 	def post(self):

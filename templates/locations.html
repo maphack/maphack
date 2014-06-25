@@ -34,7 +34,7 @@
 				<td width = "10%">{{ location.geopt.lat }}</td>
 				<td width = "10%">{{ location.geopt.lon }}</td>
 				<td width = "10%">
-					<button type="button" class="btn btn-default delete">
+					<button id="{{ location.key.id() }}" type="button" class="btn btn-default delete">
 						<span class="glyphicon glyphicon-trash"></span>
 					</button>
 				</td>
@@ -48,7 +48,7 @@
 	$('.delete').click(function(event) {
 		clearAlerts();
 
-		var location_id = $(this).closest('tr').attr('id');
+		var location_id = parseInt(this.id);
 
 		$.ajax({
 			type: 'POST',

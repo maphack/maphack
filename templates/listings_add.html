@@ -1,285 +1,230 @@
 {% extends "base.html" %}
 {% block content %}
-<div id="tables" class="top-pad-one">
-	<div id="inventory" style="float: left; width: 50%">
-		<h4>inventory</h4><br>
-	</div>
-	<div id="playlist" style="float: right; width: 50%">
-		<h4>playlist</h4><br>
-	</div>
+<div class="page-header">
+	<h1>add listing</h1>
 </div>
-<div id="addlisting" class="top-pad-one" style="clear: both; float: right">
-	{% if inventory|length and playlist|length %}
-	<input type="button" value="add listing" onclick="addListing()">
+<div id="alerts">
+	{% if not inventory.count() and not playlist.count() %}
+	<div class="alert alert-info">
+		no games in your inventory! add the games you want to trade away.
+	</div>
 	{% endif %}
 </div>
+{% if inventory.count() or playlist.count() %}
+<form id="form">
+<div class="row">
+	<div class="col-md-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">inventory</h3>
+			</div>
+			<!-- inventory -->
+
+			{% if inventory.count() %}
+			<div class="table-responsive">
+				<table id="inventory" class="sortable table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
+							<th width = "75%" style="text-align: left">title</th>
+							<th width = "15%">platform</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for game in inventory %}
+						<tr id="{{ game.key.id() }}">
+							<td width = "10%"> <input type="checkbox" class="own" value="{{ game.key.id() }}"></td>
+							<td width = "75%" style="text-align: left">{{ game.title }}</td>
+							<td width = "15%">{{ game.platform }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="panel-body">
+				<div class="alert alert-info">
+					no games in your inventory!
+					<a class="btn btn-default btn-sm" href="/inventory/add">
+						<span class="glyphicon glyphicon-plus"></span>
+					</a>
+				</div>
+			</div>
+			{% endif %}
+			<div id="offer" class="panel-footer" style="padding: 0; display: none">
+				<div class="input-group">
+					<span class="input-group-addon">price: $</span>
+					<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
+					<span class="input-group-addon">.00</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">playlist</h3>
+			</div>
+			<!-- playlist -->
+
+			{% if playlist.count() %}
+			<div class="table-responsive">
+				<table id="playlist" class="sortable table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
+							<th width = "75%" style="text-align: left">title</th>
+							<th width = "15%">platform</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for game in playlist %}
+						<tr>
+							<td width = "10%"> <input type="checkbox" class="seek" value="{{ game.key.id() }}"></td>
+							<td width = "75%" style="text-align: left">{{ game.title }}</td>
+							<td width = "15%">{{ game.platform }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="panel-body">
+				<div class="alert alert-info">
+					no games in your playlist!
+					<a class="btn btn-default btn-sm" href="/playlist/add">
+						<span class="glyphicon glyphicon-plus"></span>
+					</a>
+				</div>
+			</div>
+			{% endif %}
+			<div id="request" class="panel-footer" style="padding: 0; display: none">
+				<div class="input-group">
+					<span class="input-group-addon">price: $</span>
+					<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
+					<span class="input-group-addon">.00</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="pull-right" style="padding-right: 15px">
+		<button id="add" type="button" class="btn btn-default">add</button>
+	</div>
+</div>
+</form>
+{% endif %}
 <script>
-	var inventory = {{ inventory|safe }};
-	var playlist = {{ playlist|safe }};
-	console.log(inventory);
+	var num_own = 0;
+	var num_seek = 0;
 
-	initialise();
-
-	function initialise() {
-		var tablesDiv = document.getElementById("tables");
-		var invDiv = document.getElementById("inventory");
-		var plDiv = document.getElementById("playlist");
-
-		// create inventory table
-		if (inventory.length) {
-			// initialise table
-			var invTable = document.createElement("table");
-			invTable.className = "sortable table table-bordered table-striped";
-
-			// initialise header
-			var header = invTable.createTHead();
-
-			// initialise row
-			var row = header.insertRow(0);
-
-			//initialise cells
-			var cell = row.insertCell(0);
-			cell.style.width = "5%";
-			cell = row.insertCell(1);
-			cell.innerHTML = "title";
-			cell.style.width = "80%";
-			cell = row.insertCell(2);
-			cell.innerHTML = "platform";
-			cell.style.width = "15%";
-
-			// initialise body
-			var body = invTable.createTBody();
-
-			for (var i = 0; i < inventory.length; i++) {
-				// initialise row
-				var row = body.insertRow(i);
-
-				// initialise cells
-				cell = row.insertCell(0);
-				cell.style.width = "5%";
-
-				var checkbox = document.createElement("input");
-				checkbox.id = "inv" + i;
-				checkbox.type = "checkbox";
-				cell.appendChild(checkbox);
-
-				cell = row.insertCell(1);
-				cell.innerHTML = inventory[i]["title"];
-				cell.style.width = "80%";
-
-				cell = row.insertCell(2);
-				cell.innerHTML = inventory[i]["platform"];
-				cell.style.width = "15%";
-			}
-
-			invDiv.appendChild(invTable);
+	$(':checkbox').change(function() {
+		if ($(this).closest('table').attr('id') == 'inventory') {
+			this.checked ? num_own++ : num_own--;
 		} else {
-			invDiv.innerHTML += "<center>no games in your inventory!</center>";
+			this.checked ? num_seek++ : num_seek--;
 		}
 
-		// create playlist table
-		if (playlist.length) {
-			// initialise table
-			var plTable = document.createElement("table");
-			plTable.className = "sortable table table-bordered table-striped";
+		if (num_own && num_seek) {
+			$('#offer-amt').prop('disabled', false);
+			$('#offer').slideDown('fast');
 
-			// initialise header
-			var header = plTable.createTHead();
+			$('#request-amt').prop('disabled', false);
+			$('#request').slideDown('fast');
+		} else if (num_own) {
+			$('#offer-amt').prop('disabled', true);
+			$('#offer-amt').val(0);
+			$('#offer').slideUp('fast');
 
-			// initialise row
-			var row = header.insertRow(0);
+			$('#request-amt').prop('disabled', false);
+			$('#request').slideDown('fast');
+		} else if (num_seek) {
+			$('#offer-amt').prop('disabled', false);
+			$('#offer').slideDown('fast');
 
-			//initialise cells
-			var cell = row.insertCell(0);
-			cell.style.width = "5%";
-			cell = row.insertCell(1);
-			cell.innerHTML = "title";
-			cell.style.width = "80%";
-			cell = row.insertCell(2);
-			cell.innerHTML = "platform";
-			cell.style.width = "15%";
-
-			// initialise body
-			var body = plTable.createTBody();
-
-			for (var i = 0; i < playlist.length; i++) {
-				// initialise row
-				var row = body.insertRow(i);
-
-				// initialise cells
-				cell = row.insertCell(0);
-				cell.style.width = "5%";
-
-				var checkbox = document.createElement("input");
-				checkbox.id = "pl" + i;
-				checkbox.type = "checkbox";
-				cell.appendChild(checkbox);
-
-				cell = row.insertCell(1);
-				cell.innerHTML = playlist[i]["title"];
-				cell.style.width = "80%";
-
-				cell = row.insertCell(2);
-				cell.innerHTML = playlist[i]["platform"];
-				cell.style.width = "15%";
-			}
-
-			plDiv.appendChild(plTable);
+			$('#request-amt').prop('disabled', true);
+			$('#request-amt').val(0);
+			$('#request').slideUp('fast');
 		} else {
-			plDiv.innerHTML += "<center>no games in your playlist!</center>";
+			$('#offer-amt').prop('disabled', true);
+			$('#offer-amt').val(0);
+			$('#offer').slideUp('fast');
+
+			$('#request-amt').prop('disabled', true);
+			$('#request-amt').val(0);
+			$('#request').slideUp('fast');
 		}
+	});
 
-		// create topup form inputs
-		var topupDiv = document.createElement("div");
-		topupDiv.style.clear = "both";
+	$('#add').click(function() {
+		clearAlerts();
 
-		if (inventory.length) {
-			var priceInputDiv = document.createElement("div");
-			priceInputDiv.style.float = "right";
-
-			if (playlist.length) {
-				priceInputDiv.appendChild(document.createTextNode("topup:"));
-			} else {
-				priceInputDiv.appendChild(document.createTextNode("price:"));
-			}
-
-			var priceInput = document.createElement("input");
-			priceInput.id = "yourtopup";
-			priceInput.type = "number";
-			priceInput.className = "price";
-			priceInput.step = "0.01";
-			priceInput.value = "0.00";
-
-			priceInputDiv.appendChild(priceInput);
-			topupDiv.appendChild(priceInputDiv);
-		}
-
-		if (playlist.length) {
-			var priceInputDiv = document.createElement("div");
-			priceInputDiv.style.float = "left";
-
-			if (inventory.length) {
-				priceInputDiv.appendChild(document.createTextNode("topup:"));
-			} else {
-				priceInputDiv.appendChild(document.createTextNode("price:"));
-			}
-
-			var priceInput = document.createElement("input");
-			priceInput.id = "mytopup";
-			priceInput.type = "number";
-			priceInput.className = "price";
-			priceInput.step = "0.01";
-			priceInput.value = "0.00";
-
-
-			priceInputDiv.appendChild(priceInput);
-			topupDiv.appendChild(priceInputDiv);
-		}
-
-		tablesDiv.appendChild(topupDiv);
-	}
-
-	function addListing() {
 		var listing = {
-			own: [],
-			seek: [],
-			mytopup: 0,
-			yourtopup: 0,
+			own_ids: [],
+			seek_ids: [],
+			offer_amt: parseInt($('#offer-amt').val()),
+			request_amt: parseInt($('#request-amt').val()),
 		};
 
-		try {
-			if (document.getElementById("mytopup")) {
-				listing.mytopup = currencyFormat(document.getElementById("mytopup").value);
+		$('.own').each(function () {
+			if (this.checked) {
+				listing.own_ids.push(parseInt(this.value));
 			}
+		});
 
-			if (document.getElementById("yourtopup")) {
-				listing.yourtopup = currencyFormat(document.getElementById("yourtopup").value);
+		$('.seek').each(function () {
+			if (this.checked) {
+				listing.seek_ids.push(parseInt(this.value));
 			}
+		});
 
-			// add checked items in the inventory to the trade
-			for (var i = 0; i < inventory.length; i++) {
-				if (document.getElementById("inv" + i).checked) {
-					listing.own.push(inventory[i]["game_id"]);
-				}
-			}
-
-			// add checked items in the playlist to the trade
-			for (var i = 0; i < playlist.length; i++) {
-				if (document.getElementById("pl" + i).checked) {
-					listing.seek.push(playlist[i]["game_id"]);
-				}
-			}
-
-			if (listing.own.length == 0 && listing.seek.length == 0) {
-				throw "please add games to your listing.";
-			}
-
-			if (listing.mytopup > 0 && listing.yourtopup > 0) {
-				throw "you cannot offer and request a topup at the same time.";
-			}
-
-			if ((listing.own.length != 0 || listing.mytopup > 0) && (listing.seek.length == 0 && listing.yourtopup == 0)) {
-				throw "please add a price or games you would like to trade for.";
-			}
-
-			if ((listing.seek.length != 0 || listing.yourtopup > 0) && (listing.own.length == 0 && listing.mytopup == 0)) {
-				throw "please add a price or games you would like to trade away.";
-			}
-
+		if (listing.offer_amt > 0 && listing.request_amt > 0) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
+		} else if (!listing.own_ids.length && !listing.seek_ids.length) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');
+		} else if (listing.own_ids.length && !listing.seek_ids.length && listing.request_amt == 0) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
+		} else if (!listing.own_ids.length  && listing.seek_ids.length && listing.offer_amt == 0) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
+		} else {
 			$.ajax({
 				type: "POST",
 				url: "/listings/add",
 				data: JSON.stringify(listing),
 				contentType: "application/json",
-				success: function(response){
-					if (response == "success") {
-						alert("listing added.");
-					}
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing added.</div>');
+					alertTimeout(5000);
+
+					$('#form')[0].reset()
 				},
-				error: function(response) {
-					alert("error.");
-					console.log(response);
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i ++) {
+						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					}
 				}
 			});
-
-		} catch (error) {
-			alert(error);
 		}
-
-		console.log(listing);
-	}
-
-	function currencyFormat(input) {
-		if (input == "") {
-			throw "please enter a valid price.";
-		}
-
-		tokens = input.split(".");
-		output = tokens[0];
-
-		if (tokens[1]) {
-			if (tokens[1].length > 2) {
-				throw "price should contain up to 2 decimal places.";
-			}
-
-			output += ".";
-			if (tokens[1].length == 1) {
-				output += tokens[1].substring(0,1);
-			} else {
-				output += tokens[1].substring(0,2);
-			}
-		}
-		return parseFloat(output);
-	}
+	});
 
 	$(document).ready(function(){
-		// only allow numbers, decimal points, periods, backspaces, deletes to be typed in .price fields
+		// only allow numbers, backspaces, deletes, tabs to be typed in .price fields
 		$(".price").keydown(function (event) {
 			if (event.shiftKey) {
 				event.preventDefault();
 			}
 
-			if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 110 || event.keyCode == 190) {
+			if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9) {
 			}
 			else {
 				if (event.keyCode < 95) {

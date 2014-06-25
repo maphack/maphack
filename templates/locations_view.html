@@ -38,7 +38,8 @@
   <div id="map-canvas"></div>
   <script>
     var map;
-    var location_id = {{ location_id }};
+    var location_id = parseInt({{ location_id }});
+    var name = '{{ name }}';
     var latitude = {{ geopt.lat }};
     var longitude = {{ geopt.lon }};
     
@@ -59,10 +60,12 @@
     $('#change').click(function(event) {
       clearAlerts();
 
-      var name = $('#name').val();
+      var new_name = $('#name').val();
 
-      if (!name.trim()) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please enter a valid name.</div>');
+      if (!new_name.trim()) {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>name cannot be empty.</div>');
+      } else if (new_name == name) {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>changed name is the same.</div>');
       } else {
         $.ajax({
             type: 'POST',
