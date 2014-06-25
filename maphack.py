@@ -52,6 +52,7 @@ class Game(ndb.Model):
 	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
 
 class Listing(ndb.Model):
+	owner_key = ndb.KeyProperty(indexed = False) 
 	own_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	seek_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	own_games = ndb.StringProperty(repeated = True)
@@ -118,7 +119,7 @@ def locations_map(result):
 	return [result.geopt.lat, result.geopt.lon]
 
 def listing_games(listing):
-	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys)
+	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get()
 
 def haversine(lat1, lon1, lat2, lon2):
     '''
@@ -1088,7 +1089,9 @@ class ListingsAdd(webapp2.RequestHandler):
 				if (len(seek_ids) > 0 or request_amt > 0) and len(own_ids) == 0 and offer_amt == 0:
 					raise Exception, 'listing is empty on sending side.'
 
-				listing = Listing(parent = ndb.Key('Person', users.get_current_user().user_id()))
+				person_key = ndb.Key('Person', users.get_current_user().user_id())
+				listing = Listing(parent = person_key)
+				listing.owner_key = person_key
 				if offer_amt > 0:
 					listing.topup = offer_amt
 				else:

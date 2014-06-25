@@ -15,7 +15,7 @@
 	{% endif %}
 </div>
 {% if listings|length %}
-{% for listing, own_list, seek_list in listings %}
+{% for listing, own_list, seek_list, person in listings %}
 <div id="{{ listing.key.id() }}" class="row" style="margin-top: 20px; border-bottom: 1px solid #eeeeee">
 	<div class="col-md-6">
 		<div class="panel panel-primary">
@@ -97,7 +97,7 @@
 			{% endif %}
 		</div>
 	</div>
-	<div class="list-menu">
+	<div class="listing-menu">
 		<button type="button" class="btn btn-default delete" value="{{ listing.key.id() }}">
 			<span class="glyphicon glyphicon-trash"></span>
 		</button>

@@ -15,8 +15,9 @@
 	{% endif %}
 </div>
 {% if listings|length %}
-{% for listing, own_list, seek_list in listings %}
+{% for listing, own_list, seek_list, person in listings %}
 <div id="{{ listing.key.id() }}" class="row" style="margin-top: 20px; border-bottom: 1px solid #eeeeee">
+	<h3 class="listing-header"><a href="/user/{{ person.key.id() }}">{{ person.name }}</a></h3>
 	<div class="col-md-6">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
