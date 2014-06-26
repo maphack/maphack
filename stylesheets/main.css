@@ -42,11 +42,6 @@ body {
 	border-bottom: 1px solid #eeeeee;
 }
 
-/* vertically align with listing blocks */
-.listing-header {
-	padding-left: 15px;
-}
-
 /* add padding between elements */
 .listing-menu > ul > li {
 	list-style: none;
