@@ -2,28 +2,22 @@ body {
 	padding-top: 70px;
 }
 
-.page-header > h1 > .display_pic {
-	max-height: 1.1em;
-	width: auto;
-}
-.page-header > h1 > .date {
-	float: right;
-	font-size: 18px;
-}
-
-.panel > .panel-body > .alert {
-	margin-bottom: 0;
-}
-
-.topup {
-	padding: 0;
-}
-
+/* navbar display picture */
 .nav > li > a > img {
 	max-height: 20px;
 	width: auto;
 	vertical-align: middle;
 	margin-right: 4px;
+}
+
+.page-header > h1 > .display_pic {
+	max-height: 1.1em;
+	width: auto;
+}
+
+.page-header > h1 > .date {
+	float: right;
+	font-size: 18px;
 }
 
 .table > thead > tr > th,
@@ -37,19 +31,32 @@ body {
 	width: auto;
 }
 
+/* single alert when inventory/playlist is empty */
+.panel > .panel-body > .alert {
+	margin-bottom: 0;
+}
+
+/* vertically align with listing blocks */
 .listing-header {
 	padding-left: 15px;
 }
 
+/* page-header has a bottom margin of 20px and bottom border of same colour */
+.listing-blk {
+	margin-top: 20px;
+	border-bottom: 1px solid #eeeeee;
+}
+
+/* vertically align with listing blocks */
 .listing-menu {
-	float: right !important;
+	float: right;
 	margin-bottom: 20px;
 	padding-right: 15px
 }
 
-.listing-blk {
-	margin-top: 20px;
-	border-bottom: 1px solid #eeeeee;
+/* panel footer topup input group */
+.topup {
+	padding: 0;
 }
 
 input[type=number]::-webkit-inner-spin-button, 

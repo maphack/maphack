@@ -128,6 +128,9 @@ def locations_map(result):
 def listing_games(listing):
 	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get()
 
+def listing_with_games(listing):
+	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys)
+
 def haversine(lat1, lon1, lat2, lon2):
     '''
     Calculate the great circle distance between two points
@@ -1037,7 +1040,7 @@ class ListingsPage(webapp2.RequestHandler):
 				'ORDER BY date DESC',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
-			listings = listings.map(listing_games)
+			listings = listings.map(listing_with_games)
 
 			template_values = {
 				'user': user,
