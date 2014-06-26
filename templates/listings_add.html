@@ -163,6 +163,8 @@
 			request_amt: parseInt($('#request-amt').val()),
 		};
 
+		console.log(listing.offer_amt);
+
 		$('.own').each(function () {
 			if (this.checked) {
 				listing.own_ids.push(parseInt(this.value));
@@ -175,7 +177,12 @@
 			}
 		});
 
-		if (listing.offer_amt > 0 && listing.request_amt > 0) {
+
+		if (!listing.offer_amt) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>offer a topup amount.</div>');
+		} else if (!listing.request_amt) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>request a topup amount.</div>');
+		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
 		} else if (!listing.own_ids.length && !listing.seek_ids.length) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');

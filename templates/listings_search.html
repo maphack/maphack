@@ -180,7 +180,12 @@
 			}
 		});
 
-		if (listing.offer_amt > 0 && listing.request_amt > 0) {
+
+		if (!listing.offer_amt) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>specify an offer topup amount.</div>');
+		} else if (!listing.request_amt) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>specify a request topup amount.</div>');
+		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
 		} else if (!listing.own_ids.length && !listing.seek_ids.length) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your search query.</div>');
