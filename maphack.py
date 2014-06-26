@@ -57,7 +57,7 @@ class Listing(ndb.Model):
 	seek_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	own_games = ndb.StringProperty(repeated = True)
 	seek_games = ndb.StringProperty(repeated = True)
-	topup = ndb.IntegerProperty()
+	topup = ndb.IntegerProperty(default = 0)
 	description = ndb.TextProperty(indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
 	comment_keys = ndb.KeyProperty(repeated = True, indexed = False)
@@ -1043,7 +1043,7 @@ class ListingsPage(webapp2.RequestHandler):
 				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'listings': listings,
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('listings.html')
 			self.response.out.write(template.render(template_values))
 
@@ -1068,7 +1068,7 @@ class ListingsAdd(webapp2.RequestHandler):
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
 				'playlist': playlist,
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('listings_add.html')
 			self.response.out.write(template.render(template_values))
 
@@ -1209,7 +1209,7 @@ class ListingsSearch(webapp2.RequestHandler):
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
 				'playlist': playlist,
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('listings_search.html')
 			self.response.out.write(template.render(template_values))
 
@@ -1280,7 +1280,7 @@ class ListingsSearchResults(webapp2.RequestHandler):
 
 				template_values = {
 					'listings': listings,
-					}
+				}
 				template = JINJA_ENVIRONMENT.get_template('listings_search_results.html')
 				self.response.out.write(template.render(template_values))
 			except Exception, e:
@@ -1317,7 +1317,7 @@ class ListingPage(webapp2.RequestHandler):
 					'own_games': own_games,
 					'seek_games': seek_games,
 					'comments': comments,
-					}
+				}
 				template = JINJA_ENVIRONMENT.get_template('listing.html')
 				self.response.out.write(template.render(template_values))
 

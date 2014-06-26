@@ -11,14 +11,14 @@
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="/bootstrap/js/bootstrap.min.js"></script>
   <script src="/scripts/alerts.js"></script>
-  </head>
+</head>
 <body>
   <div id="panel" class="panel panel-primary">
     <div class="panel-heading">
-      <h3 class="panel-title">locations</h3>
+      <h1 class="panel-title">locations</h1>
     </div>
     <div class="panel-body">
-    <form id="form" role="form">
+      <form id="form" role="form">
         <span class="glyphicon glyphicon-map-marker"></span>
         <span >{{ location.address }}</span>
         <div class="input-group">
@@ -121,7 +121,7 @@
         });
 
         $("#form :input").prop("disabled", false);
-      });
+    });
 
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
