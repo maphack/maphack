@@ -14,6 +14,7 @@
 		{% endif %}
 	</div>
 	{% if inventory.count() or playlist.count() %}
+	<form id="form">
 	<div class="row">
 		<div class="col-md-6">
 			<div class="panel panel-primary">
@@ -107,8 +108,11 @@
 		</div>
 	</div>
 	<div class="pull-right">
-		<button id="search" type="button" class="btn btn-default">search</button>
+		<button id="search" type="button" class="btn btn-default">
+			<span class="glyphicon glyphicon-search"></span>
+		</button>
 	</div>
+	</form>
 	{% endif %}
 </div>
 <div id="search-results"></div>
@@ -194,6 +198,8 @@
 					console.log(data);
 					console.log(textStatus);
 					console.log(jqXHR);
+
+					$("#form :input").prop("disabled", true);
 
 					$('#search-div').fadeTo(500, 0).slideUp(500, function() {
 						$(this).remove();

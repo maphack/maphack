@@ -80,8 +80,11 @@
 				alertTimeout(5000);
 
 				$('#' + game_id).remove();
+
 				if ($('#inventory tr').length == 1) {
-					$('#inventory').remove();
+					$('#inventory').fadeTo(500, 0).slideUp(500, function() {
+						$(this).remove();
+					});
 					$('#alerts').append('<div class="alert alert-info">no games in your inventory! add the games you want to trade away.</div>');
 				}
 			},

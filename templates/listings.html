@@ -5,6 +5,9 @@
 		<a class="btn btn-default" href="/listings/add">
 			<span class="glyphicon glyphicon-plus"></span>
 		</a>
+		<a class="btn btn-default" href="/listings/search">
+			<span class="glyphicon glyphicon-search"></span>
+		</a>
 	</h1>
 </div>
 <div id="alerts">
@@ -16,7 +19,7 @@
 </div>
 {% if listings|length %}
 {% for listing, own_list, seek_list, person in listings %}
-<div class="row listing-blk">
+<div id="{{ listing.key.id() }}" class="row listing-blk">
 	<div class="col-md-6">
 		<div class="panel panel-primary">
 			<div class="panel-heading">

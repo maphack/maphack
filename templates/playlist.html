@@ -80,8 +80,11 @@
 				alertTimeout(5000);
 
 				$('#' + game_id).remove();
+
 				if ($('#playlist tr').length == 1) {
-					$('#playlist').remove();
+					$('#playlist').fadeTo(500, 0).slideUp(500, function() {
+						$(this).remove();
+					});
 					$('#alerts').append('<div class="alert alert-info">no games in your playlist! add the games you want to trade away.</div>');
 				}
 			},

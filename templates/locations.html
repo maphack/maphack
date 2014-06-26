@@ -63,8 +63,11 @@
 				alertTimeout(5000);
 
 				$('#' + location_id).remove();
+
 				if ($('#locations tr').length == 1) {
-					$('#locations').remove();
+					$('#locations').fadeTo(500, 0).slideUp(500, function() {
+						$(this).remove();
+					});
 					$('#alerts').append('<div class="alert alert-info">no locations added! add the locations you want to trade at.</div>');
 				}
 			},

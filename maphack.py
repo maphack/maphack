@@ -1285,6 +1285,10 @@ class ListingPage(webapp2.RequestHandler):
 		else:
 			try:
 				listing = ndb.Key(urlsafe = listing_url).get()
+
+				if listing.key.kind() != 'Listing':
+					raise Exception, 'invalid argument.'
+
 				if listing is None:
 					raise Exception, 'no such listing.'
 
@@ -1312,6 +1316,32 @@ class ListingPage(webapp2.RequestHandler):
 				self.error(403)
 				self.response.out.write(e)
 
+class ListingComment(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				listing = ndb.Key(urlsafe = self.request.get('listing_url')).get()
+
+				if listing.key.kind() != 'Listing':
+					raise Exception, 'invalid argument.'
+
+				content = self.request.get('comment').rstrip()
+
+				comment = Comment(parent = user.key)
+				comment.owner_key = user.key
+				comment.content = content
+				comment.put()
+
+				listing.comment_keys.append(comment.key)
+				listing.put()
+
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1333,6 +1363,7 @@ application = webapp2.WSGIApplication([
 	('/listings/delete', ListingsDelete),
 	('/listings/search', ListingsSearch),
 	('/listings/search/results', ListingsSearchResults),
+	('/listing/comment', ListingComment),
 	('/listing/(.*)', ListingPage),
 
 	('/search/results', SearchResults),
