@@ -310,7 +310,7 @@ class ProfileEdit(webapp2.RequestHandler):
 
 			# validate pic
 			try:
-				if user.pic != self.request.get('pic').rstrip() and not user.pic == DISPLAY_PIC and self.request.get('pic').rstrip() == '':
+				if user.pic != self.request.get('pic').rstrip() and not (user.pic == DISPLAY_PIC and self.request.get('pic').rstrip() == ''):
 					user.pic = self.request.get('pic').rstrip()
 					if not user.pic:
 						user.pic = DISPLAY_PIC
