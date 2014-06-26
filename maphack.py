@@ -25,7 +25,7 @@ class Person(ndb.Model):
 	name = ndb.StringProperty()
 	pic = ndb.StringProperty(default = DISPLAY_PIC, indexed = False)
 	country = ndb.StringProperty()
-	bio = ndb.StringProperty(default = '', indexed = False)
+	bio = ndb.StringProperty(indexed = False)
 	setup = ndb.BooleanProperty(default = False, indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
@@ -59,8 +59,8 @@ class Listing(ndb.Model):
 	seek_games = ndb.StringProperty(repeated = True)
 	topup = ndb.IntegerProperty(default = 0)
 	description = ndb.TextProperty(indexed = False)
-	date = ndb.DateTimeProperty(auto_now_add = True)
 	comment_keys = ndb.KeyProperty(repeated = True, indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Comment(ndb.Model):
 	owner_key = ndb.KeyProperty(indexed = False)
@@ -982,12 +982,9 @@ class UserPage(webapp2.RequestHandler):
 					nearest_distance = min_dist(my_locations, your_locations)
 
 					template_values = {
-						'pic': user.pic,
-						'name': user.name,
+						'user': user,
 						'logout': users.create_logout_url(self.request.host_url),
-						'person_pic': person.pic,
-						'person_name': person.name,
-						'person_id': person_id,
+						'person': person,
 						'my_diff': my_diff,
 						'my_match': my_match,
 						'your_match': your_match,
@@ -1082,65 +1079,65 @@ class ListingsAdd(webapp2.RequestHandler):
 		else:
 			try:
 				jdata = json.loads(self.request.body)
-				own_ids = jdata['own_ids']
-				seek_ids = jdata['seek_ids']
+				own_urls = jdata['own_urls']
+				seek_urls = jdata['seek_urls']
 				offer_amt = int(jdata['offer_amt'])
 				request_amt = int(jdata['request_amt'])
 				description = jdata['description']
 
-				if len(own_ids) == 0 and len(seek_ids) == 0:
-					raise Exception, 'empty listing.'
-
+				if offer_amt is None or request_amt is None:
+					raise Exception, 'topup amounts cannot be empty.'
 				if offer_amt < 0 or request_amt < 0:
-					raise Exception, 'topup amounts must be non-negative.'
-
+					raise Exception, 'topup amounts cannot be negative.'
 				if offer_amt > 0 and request_amt > 0:
 					raise Exception, 'topup amounts cannot be positive at the same time.'
-
-				if (len(own_ids) > 0 or offer_amt > 0) and len(seek_ids) == 0 and request_amt == 0:
-					raise Exception, 'listing is empty on receiving side.'
-				
-				if (len(seek_ids) > 0 or request_amt > 0) and len(own_ids) == 0 and offer_amt == 0:
-					raise Exception, 'listing is empty on sending side.'
-
+				if len(own_urls) == 0 and len(seek_urls) == 0:
+					raise Exception, 'listing cannot be empty.'
+				if (len(own_urls) > 0 or offer_amt > 0) and len(seek_urls) == 0 and request_amt == 0:
+					raise Exception, 'offer cannot be empty.'
+				if (len(seek_urls) > 0 or request_amt > 0) and len(own_urls) == 0 and offer_amt == 0:
+					raise Exception, 'request cannot be empty.'
 				if len(description) > 500:
-					raise Exception, 'description is greater than 800 characters'
+					raise Exception, 'description is greater than 500 characters.'
 
-				person_key = ndb.Key('Person', users.get_current_user().user_id())
-				listing = Listing(parent = person_key)
-				listing.owner_key = person_key
+				listing = Listing(parent = user.key)
+				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+
+				listing.owner_key = user.key
+
 				if offer_amt > 0:
 					listing.topup = offer_amt
 				else:
 					listing.topup = -request_amt
 
-				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				inventory = inventory_key.get()
+				for game_url in own_urls:
+					game_key = ndb.Key(urlsafe = game_url)
+					if game_key.kind() != 'Game':
+						raise Exception, 'invalid key.'
+					if game_key.parent() != inventory_key:
+						raise Exception, 'access denied.'
 
-				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-				playlist = playlist_key.get()
-
-				for game_id in own_ids:
-					game_key = ndb.Key('Game', int(game_id),
-						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
 					game = game_key.get()
-
-					if game:
-						listing.own_keys.append(game_key)
-						listing.own_games.append(game.title + game.platform)
-					else:
+					if game is None:
 						raise Exception, 'no such game in inventory.'
 
-				for game_id in seek_ids:
-					game_key = ndb.Key('Game', int(game_id),
-						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-					game = game_key.get()
+					listing.own_keys.append(game_key)
+					listing.own_games.append(game.title + game.platform)
 
-					if game:
-						listing.seek_keys.append(game_key)
-						listing.seek_games.append(game.title + game.platform)
-					else:
+				for game_url in seek_urls:
+					game_key = ndb.Key(urlsafe = game_url)
+					if game_key.kind() != 'Game':
+						raise Exception, 'invalid key.'
+					if game_key.parent() != playlist_key:
+						raise Exception, 'access denied.'
+
+					game = game_key.get()
+					if game is None:
 						raise Exception, 'no such game in playlist.'
+
+					listing.seek_keys.append(game_key)
+					listing.seek_games.append(game.title + game.platform)
 
 				listing.description = description
 				listing.put()
@@ -1156,10 +1153,9 @@ class ListingsAdd(webapp2.RequestHandler):
 					game.put()
 
 				self.response.out.write('listing added.')
-
 			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
 class ListingsDelete(webapp2.RequestHandler):
 	def post(self):
@@ -1168,28 +1164,31 @@ class ListingsDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				listing_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Listing', int(self.request.get('listing_id')))
+				listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
+				if listing_key.kind() != 'Listing':
+					raise Exception, 'invalid key.'
+				if listing_key.parent() != user.key:
+					raise Exception, 'access denied.'
+				
 				listing = listing_key.get()
+				if listing is None:
+					raise Exception, 'no such listing.'
 				listing_key.delete()
 
-				if listing:
-					for game_key in listing.own_keys:
-						game = game_key.get()
-						game.listing_keys.remove(listing.key)
-						game.put()
+				for game_key in listing.own_keys:
+					game = game_key.get()
+					game.listing_keys.remove(listing.key)
+					game.put()
 
-					for game_key in listing.seek_keys:
-						game = game_key.get()
-						game.listing_keys.remove(listing.key)
-						game.put()
+				for game_key in listing.seek_keys:
+					game = game_key.get()
+					game.listing_keys.remove(listing.key)
+					game.put()
 
-					self.response.out.write('listing deleted.')
-				else:
-					raise Exception, 'no such game in your playlist. refresh your page and try again.'
+				self.response.out.write('listing deleted.')
 			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
 class ListingsSearch(webapp2.RequestHandler):
 	def get(self):
@@ -1216,7 +1215,6 @@ class ListingsSearch(webapp2.RequestHandler):
 			template = JINJA_ENVIRONMENT.get_template('listings_search.html')
 			self.response.out.write(template.render(template_values))
 
-class ListingsSearchResults(webapp2.RequestHandler):
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user is None or user.setup == False:
@@ -1224,58 +1222,65 @@ class ListingsSearchResults(webapp2.RequestHandler):
 		else:
 			try:
 				jdata = json.loads(self.request.body)
-				own_ids = jdata['own_ids']
-				seek_ids = jdata['seek_ids']
+				own_urls = jdata['own_urls']
+				seek_urls = jdata['seek_urls']
 				offer_amt = int(jdata['offer_amt'])
 				request_amt = int(jdata['request_amt'])
 
-				if len(own_ids) == 0 and len(seek_ids) == 0:
-					raise Exception, 'empty listing.'
-
+				if offer_amt is None or request_amt is None:
+					raise Exception, 'topup amounts cannot be empty.'
 				if offer_amt < 0 or request_amt < 0:
-					raise Exception, 'topup amounts must be non-negative.'
-
+					raise Exception, 'topup amounts cannot be negative.'
 				if offer_amt > 0 and request_amt > 0:
 					raise Exception, 'topup amounts cannot be positive at the same time.'
+				if len(own_urls) == 0 and len(seek_urls) == 0:
+					raise Exception, 'listing cannot be empty.'
+				if (len(own_urls) > 0 or offer_amt > 0) and len(seek_urls) == 0 and request_amt == 0:
+					raise Exception, 'offer cannot be empty.'
+				if (len(seek_urls) > 0 or request_amt > 0) and len(own_urls) == 0 and offer_amt == 0:
+					raise Exception, 'request cannot be empty.'
 
-				if (len(own_ids) > 0 or offer_amt > 0) and len(seek_ids) == 0 and request_amt == 0:
-					raise Exception, 'listing is empty on receiving side.'
-				
-				if (len(seek_ids) > 0 or request_amt > 0) and len(own_ids) == 0 and offer_amt == 0:
-					raise Exception, 'listing is empty on sending side.'
+				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
 
 				qry = None;
 
-				for game_id in own_ids:
-					game_key = ndb.Key('Game', int(game_id),
-						parent = ndb.Key('Inventory', users.get_current_user().user_id()))
-					game = game_key.get()
+				for game_url in own_urls:
+					game_key = ndb.Key(urlsafe = game_url)
+					if game_key.kind() != 'Game':
+						raise Exception, 'invalid key.'
+					if game_key.parent() != inventory_key:
+						raise Exception, 'access denied.'
 
-					if game:
-						if qry is None:
-							qry = Listing.query(Listing.seek_games == game.title + game.platform)
-						else:
-							qry = qry.filter(Listing.seek_games == game.title + game.platform)
-					else:
+					game = game_key.get()
+					if game is None:
 						raise Exception, 'no such game in inventory.'
 
-				for game_id in seek_ids:
-					game_key = ndb.Key('Game', int(game_id),
-						parent = ndb.Key('Playlist', users.get_current_user().user_id()))
-					game = game_key.get()
-
-					if game:
-						if qry is None:
-							qry = Listing.query(Listing.own_games == game.title + game.platform)
-						else:
-							qry = qry.filter(Listing.own_games == game.title + game.platform)
+					if qry is None:
+						qry = Listing.query(Listing.seek_games == game.title + game.platform)
 					else:
+						qry = qry.filter(Listing.seek_games == game.title + game.platform)
+
+				for game_url in seek_urls:
+					game_key = ndb.Key(urlsafe = game_url)
+					if game_key.kind() != 'Game':
+						raise Exception, 'invalid key.'
+					if game_key.parent() != playlist_key:
+						raise Exception, 'access denied.'
+
+					game = game_key.get()
+					if game is None:
 						raise Exception, 'no such game in playlist.'
 
-				if offer_amt:
-					qry.filter(Listing.topup >= -offer_amt)
-				elif request_amt:
-					qry.filter(Listing.topup <= -request_amt)
+					if qry is None:
+						qry = Listing.query(Listing.own_games == game.title + game.platform)
+					else:
+						qry = qry.filter(Listing.own_games == game.title + game.platform)
+
+				if offer_amt > 0:
+					qry = qry.filter(Listing.topup >= offer_amt)
+				elif request_amt > 0:
+					qry = qry.filter(Listing.topup <= -request_amt)
 
 				qry = qry.order(Listing.date)
 				qry._Query__orders = qry.orders.reversed()
@@ -1288,7 +1293,7 @@ class ListingsSearchResults(webapp2.RequestHandler):
 				self.response.out.write(template.render(template_values))
 			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
 class ListingPage(webapp2.RequestHandler):
 	def get(self, listing_url):
@@ -1348,7 +1353,7 @@ class ListingComment(webapp2.RequestHandler):
 				comment.put()
 
 				listing.comment_keys.append(comment.key)
-				listing.put()
+				listing.profileut()
 
 			except Exception, e:
 				self.error(403)
@@ -1375,7 +1380,6 @@ application = webapp2.WSGIApplication([
 	('/listings/add', ListingsAdd),
 	('/listings/delete', ListingsDelete),
 	('/listings/search', ListingsSearch),
-	('/listings/search/results', ListingsSearchResults),
 	('/listing/comment', ListingComment),
 	('/listing/(.*)', ListingPage),
 

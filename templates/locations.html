@@ -19,21 +19,21 @@
 	<table id="locations" class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "20%">name</th>
-				<th width = "50%" style="text-align: left">address</th>
-				<th width = "10%">latitude</th>
-				<th width = "10%">longitude</th>
-				<th class="sorttable_nosort" width = "10%">delete</th>
+				<th width="20%">name</th>
+				<th width="50%" style="text-align: left">address</th>
+				<th width="10%">latitude</th>
+				<th width="10%">longitude</th>
+				<th class="sorttable_nosort" width="10%">delete</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for location in locations %}
 			<tr id="{{ location.key.urlsafe() }}">
-				<td width = "20%"><a href="/locations/view/{{ location.key.urlsafe() }}">{{ location.name }}</a></td>
-				<td width = "50%" style="text-align: left">{{ location.address }}</td>
-				<td width = "10%">{{ location.geopt.lat }}</td>
-				<td width = "10%">{{ location.geopt.lon }}</td>
-				<td width = "10%">
+				<td width="20%"><a href="/locations/view/{{ location.key.urlsafe() }}">{{ location.name }}</a></td>
+				<td width="50%" style="text-align: left">{{ location.address }}</td>
+				<td width="10%">{{ location.geopt.lat }}</td>
+				<td width="10%">{{ location.geopt.lon }}</td>
+				<td width="10%">
 					<button type="button" class="btn btn-default delete" value="{{ location.key.urlsafe() }}">
 						<span class="glyphicon glyphicon-trash"></span>
 					</button>
@@ -48,7 +48,7 @@
 	$('.delete').click(function(event) {
 		clearAlerts();
 
-		var location_url = $(this).attr("value");
+		var location_url = $(this).attr('value');
 
 		$.ajax({
 			type: 'POST',

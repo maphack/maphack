@@ -24,6 +24,12 @@ indexes:
     direction: desc
 
 - kind: Listing
+  properties:
+  - name: seek_games
+  - name: date
+    direction: desc
+
+- kind: Listing
   ancestor: yes
   properties:
   - name: date

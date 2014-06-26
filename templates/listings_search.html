@@ -3,7 +3,12 @@
 <div id="search-div">
 	<div class="page-header">
 		<h1>search listings
-			<a class="btn btn-default" href="/listings">back</a>
+			<a class="btn btn-default" href="/listings/add">
+				<span class="glyphicon glyphicon-plus"></span>
+			</a>
+			<a class="btn btn-default" href="/listings/search">
+				<span class="glyphicon glyphicon-search"></span>
+			</a>
 		</h1>
 	</div>
 	<div id="alerts">
@@ -14,29 +19,29 @@
 		{% endif %}
 	</div>
 	{% if inventory.count() or playlist.count() %}
-	<form id="form">
+	<form id="form" class="form-horizontal" role="form">
 	<div class="row">
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">inventory</h3>
+					<h1 class="panel-title">inventory</h1>
 				</div>
 				{% if inventory.count() %}
 				<div class="table-responsive">
 					<table id="inventory" class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
-								<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
-								<th width = "75%" style="text-align: left">title</th>
-								<th width = "15%">platform</th>
+								<th class="sorttable_nosort" width="10%" style="text-align: left"></th>
+								<th width="75%" style="text-align: left">title</th>
+								<th width="15%">platform</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in inventory %}
-							<tr id="{{ game.key.id() }}">
-								<td width = "10%"> <input type="checkbox" class="own" value="{{ game.key.id() }}"></td>
-								<td width = "75%" style="text-align: left">{{ game.title }}</td>
-								<td width = "15%">{{ game.platform }}</td>
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="10%"><input type="checkbox" class="own" value="{{ game.key.urlsafe() }}"></td>
+								<td width="75%" style="text-align: left">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -52,7 +57,7 @@
 					</div>
 				</div>
 				{% endif %}
-				<div id="offer" class="panel-footer" style="padding: 0; display: none">
+				<div id="offer" class="panel-footer listing-topup" style="display: none">
 					<div class="input-group">
 						<span class="input-group-addon">topup &#60; $</span>
 						<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
@@ -64,24 +69,24 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">playlist</h3>
+					<h1 class="panel-title">playlist</h1>
 				</div>
 				{% if playlist.count() %}
 				<div class="table-responsive">
 					<table id="playlist" class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
-								<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
-								<th width = "75%" style="text-align: left">title</th>
-								<th width = "15%">platform</th>
+								<th class="sorttable_nosort" width="10%" style="text-align: left"></th>
+								<th width="75%" style="text-align: left">title</th>
+								<th width="15%">platform</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in playlist %}
-							<tr>
-								<td width = "10%"><input type="checkbox" class="seek" value="{{ game.key.id() }}"></td>
-								<td width = "75%" style="text-align: left">{{ game.title }}</td>
-								<td width = "15%">{{ game.platform }}</td>
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="10%"><input type="checkbox" class="seek" value="{{ game.key.urlsafe() }}"></td>
+								<td width="75%" style="text-align: left">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -97,7 +102,7 @@
 					</div>
 				</div>
 				{% endif %}
-				<div id="request" class="panel-footer" style="padding: 0; display: none">
+				<div id="request" class="panel-footer listing-topup" style="display: none">
 					<div class="input-group">
 						<span class="input-group-addon">topup > $</span>
 						<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
@@ -160,51 +165,55 @@
 
 	$('#search').click(function() {
 		clearAlerts();
+		$('#form :input').prop('disabled', true);
 
 		var listing = {
-			own_ids: [],
-			seek_ids: [],
+			own_urls: [],
+			seek_urls: [],
 			offer_amt: parseInt($('#offer-amt').val()),
 			request_amt: parseInt($('#request-amt').val()),
 		};
 
 		$('.own').each(function () {
 			if (this.checked) {
-				listing.own_ids.push(parseInt(this.value));
+				listing.own_urls.push(this.value);
 			}
 		});
 
 		$('.seek').each(function () {
 			if (this.checked) {
-				listing.seek_ids.push(parseInt(this.value));
+				listing.seek_urls.push(this.value);
 			}
 		});
 
-
-		if (listing.offer_amt == null) {
+		if (listing.offer_amt == null || typeof(listing.offer_amt) != 'number') {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>specify an offer topup amount.</div>');
-		} else if (listing.request_amt == null) {
+			$('#form :input').prop('disabled', false);
+		} else if (listing.request_amt == null || typeof(listing.request_amt) != 'number') {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>specify a request topup amount.</div>');
+			$('#form :input').prop('disabled', false);
 		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
-		} else if (!listing.own_ids.length && !listing.seek_ids.length) {
+			$('#form :input').prop('disabled', false);
+		} else if (!listing.own_urls.length && !listing.seek_urls.length) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your search query.</div>');
-		} else if (listing.own_ids.length && !listing.seek_ids.length && listing.request_amt == 0) {
+			$('#form :input').prop('disabled', false);
+		} else if ((listing.own_urls.length || listing.offer_amt > 0) && !listing.seek_urls.length && listing.request_amt == 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
-		} else if (!listing.own_ids.length  && listing.seek_ids.length && listing.offer_amt == 0) {
+			$('#form :input').prop('disabled', false);
+		} else if (!listing.own_urls.length  && listing.offer_amt == 0 && (listing.seek_urls.length || listing.request_amt > 0)) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
+			$('#form :input').prop('disabled', false);
 		} else {
 			$.ajax({
 				type: 'POST',
-				url: '/listings/search/results',
+				url: '/listings/search',
 				data: JSON.stringify(listing),
 				contentType: 'application/json',
 				success: function(data, textStatus, jqXHR) {
 					console.log(data);
 					console.log(textStatus);
 					console.log(jqXHR);
-
-					$("#form :input").prop("disabled", true);
 
 					$('#search-div').fadeTo(500, 0).slideUp(500, function() {
 						$(this).remove();
@@ -219,6 +228,7 @@
 
 					for (var i = 0; i < errors.length; i ++) {
 						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					$('#form :input').prop('disabled', false);
 					}
 				}
 			});

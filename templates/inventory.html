@@ -19,30 +19,30 @@
 	<table id="inventory" class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
-				<th width = "20%" style="text-align: left">title</th>
-				<th width = "10%">platform</th>
-				<th width = "20%" style="text-align: left">description</th>
-				<th class="sorttable_nosort" width = "20%">image</th>
-				<th width = "10%">date</th>
-				<th class="sorttable_nosort" width = "10%">search</th>
-				<th class="sorttable_nosort" width = "10%">delete</th>
+				<th width="20%" style="text-align: left">title</th>
+				<th width="10%">platform</th>
+				<th width="20%" style="text-align: left">description</th>
+				<th class="sorttable_nosort" width="20%">image</th>
+				<th width= "10%">date</th>
+				<th class="sorttable_nosort" width="10%">search</th>
+				<th class="sorttable_nosort" width="10%">delete</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for game in inventory %}
 			<tr id="{{ game.key.urlsafe() }}">
-				<td width = "20%" style="text-align: left">{{ game.title }}</td>
-				<td width = "10%">{{ game.platform }}</td>
-				<td width = "20%" style="text-align: left">{{ game.description }}</td>
-				<td width = "20%">
+				<td width="20%" style="text-align: left">{{ game.title }}</td>
+				<td width="10%">{{ game.platform }}</td>
+				<td width="20%" style="text-align: left">{{ game.description }}</td>
+				<td width="20%">
 					{% if game.pic %}
 					<img src="{{ game.pic }}">
 					{% endif %}
 				</td>
-				<td width = "10%">
+				<td width="10%">
 					{{ game.date.strftime('%d/%m/%Y') }}
 				</td>
-				<td width = "10%">
+				<td width="10%">
 					<form action="/search/results" method="get">
 						<input type="hidden" name="title" value="{{ game.title }}">
 						<input type="hidden" name="platform" value="{{ game.platform }}">
@@ -50,7 +50,7 @@
 						<input type="submit" value="search">
 					</form>
 				</td>
-				<td width = "10%">
+				<td width="10%">
 					<button type="button" class="btn btn-default delete" value="{{ game.key.urlsafe() }}">
 						<span class="glyphicon glyphicon-trash"></span>
 					</button>
@@ -65,7 +65,7 @@
 	$('.delete').click(function(event) {
 		clearAlerts();
 
-		var game_url = $(this).attr("value");
+		var game_url = $(this).attr('value');
 
 		$.ajax({
 			type: 'POST',

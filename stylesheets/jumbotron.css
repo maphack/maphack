@@ -1,4 +1,9 @@
 body {
-  padding-top: 50px;
-  padding-bottom: 20px;
+	padding-top: 50px;
+	padding-bottom: 20px;
+}
+
+/* Fixes sign in button padding */
+.btn-social {
+	padding-right: 12px;
 }

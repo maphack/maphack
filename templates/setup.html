@@ -304,7 +304,7 @@
 
 		if (!name) {
 			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
-			$("#form :input").prop("disabled", false);
+			$('#form :input').prop('disabled', false);
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -331,7 +331,7 @@
 						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
 
-					$("#form :input").prop("disabled", false);
+					$('#form :input').prop('disabled', false);
 				}
 			});
 		}

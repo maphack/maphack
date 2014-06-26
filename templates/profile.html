@@ -11,13 +11,7 @@
 	<h4>country code</h4>
 	<p>{{ user.country }}</p>
 	<h4>about me</h4>
-	<p>
-		{% if user.bio %}
-		{{ user.bio }}
-		{% else %}
-		none
-		{% endif %}
-	</p>
+	<p>{{ user.bio or 'none' }}</p>
 </div>
 <script>
 	$('#nav-dash').addClass("active");

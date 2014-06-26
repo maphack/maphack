@@ -13,100 +13,99 @@
 	{% endif %}
 </div>
 {% if inventory.count() or playlist.count() %}
-<form id="form">
-<div class="row">
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">inventory</h3>
-			</div>
-			{% if inventory.count() %}
-			<div class="table-responsive">
-				<table id="inventory" class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th class="sorttable_nosort" width = "10%"></th>
-							<th width = "75%" style="text-align: left">title</th>
-							<th width = "15%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in inventory %}
-						<tr id="{{ game.key.id() }}">
-							<td width = "10%"> <input type="checkbox" class="own" value="{{ game.key.id() }}"></td>
-							<td width = "75%" style="text-align: left">{{ game.title }}</td>
-							<td width = "15%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games in your inventory!
-					<a class="btn btn-default btn-sm" href="/inventory/add">
-						<span class="glyphicon glyphicon-plus"></span>
-					</a>
-				</div>
-			</div>
-			{% endif %}
-			<div id="offer" class="panel-footer topup" style="display: none">
-				<div class="input-group">
-					<span class="input-group-addon">topup $</span>
-					<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
-					<span class="input-group-addon">.00</span>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">playlist</h3>
-			</div>
-			{% if playlist.count() %}
-			<div class="table-responsive">
-				<table id="playlist" class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th class="sorttable_nosort" width = "10%"></th>
-							<th width = "75%" style="text-align: left">title</th>
-							<th width = "15%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in playlist %}
-						<tr>
-							<td width = "10%"> <input type="checkbox" class="seek" value="{{ game.key.id() }}"></td>
-							<td width = "75%" style="text-align: left">{{ game.title }}</td>
-							<td width = "15%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games in your playlist!
-					<a class="btn btn-default btn-sm" href="/playlist/add">
-						<span class="glyphicon glyphicon-plus"></span>
-					</a>
-				</div>
-			</div>
-			{% endif %}
-			<div id="request" class="panel-footer topup" style="display: none">
-				<div class="input-group">
-					<span class="input-group-addon">topup $</span>
-					<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
-					<span class="input-group-addon">.00</span>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
 <form id="form" class="form-horizontal" role="form">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">inventory</h1>
+				</div>
+				{% if inventory.count() %}
+				<div class="table-responsive">
+					<table id="inventory" class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th class="sorttable_nosort" width="10%"></th>
+								<th width="75%" style="text-align: left">title</th>
+								<th width="15%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in inventory %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="10%"><input type="checkbox" class="own" value="{{ game.key.urlsafe() }}"></td>
+								<td width="75%" style="text-align: left">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games in your inventory!
+						<a class="btn btn-default btn-sm" href="/inventory/add">
+							<span class="glyphicon glyphicon-plus"></span>
+						</a>
+					</div>
+				</div>
+				{% endif %}
+				<div id="offer" class="panel-footer listing-topup" style="display: none">
+					<div class="input-group">
+						<span class="input-group-addon">topup $</span>
+						<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
+						<span class="input-group-addon">.00</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">playlist</h1>
+				</div>
+				{% if playlist.count() %}
+				<div class="table-responsive">
+					<table id="playlist" class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th class="sorttable_nosort" width="10%"></th>
+								<th width="75%" style="text-align: left">title</th>
+								<th width="15%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in playlist %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="10%"><input type="checkbox" class="seek" value="{{ game.key.urlsafe() }}"></td>
+								<td width="75%" style="text-align: left">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games in your playlist!
+						<a class="btn btn-default btn-sm" href="/playlist/add">
+							<span class="glyphicon glyphicon-plus"></span>
+						</a>
+					</div>
+				</div>
+				{% endif %}
+				<div id="request" class="panel-footer listing-topup" style="display: none">
+					<div class="input-group">
+						<span class="input-group-addon">topup $</span>
+						<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
+						<span class="input-group-addon">.00</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<div class="form-group">
 		<label for="description" class="col-sm-2 control-label">description</label>
 		<div class="col-sm-10">
@@ -114,14 +113,13 @@
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-italic"></i>
 				</span>
-				<textarea maxlength="500" class="form-control" id="description" rows="3" placeholder="Write the details of your listing here (max 500 chars)"></textarea>
+				<textarea id="description" maxlength="500" class="form-control" rows="3" placeholder="add more info"></textarea>
 			</div>
 		</div>
 	</div>
-</form>
-<div class="pull-right" style="margin-top:16px;">
-	<button id="add" type="button" class="btn btn-default">add</button>
-</div>
+	<div class="pull-right">
+		<button id="add" type="button" class="btn btn-default">add</button>
+	</div>
 </form>
 {% endif %}
 <script>
@@ -129,7 +127,7 @@
 	var num_seek = 0;
 
 	$(':checkbox').change(function() {
-		if ($(this).closest('table').attr('id') == 'inventory') {
+		if ($(this).attr('class') == 'own') {
 			this.checked ? num_own++ : num_own--;
 		} else {
 			this.checked ? num_seek++ : num_seek--;
@@ -168,44 +166,42 @@
 
 	$('#add').click(function() {
 		clearAlerts();
+		$('#form :input').prop('disabled', true);
 
 		var listing = {
-			own_ids: [],
-			seek_ids: [],
+			own_urls: [],
+			seek_urls: [],
 			offer_amt: parseInt($('#offer-amt').val()),
 			request_amt: parseInt($('#request-amt').val()),
 			description: $('#description').val().trim(),
 		};
 
-		console.log(listing.offer_amt);
-
 		$('.own').each(function () {
 			if (this.checked) {
-				listing.own_ids.push(parseInt(this.value));
+				listing.own_urls.push(this.value);
 			}
 		});
 
 		$('.seek').each(function () {
 			if (this.checked) {
-				listing.seek_ids.push(parseInt(this.value));
+				listing.seek_urls.push(this.value);
 			}
 		});
 
-
-		if (listing.offer_amt == null) {
+		if (listing.offer_amt == null || typeof(listing.offer_amt) != 'number') {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>offer a topup amount.</div>');
-		} else if (listing.request_amt == null) {
+		} else if (listing.request_amt == null || typeof(listing.request_amt) != 'number') {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>request a topup amount.</div>');
 		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
-		} else if (!listing.own_ids.length && !listing.seek_ids.length) {
+		} else if (!listing.own_urls.length && !listing.seek_urls.length) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');
-		} else if (listing.own_ids.length && !listing.seek_ids.length && listing.request_amt == 0) {
+		} else if ((listing.own_urls.length || listing.offer_amt > 0) && !listing.seek_urls.length && listing.request_amt == 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
-		} else if (!listing.own_ids.length  && listing.seek_ids.length && listing.offer_amt == 0) {
+		} else if (!listing.own_urls.length  && listing.offer_amt == 0 && (listing.seek_urls.length || listing.request_amt > 0)) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
 		} else if (listing.description.length > 500) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>your description exceeds 500 characters.</div>');
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing description exceeds 500 characters.</div>');
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -234,6 +230,8 @@
 				}
 			});
 		}
+
+		$('#form :input').prop('disabled', false);
 	});
 
 	$(document).ready(function(){

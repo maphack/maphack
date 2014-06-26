@@ -1,15 +1,15 @@
 <!-- User page -->
 {% extends "base.html" %}
 {% block content %}
-<p><img class="display_pic" src="{{ person_pic }}"> {{ person_name }}</p>
+<p><img class="display_pic" src="{{ person.pic }}"> {{ person.name }}</p>
 <p>
-	{{ person_name }} can trade ~{{ '%0.2f' % nearest_distance }} k.m. away.<br>
+	{{ person.name }} can trade ~{{ '%0.2f' % nearest_distance }} k.m. away.<br>
 	<a href="/user/locations/{{ person_id }}" target="_blank">view this user's trading locations</a>
 </p>
 <div class="top-pad-one">
 	<h4>matching inventories and playlists:</h4><br>
 	{% if my_diff %}
-	games you own that are not in {{ person_name }}'s playlist<br>
+	games you own that are not in {{ person.name }}'s playlist<br>
 	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
@@ -36,7 +36,7 @@
 </div>
 <div class="top-pad-one">
 	{% if my_match %}
-	games you own that are in {{ person_name }}'s playlist<br>
+	games you own that are in {{ person.name }}'s playlist<br>
 	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
@@ -58,12 +58,12 @@
 		</tbody>
 	</table>
 	{% else %}
-	you have no games {{ person_name }} wants!
+	you have no games {{ person.name }} wants!
 	{% endif %}
 </div>
 <div class="top-pad-one">
 	{% if your_match %}
-	games {{ person_name }} owns that are in your playlist<br>
+	games {{ person.name }} owns that are in your playlist<br>
 	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
@@ -85,12 +85,12 @@
 		</tbody>
 	</table>
 	{% else %}
-	{{ person_name }} has no games you want!
+	{{ person.name }} has no games you want!
 	{% endif %}
 </div>
 <div class="top-pad-one">
 	{% if your_diff %}
-	games {{ person_name }} owns that are not in your playlist<br>
+	games {{ person.name }} owns that are not in your playlist<br>
 	<table class="sortable table table-bordered table-striped">
 		<thead>
 			<tr>
@@ -112,7 +112,7 @@
 		</tbody>
 	</table>
 	{% else %}
-	{{ person_name }} has no other games!
+	{{ person.name }} has no other games!
 	{% endif %}
 </div>
 {% endblock %}

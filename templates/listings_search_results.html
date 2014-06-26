@@ -16,96 +16,107 @@
 </div>
 {% if listings|length %}
 {% for listing, own_games, seek_games, person in listings %}
-<div class="row listing-blk">
-	<h3 class="listing-header"><a href="/user/{{ person.key.id() }}">{{ person.name }}</a></h3>
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">offering</h3>
+<div id="{{ listing.key.urlsafe() }}" class="listing-block">
+	<div class="row">
+		<div class="col-md-6">
+			<h1 class="listing-header"><a href="/user/{{ person.key.id() }}">{{ person.name }}</a></h1>
+		</div>
+		<div class="col-md-6">
+			<div class="listing-menu">
+				<ul>
+					<li><a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
+					<li><div class="listing-date">{{ listing.date.strftime('%c') }}</div></li>
+				</ul>
 			</div>
-			{% if own_games|length %}
-			<div class="table-responsive">
-				<table class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th width = "80%" style="text-align: left">title</th>
-							<th width = "20%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in own_games %}
-						<tr id="{{ game.key.id() }}">
-							<td width = "80%" style="text-align: left">{{ game.title }}</td>
-							<td width = "20%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games here!
-				</div>
-			</div>
-			{% endif %}
-			{% if listing.topup > 0 %}
-			<div class="panel-footer topup">
-				<div class="input-group">
-					<span class="input-group-addon">topup ${{ listing.topup }}</span>
-				</div>
-			</div>
-			{% endif %}
 		</div>
 	</div>
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">requesting</h3>
-			</div>
-			{% if seek_games|length %}
-			<div class="table-responsive">
-				<table class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th width = "80%" style="text-align: left">title</th>
-							<th width = "20%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in seek_games %}
-						<tr id="{{ game.key.id() }}">
-							<td width = "80%" style="text-align: left">{{ game.title }}</td>
-							<td width = "20%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games here!
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">offering</h1>
 				</div>
-			</div>
-			{% endif %}
-			{% if listing.topup < 0 %}
-			<div class="panel-footer topup">
-				<div class="input-group">
-					<span class="input-group-addon">topup ${{ -listing.topup }}</span>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="80%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
 				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if listing.topup > 0 %}
+				<div class="panel-footer listing-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ listing.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
 			</div>
-			{% endif %}
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">requesting</h1>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="80%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if listing.topup < 0 %}
+				<div class="panel-footer listing-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -listing.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
 		</div>
 	</div>
-	<div style="padding-left: 15px;">
-		<h4>description</h4>
-		<p>{{ listing.description }}</p>
-	</div>
-	<div class="listing-menu">
-		<a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}">
-			<span class="glyphicon glyphicon glyphicon-link"></span>
-		</a>
+	<div class="row">
+		<div class="col-md-12">
+			<h4>description</h4>
+			<p>{{ listing.description or 'none' }}</p>
+		</div>
 	</div>
 </div>
 {% endfor %}

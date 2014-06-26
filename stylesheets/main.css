@@ -36,26 +36,32 @@ body {
 	margin-bottom: 0;
 }
 
-/* vertically align with listing blocks */
-.listing-header {
-	padding-left: 15px;
-}
-
 /* page-header has a bottom margin of 20px and bottom border of same colour */
-.listing-blk {
+.listing-block {
 	margin-top: 20px;
 	border-bottom: 1px solid #eeeeee;
 }
 
 /* vertically align with listing blocks */
-.listing-menu {
+.listing-header {
+	padding-left: 15px;
+}
+
+/* add padding between elements */
+.listing-menu > ul > li {
+	list-style: none;
 	float: right;
+	padding-right: 15px;
 	margin-bottom: 20px;
-	padding-right: 15px
+}
+
+/* horizontally align date with buttons */
+.listing-menu > ul > li .listing-date {
+	margin-top: 9px;
 }
 
 /* panel footer topup input group */
-.topup {
+.listing-topup {
 	padding: 0;
 }
 
