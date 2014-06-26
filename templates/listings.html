@@ -16,7 +16,7 @@
 </div>
 {% if listings|length %}
 {% for listing, own_list, seek_list, person in listings %}
-<div id="{{ listing.key.id() }}" class="row" style="margin-top: 20px; border-bottom: 1px solid #eeeeee">
+<div class="row listing-blk">
 	<div class="col-md-6">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
@@ -49,7 +49,7 @@
 			</div>
 			{% endif %}
 			{% if listing.topup > 0 %}
-			<div class="panel-footer" style="padding: 0">
+			<div class="panel-footer topup">
 				<div class="input-group">
 					<span class="input-group-addon">topup ${{ listing.topup }}</span>
 				</div>
@@ -89,7 +89,7 @@
 			</div>
 			{% endif %}
 			{% if listing.topup < 0 %}
-			<div class="panel-footer" style="padding: 0">
+			<div class="panel-footer topup">
 				<div class="input-group">
 					<span class="input-group-addon">topup ${{ -listing.topup }}</span>
 				</div>

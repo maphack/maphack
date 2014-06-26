@@ -1,9 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>{{ person.name }}'s listing</h1>
+	<h1>
+		<img class="display_pic" src="{{ person.pic }}">
+		{{ person.name }}'s listing
+		<a class="btn btn-default" href="/user/{{ person.key.id() }}">
+			<span class="glyphicon glyphicon-user"></span>
+		</a>
+		<div class="date">
+			{{ listing.date.strftime('%d/%m/%Y') }}
+		</div>
+	</h1>
 </div>
-<div id="{{ listing.key.id() }}" class="row" style="margin-top: 20px; border-bottom: 1px solid #eeeeee">
+<div class="row listing-blk">
 	<div class="col-md-6">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
@@ -36,7 +45,7 @@
 			</div>
 			{% endif %}
 			{% if listing.topup > 0 %}
-			<div class="panel-footer" style="padding: 0">
+			<div class="panel-footer topup">
 				<div class="input-group">
 					<span class="input-group-addon">topup ${{ listing.topup }}</span>
 				</div>
@@ -76,7 +85,7 @@
 			</div>
 			{% endif %}
 			{% if listing.topup < 0 %}
-			<div class="panel-footer" style="padding: 0">
+			<div class="panel-footer topup">
 				<div class="input-group">
 					<span class="input-group-addon">topup ${{ -listing.topup }}</span>
 				</div>
@@ -85,6 +94,7 @@
 		</div>
 	</div>
 </div>
+<div class="comment-blk">
 <script>
 	$('#nav-list').addClass("active");
 </script>

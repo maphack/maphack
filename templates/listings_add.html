@@ -25,7 +25,7 @@
 				<table id="inventory" class="sortable table table-bordered table-striped">
 					<thead>
 						<tr>
-							<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
+							<th class="sorttable_nosort" width = "10%"></th>
 							<th width = "75%" style="text-align: left">title</th>
 							<th width = "15%">platform</th>
 						</tr>
@@ -51,7 +51,7 @@
 				</div>
 			</div>
 			{% endif %}
-			<div id="offer" class="panel-footer" style="padding: 0; display: none">
+			<div id="offer" class="panel-footer topup" style="display: none">
 				<div class="input-group">
 					<span class="input-group-addon">topup $</span>
 					<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
@@ -70,7 +70,7 @@
 				<table id="playlist" class="sortable table table-bordered table-striped">
 					<thead>
 						<tr>
-							<th class="sorttable_nosort" width = "10%" style="text-align: left"></th>
+							<th class="sorttable_nosort" width = "10%"></th>
 							<th width = "75%" style="text-align: left">title</th>
 							<th width = "15%">platform</th>
 						</tr>
@@ -96,7 +96,7 @@
 				</div>
 			</div>
 			{% endif %}
-			<div id="request" class="panel-footer" style="padding: 0; display: none">
+			<div id="request" class="panel-footer topup" style="display: none">
 				<div class="input-group">
 					<span class="input-group-addon">topup $</span>
 					<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
@@ -106,10 +106,8 @@
 		</div>
 	</div>
 </div>
-<div class="row">
-	<div class="pull-right" style="padding-right: 15px">
-		<button id="add" type="button" class="btn btn-default">add</button>
-	</div>
+<div class="pull-right">
+	<button id="add" type="button" class="btn btn-default">add</button>
 </div>
 </form>
 {% endif %}

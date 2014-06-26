@@ -2,8 +2,21 @@ body {
 	padding-top: 70px;
 }
 
+.page-header > h1 > .display_pic {
+	max-height: 1.1em;
+	width: auto;
+}
+.page-header > h1 > .date {
+	float: right;
+	font-size: 18px;
+}
+
 .panel > .panel-body > .alert {
 	margin-bottom: 0;
+}
+
+.topup {
+	padding: 0;
 }
 
 .nav > li > a > img {
@@ -32,6 +45,11 @@ body {
 	float: right !important;
 	margin-bottom: 20px;
 	padding-right: 15px
+}
+
+.listing-blk {
+	margin-top: 20px;
+	border-bottom: 1px solid #eeeeee;
 }
 
 input[type=number]::-webkit-inner-spin-button, 

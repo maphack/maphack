@@ -1242,9 +1242,9 @@ class ListingsSearchResults(webapp2.RequestHandler):
 
 					if game:
 						if qry is None:
-							qry = Listing.query(Listing.own_games == game.title + game.platform)
+							qry = Listing.query(Listing.seek_games == game.title + game.platform)
 						else:
-							qry = qry.filter(Listing.own_games == game.title + game.platform)
+							qry = qry.filter(Listing.seek_games == game.title + game.platform)
 					else:
 						raise Exception, 'no such game in inventory.'
 
@@ -1255,16 +1255,16 @@ class ListingsSearchResults(webapp2.RequestHandler):
 
 					if game:
 						if qry is None:
-							qry = Listing.query(Listing.seek_games == game.title + game.platform)
+							qry = Listing.query(Listing.own_games == game.title + game.platform)
 						else:
-							qry = qry.filter(Listing.seek_games == game.title + game.platform)
+							qry = qry.filter(Listing.own_games == game.title + game.platform)
 					else:
 						raise Exception, 'no such game in playlist.'
 
 				if offer_amt:
-					qry.filter(Listing.topup <= offer_amt)
+					qry.filter(Listing.topup >= -offer_amt)
 				elif request_amt:
-					qry.filter(Listing.topup <= offer_amt)
+					qry.filter(Listing.topup <= -request_amt)
 
 				listings = qry.map(listing_games)
 
@@ -1291,6 +1291,7 @@ class ListingPage(webapp2.RequestHandler):
 				person = listing.owner_key.get()
 				own_games = ndb.get_multi(listing.own_keys)
 				seek_games = ndb.get_multi(listing.seek_keys)
+				comments = ndb.get_multi(listing.comment_keys)
 
 				person = listing.owner_key.get()
 				
@@ -1302,6 +1303,7 @@ class ListingPage(webapp2.RequestHandler):
 					'person': person,
 					'own_games': own_games,
 					'seek_games': seek_games,
+					'comments': comments,
 					}
 				template = JINJA_ENVIRONMENT.get_template('listing.html')
 				self.response.out.write(template.render(template_values))
