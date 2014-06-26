@@ -15,3 +15,21 @@ indexes:
   properties:
   - name: date
     direction: desc
+
+- kind: Listing
+  properties:
+  - name: own_games
+  - name: seek_games
+  - name: date
+    direction: desc
+
+- kind: Listing
+  ancestor: yes
+  properties:
+  - name: date
+
+- kind: Listing
+  ancestor: yes
+  properties:
+  - name: date
+    direction: desc

@@ -106,7 +106,20 @@
 		</div>
 	</div>
 </div>
-<div class="pull-right">
+<form id="form" class="form-horizontal" role="form">
+	<div class="form-group">
+		<label for="description" class="col-sm-2 control-label">description</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<i class="glyphicon glyphicon-italic"></i>
+				</span>
+				<textarea maxlength="500" class="form-control" id="description" rows="3" placeholder="Write the details of your listing here (max 500 chars)"></textarea>
+			</div>
+		</div>
+	</div>
+</form>
+<div class="pull-right" style="margin-top:16px;">
 	<button id="add" type="button" class="btn btn-default">add</button>
 </div>
 </form>
@@ -161,6 +174,7 @@
 			seek_ids: [],
 			offer_amt: parseInt($('#offer-amt').val()),
 			request_amt: parseInt($('#request-amt').val()),
+			description: $('#description').val().trim(),
 		};
 
 		console.log(listing.offer_amt);
@@ -178,9 +192,9 @@
 		});
 
 
-		if (!listing.offer_amt) {
+		if (listing.offer_amt == null) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>offer a topup amount.</div>');
-		} else if (!listing.request_amt) {
+		} else if (listing.request_amt == null) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>request a topup amount.</div>');
 		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
@@ -190,6 +204,8 @@
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
 		} else if (!listing.own_ids.length  && listing.seek_ids.length && listing.offer_amt == 0) {
 			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
+		} else if (listing.description.length > 500) {
+			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>your description exceeds 500 characters.</div>');
 		} else {
 			$.ajax({
 				type: 'POST',

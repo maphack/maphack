@@ -59,6 +59,7 @@ class Listing(ndb.Model):
 	seek_games = ndb.StringProperty(repeated = True)
 	topup = ndb.IntegerProperty()	
 	date = ndb.DateTimeProperty(auto_now_add = True)
+	description = ndb.TextProperty(indexed = False)
 	comment_keys = ndb.KeyProperty(repeated = True, indexed = False)
 
 class Comment(ndb.Model):
@@ -1028,7 +1029,8 @@ class ListingsPage(webapp2.RequestHandler):
 		else:
 			listings = ndb.gql('SELECT * '
 				'FROM Listing '
-				'WHERE ANCESTOR IS :1 ',
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			listings = listings.map(listing_games)
@@ -1079,6 +1081,7 @@ class ListingsAdd(webapp2.RequestHandler):
 				seek_ids = jdata['seek_ids']
 				offer_amt = int(jdata['offer_amt'])
 				request_amt = int(jdata['request_amt'])
+				description = jdata['description']
 
 				if len(own_ids) == 0 and len(seek_ids) == 0:
 					raise Exception, 'empty listing.'
@@ -1094,6 +1097,9 @@ class ListingsAdd(webapp2.RequestHandler):
 				
 				if (len(seek_ids) > 0 or request_amt > 0) and len(own_ids) == 0 and offer_amt == 0:
 					raise Exception, 'listing is empty on sending side.'
+
+				if len(description) > 500:
+					raise Exception, 'description is greater than 800 characters'
 
 				person_key = ndb.Key('Person', users.get_current_user().user_id())
 				listing = Listing(parent = person_key)
@@ -1131,6 +1137,7 @@ class ListingsAdd(webapp2.RequestHandler):
 					else:
 						raise Exception, 'no such game in playlist.'
 
+				listing.description = description
 				listing.put()
 
 				for game_key in listing.own_keys:
@@ -1266,6 +1273,8 @@ class ListingsSearchResults(webapp2.RequestHandler):
 				elif request_amt:
 					qry.filter(Listing.topup <= -request_amt)
 
+				qry = qry.order(Listing.date)
+				qry._Query__orders = qry.orders.reversed()
 				listings = qry.map(listing_games)
 
 				template_values = {
