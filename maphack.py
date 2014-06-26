@@ -57,9 +57,9 @@ class Listing(ndb.Model):
 	seek_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	own_games = ndb.StringProperty(repeated = True)
 	seek_games = ndb.StringProperty(repeated = True)
-	topup = ndb.IntegerProperty()	
-	date = ndb.DateTimeProperty(auto_now_add = True)
+	topup = ndb.IntegerProperty()
 	description = ndb.TextProperty(indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
 	comment_keys = ndb.KeyProperty(repeated = True, indexed = False)
 
 class Comment(ndb.Model):
@@ -176,10 +176,9 @@ class Dashboard(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('dashboard.html')
 			self.response.out.write(template.render(template_values))
 
@@ -192,6 +191,7 @@ class Setup(webapp2.RequestHandler):
 			if user is None:
 				user = Person(id = users.get_current_user().user_id())
 				user.email = users.get_current_user().email()
+				user.name = users.get_current_user().nickname()
 				user.put()
 
 				inventory = Inventory(id = users.get_current_user().user_id())
@@ -201,10 +201,9 @@ class Setup(webapp2.RequestHandler):
 				playlist.put()
 
 			template_values = {
-				'pic': DISPLAY_PIC,
-				'name': users.get_current_user().nickname(),
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('setup.html')
 			self.response.out.write(template.render(template_values))
 
@@ -261,12 +260,9 @@ class Profile(webapp2.RequestHandler):
 			self.redirect('/dashboard')
 		else:
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
-				'bio': user.bio,
-				'country': user.country,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('profile.html')
 			self.response.out.write(template.render(template_values))
 
@@ -277,12 +273,9 @@ class ProfileEdit(webapp2.RequestHandler):
 			self.redirect('/dashboard')
 		else:
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
-				'country': user.country,
-				'bio': user.bio,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('profile_edit.html')
 			self.response.out.write(template.render(template_values))
 
@@ -365,11 +358,10 @@ class LocationsPage(webapp2.RequestHandler):
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'locations': locations,
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('locations.html')
 			self.response.out.write(template.render(template_values))
 
@@ -385,9 +377,9 @@ class LocationsAdd(webapp2.RequestHandler):
 				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
-				'country': user.country,
+				'user': user,
 				'locations': jsonify(locations),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('locations_add.html')
 			self.response.out.write(template.render(template_values))
 
@@ -439,41 +431,26 @@ class LocationsDelete(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				location_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Location', int(self.request.get('location_id')))
+				location_key = ndb.Key(urlsafe = self.request.get('location_url'))
+				if location_key.kind() != 'Location':
+					raise Exception, 'invalid key.'
+				if location_key.parent() != user.key:
+					raise Exception, 'access denied.'
+
 				location_key.delete()
 
 				self.response.out.write('location deleted.')
-
 			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
-class LocationsView(webapp2.RequestHandler):
+class LocationsEdit(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			try:
-				location_key = ndb.Key('Person', users.get_current_user().user_id(), 
-					'Location', int(self.request.get('location_id')))
-				location = location_key.get()
-
-				if location is None:
-					raise Exception, 'no such location.'
-
-				template_values = {
-					'location_id': location.key.id(),
-					'name': location.name,
-					'address': location.address,
-					'geopt': location.geopt,
-				}
-				template = JINJA_ENVIRONMENT.get_template('locations_view.html')
-				self.response.out.write(template.render(template_values))
-
-			except:
-				self.redirect('/locations')
+			self.redirect('/locations')
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
@@ -481,27 +458,54 @@ class LocationsView(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				location_key = ndb.Key('Person', users.get_current_user().user_id(),
-					'Location', int(self.request.get('location_id')))
-				location = location_key.get()
+				location_key = ndb.Key(urlsafe = self.request.get('location_url'))
+				if location_key.kind() != 'Location':
+					raise Exception, 'invalid key.'
+				if location_key.parent() != user.key:
+					raise Exception, 'access denied.'
 
+				location = location_key.get()
+				if location is None:
+					raise Exception, 'no such location.'
+				if location.name == self.request.get('name').rstrip():
+					raise Exception, 'no changes were made.'
+
+				location.name = self.request.get('name').rstrip()
+				if not location.name:
+					raise Exception, 'location name cannot be empty.'
+
+				location.put()
+
+				self.response.out.write('name changed.')
+			except Exception, e:
+				self.error(403)
+				self.response.out.write([e])
+
+class LocationsView(webapp2.RequestHandler):
+	def get(self, location_url):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				location_key = ndb.Key(urlsafe = location_url)
+				if location_key.kind() != 'Location':
+					raise Exception, 'invalid key.'
+				if location_key.parent() != user.key:
+					raise Exception, 'access denied.'
+
+				location = location_key.get()
 				if location is None:
 					raise Exception, 'no such location.'
 
-				if location.name != self.request.get('name').rstrip():
-					location.name = self.request.get('name').rstrip()
-					if not location.name:
-						raise Exception, 'location name cannot be empty.'
-				else:
-					raise Exception, 'no changes were made.'
+				template_values = {
+					'location': location,
+				}
+				template = JINJA_ENVIRONMENT.get_template('locations_view.html')
+				self.response.out.write(template.render(template_values))
 
-					location.put()
-
-					self.response.out.write('name changed.')
-
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
+			except:
+				self.redirect('/locations')
 
 class InventoryPage(webapp2.RequestHandler):
 	def get(self):
@@ -515,11 +519,10 @@ class InventoryPage(webapp2.RequestHandler):
 				ndb.Key('Inventory', users.get_current_user().user_id()))
 
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('inventory.html')
 			self.response.out.write(template.render(template_values))
 
@@ -530,10 +533,9 @@ class InventoryAdd(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('inventory_add.html')
 			self.response.out.write(template.render(template_values))
 
@@ -623,54 +625,56 @@ class InventoryDelete(webapp2.RequestHandler):
 		else:
 			try:
 				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				
-				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
-					parent = inventory_key)
+				game_to_delete_key = ndb.Key(urlsafe = self.request.get('game_url'))
+				if game_to_delete_key.kind() != 'Game':
+					raise Exception, 'invalid key.'
+				if game_to_delete_key.parent() != inventory_key:
+					raise Exception, 'access denied.'
+
 				game_to_delete = game_to_delete_key.get()
+				if game_to_delete is None:
+					raise Exception, 'no such game.'
 
-				if game_to_delete:
-					for listing_key in game_to_delete.listing_keys:
-						listing = listing_key.get()
-						listing_key.delete()
+				for listing_key in game_to_delete.listing_keys:
+					listing = listing_key.get()
+					listing_key.delete()
 
-						for game_key in listing.own_keys:
-							game = game_key.get()
-							game.listing_keys.remove(listing_key)
-							game.put()
+					for game_key in listing.own_keys:
+						game = game_key.get()
+						game.listing_keys.remove(listing_key)
+						game.put()
 
-						for game_key in listing.seek_keys:
-							game = game_key.get()
-							game.listing_keys.remove(listing_key)
-							game.put()
+					for game_key in listing.seek_keys:
+						game = game_key.get()
+						game.listing_keys.remove(listing_key)
+						game.put()
 
-					game_to_delete_key.delete()
+				game_to_delete_key.delete()
 
-					inventory = inventory_key.get()
-					inventory.count -= 1
-					inventory.put()
+				inventory = inventory_key.get()
+				inventory.count -= 1
+				inventory.put()
 
-					owners_key = ndb.Key('Owners', game_to_delete.title,
-						parent = ndb.Key('Platform', game_to_delete.platform))
-					owners = owners_key.get()
-					owners.count -= 1
-					owners.put()
+				owners_key = ndb.Key('Owners', game_to_delete.title,
+					parent = ndb.Key('Platform', game_to_delete.platform))
+				owners = owners_key.get()
+				owners.count -= 1
+				owners.put()
 
-					owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
-						parent = owners_key)
-					owner = owner_key.get()
-					owner.game_keys.remove(game_to_delete.key)
-				
-					if owner.game_keys:
-						owner.put()
-					else:
-						owner_key.delete()
-
-					self.response.out.write('game deleted.')
+				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+					parent = owners_key)
+				owner = owner_key.get()
+				owner.game_keys.remove(game_to_delete.key)
+			
+				if owner.game_keys:
+					owner.put()
 				else:
-					raise Exception, 'no such game in your inventory. refresh your page and try again.'
+					owner_key.delete()
+
+				self.response.out.write('game deleted.')
 			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
 class PlaylistPage(webapp2.RequestHandler):
 	def get(self):
@@ -684,11 +688,10 @@ class PlaylistPage(webapp2.RequestHandler):
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'playlist': playlist,
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('playlist.html')
 			self.response.out.write(template.render(template_values))
 
@@ -699,10 +702,9 @@ class PlaylistAdd(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				}
+			}
 			template = JINJA_ENVIRONMENT.get_template('playlist_add.html')
 			self.response.out.write(template.render(template_values))
 
@@ -792,54 +794,56 @@ class PlaylistDelete(webapp2.RequestHandler):
 		else:
 			try:
 				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-				
-				game_to_delete_key = ndb.Key('Game', int(self.request.get('game_id')),
-					parent = playlist_key)
+				game_to_delete_key = ndb.Key(urlsafe = self.request.get('game_url'))
+				if game_to_delete_key.kind() != 'Game':
+					raise Exception, 'invalid key.'
+				if game_to_delete_key.parent() != playlist_key:
+					raise Exception, 'access denied.'
+
 				game_to_delete = game_to_delete_key.get()
+				if game_to_delete is None:
+					raise Exception, 'no such game.'
 
-				if game_to_delete:
-					for listing_key in game_to_delete.listing_keys:
-						listing = listing_key.get()
-						listing_key.delete()
+				for listing_key in game_to_delete.listing_keys:
+					listing = listing_key.get()
+					listing_key.delete()
 
-						for game_key in listing.own_keys:
-							game = game_key.get()
-							game.listing_keys.remove(listing_key)
-							game.put()
+					for game_key in listing.own_keys:
+						game = game_key.get()
+						game.listing_keys.remove(listing_key)
+						game.put()
 
-						for game_key in listing.seek_keys:
-							game = game_key.get()
-							game.listing_keys.remove(listing_key)
-							game.put()
+					for game_key in listing.seek_keys:
+						game = game_key.get()
+						game.listing_keys.remove(listing_key)
+						game.put()
 
-					game_to_delete_key.delete()
+				game_to_delete_key.delete()
 
-					playlist = playlist_key.get()
-					playlist.count -= 1
-					playlist.put()
+				playlist = playlist_key.get()
+				playlist.count -= 1
+				playlist.put()
 
-					seekers_key = ndb.Key('Seekers', game_to_delete.title,
-						parent = ndb.Key('Platform', game_to_delete.platform))
-					seekers = seekers_key.get()
-					seekers.count -= 1
-					seekers.put()
+				seekers_key = ndb.Key('Seekers', game_to_delete.title,
+					parent = ndb.Key('Platform', game_to_delete.platform))
+				seekers = seekers_key.get()
+				seekers.count -= 1
+				seekers.put()
 
-					seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
-						parent = seekers_key)
-					seeker = seeker_key.get()
-					seeker.game_keys.remove(game_to_delete.key)
-				
-					if seeker.game_keys:
-						seeker.put()
-					else:
-						seeker_key.delete()
-
-					self.response.out.write('game deleted.')
+				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+					parent = seekers_key)
+				seeker = seeker_key.get()
+				seeker.game_keys.remove(game_to_delete.key)
+			
+				if seeker.game_keys:
+					seeker.put()
 				else:
-					raise Exception, 'no such game in your playlist. refresh your page and try again.'
-			except:
+					seeker_key.delete()
+
+				self.response.out.write('game deleted.')
+			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
 class SearchResults(webapp2.RequestHandler):
 	def show(self, query_type = '', title = '', platform = '', results = '', distances = '', error = ''):
@@ -1036,8 +1040,7 @@ class ListingsPage(webapp2.RequestHandler):
 			listings = listings.map(listing_games)
 
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'listings': listings,
 				}
@@ -1061,8 +1064,7 @@ class ListingsAdd(webapp2.RequestHandler):
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
 				'playlist': playlist,
@@ -1203,8 +1205,7 @@ class ListingsSearch(webapp2.RequestHandler):
 				ndb.Key('Playlist', users.get_current_user().user_id()))
 
 			template_values = {
-				'pic': user.pic,
-				'name': user.name,
+				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
 				'playlist': playlist,
@@ -1309,8 +1310,7 @@ class ListingPage(webapp2.RequestHandler):
 				person = listing.owner_key.get()
 				
 				template_values = {
-					'pic': user.pic,
-					'name': user.name,
+					'user': user,
 					'logout': users.create_logout_url(self.request.host_url),
 					'listing': listing,
 					'person': person,
@@ -1360,7 +1360,8 @@ application = webapp2.WSGIApplication([
 	('/locations', LocationsPage),
 	('/locations/add', LocationsAdd),
 	('/locations/delete', LocationsDelete),
-	('/locations/view', LocationsView),
+	('/locations/edit', LocationsEdit),
+	('/locations/view/(.*)', LocationsView),
 	('/inventory', InventoryPage),
 	('/inventory/add', InventoryAdd),
 	('/inventory/delete', InventoryDelete),

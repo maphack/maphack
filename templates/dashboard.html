@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<div style="text-align:center;">
+<div class="text-center">
 	<img class="splashpic" src="/images/splashpic.png">
 	<br>
 	<br>
-	<p>welcome back, <em><strong>{{ name }}</strong></em></p>
+	<p>welcome back, <em><strong>{{ user.name }}</strong></em></p>
 </div>
 <script>
 	$('#nav-dash').addClass("active");

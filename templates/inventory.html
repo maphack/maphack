@@ -30,13 +30,13 @@
 		</thead>
 		<tbody>
 			{% for game in inventory %}
-			<tr id="{{ game.key.id() }}">
+			<tr id="{{ game.key.urlsafe() }}">
 				<td width = "20%" style="text-align: left">{{ game.title }}</td>
 				<td width = "10%">{{ game.platform }}</td>
 				<td width = "20%" style="text-align: left">{{ game.description }}</td>
 				<td width = "20%">
 					{% if game.pic %}
-					<img class="game_pic" src="{{ game.pic }}">
+					<img src="{{ game.pic }}">
 					{% endif %}
 				</td>
 				<td width = "10%">
@@ -51,7 +51,7 @@
 					</form>
 				</td>
 				<td width = "10%">
-					<button type="button" class="btn btn-default delete" value="{{ game.key.id() }}">
+					<button type="button" class="btn btn-default delete" value="{{ game.key.urlsafe() }}">
 						<span class="glyphicon glyphicon-trash"></span>
 					</button>
 				</td>
@@ -65,12 +65,12 @@
 	$('.delete').click(function(event) {
 		clearAlerts();
 
-		var game_id = $(this).attr("value");
+		var game_url = $(this).attr("value");
 
 		$.ajax({
 			type: 'POST',
 			url: '/inventory/delete',
-			data: {game_id: game_id},
+			data: {game_url: game_url},
 			success: function(data, textStatus, jqXHR) {
 				console.log(data);
 				console.log(textStatus);
@@ -79,7 +79,7 @@
 				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>game deleted.</div>');
 				alertTimeout(5000);
 
-				$('#' + game_id).remove();
+				$('#' + game_url).remove();
 
 				if ($('#inventory tr').length == 1) {
 					$('#inventory').fadeTo(500, 0).slideUp(500, function() {

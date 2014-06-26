@@ -14,7 +14,7 @@
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-book"></i>
 				</span>
-				<input type="text" class="form-control" id="title" placeholder="title">
+				<input id="title" type="text" class="form-control" placeholder="title">
 			</div>
 		</div>
 	</div>
@@ -25,18 +25,31 @@
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-tower"></i>
 				</span>
-				<input type="text" class="form-control" id="platform" placeholder="PS4 / XBOX360 / PC etc.">
+				<select id="platform" class="form-control">
+					<option>PC</option>
+					<option>PS4</option>
+					<option>XBONE</option>
+					<option>Wii U</option>
+					<option>PS3</option>
+					<option>XB360</option>
+					<option>Wii</option>
+					<option>PSV</option>
+					<option>3DS</option>
+					<option>PSP</option>
+					<option>NDS</option>
+					<option>Other</option>
+				</select>
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="image url" class="col-sm-2 control-label">picture</label>
+		<label for="pic" class="col-sm-2 control-label">picture</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-picture"></i>
 				</span>
-				<input type="text" class="form-control" id="pic" placeholder="image url">
+				<input id="pic" type="text" class="form-control" placeholder="image url">
 			</div>
 		</div>
 	</div>
@@ -47,7 +60,7 @@
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-italic"></i>
 				</span>
-				<textarea class="form-control" id="description" rows="3" placeholder="write a short description of your game (e.g. requirements)"></textarea>
+				<textarea id="description" class="form-control" rows="3" placeholder="write a short description of your game (e.g. requirements)"></textarea>
 			</div>
 		</div>
 	</div>
@@ -60,9 +73,10 @@
 <script>
 	$("#add").click( function(event) {
 		clearAlerts();
+		$("#form :input").prop("disabled", true);
 
 		var title = $('#title').val().trim();
-		var platform = $('#platform').val().trim();
+		var platform = $('#platform').val();
 		var pic = $('#pic').val().trim();
 		var description = $('#description').val().trim();
 
@@ -91,12 +105,14 @@
 					console.log(errorThrown);
 					var errors = eval(jqXHR.responseText);
 
-					for (var i = 0; i < errors.length; i ++) {
+					for (var i = 0; i < errors.length; i++) {
 						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
 				}
 			});
 		}
+
+		$("#form :input").prop("disabled", false);
 	});
 </script>
 <script>

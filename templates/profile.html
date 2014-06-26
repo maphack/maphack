@@ -9,11 +9,11 @@
 		</h1>
 	</div>
 	<h4>country code</h4>
-	<p>{{ country }}</p>
+	<p>{{ user.country }}</p>
 	<h4>about me</h4>
 	<p>
-		{% if bio %}
-		{{ bio }}
+		{% if user.bio %}
+		{{ user.bio }}
 		{% else %}
 		none
 		{% endif %}

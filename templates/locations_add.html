@@ -15,9 +15,10 @@
 <body>
   <div id="panel" class="panel panel-primary">
     <div class="panel-heading">
-      <h3 class="panel-title">locations</h3>
+      <h1 class="panel-title">locations</h1>
     </div>
     <div class="panel-body">
+    <form id="form" role="form">
       <div class="input-group">
         <input id="address" type="textbox" class="form-control" placeholder="address">
         <span class="input-group-btn">
@@ -36,11 +37,12 @@
       <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
       <button id="hide" type="button" class="btn btn-default">hide my locations</button>
       <a class="btn btn-default" href="/locations">back</a>
+      </form>
     </div>
   </div>
   <div id="map-canvas"></div>
   <script>
-    var country = '{{ country }}';
+    var country = '{{ user.country }}';
     var locations = {{ locations|safe }};
 
     var map;
@@ -108,39 +110,52 @@
 
     $('#locate').click(function(event) {
       clearAlerts();
+      $("#form :input").prop("disabled", true);
 
-      var address = $('#address').val();
-      geocoder.geocode({'address': address, 'componentRestrictions': {country: country}}, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          placeMarker(results[0].geometry.location);
-          map.fitBounds(results[0].geometry.viewport);
+      var address = $('#address').val().trim();
 
-          if (results[0].partial_match) {
-            $('#alerts').append('<div class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location may be inaccurate. drag the marker to the correct location before adding it.</div>');
+      if (!address) {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>address cannot be empty.</div>');
+      } else {
+        geocoder.geocode({'address': address, 'componentRestrictions': {country: country}}, function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            placeMarker(results[0].geometry.location);
+            map.fitBounds(results[0].geometry.viewport);
+
+            if (results[0].partial_match) {
+              $('#alerts').append('<div class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location may be inaccurate. drag the marker to the correct location before adding it.</div>');
+            }
+          } else {
+            $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+
           }
-        } else {
-          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
-        }
-      });
+        });
+      }
+
+      $("#form :input").prop("disabled", false);
     });
 
     $('#add').click(function(event) {
       clearAlerts();
+      $("#form :input").prop("disabled", true);
 
-      var name = $('#name').val();
-      if (!name.trim()) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please enter a valid name.</div>');
+      var name = $('#name').val().trim();
+
+      if (!name) {
+        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>name cannot be empty.</div>');
       } else if (!marker) {
         $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please set a location.</div>');
       } else {
-        geocoder.geocode({'latLng': marker.getPosition()}, function(results, status) {
+        var latlng = marker.getPosition();
+
+        geocoder.geocode({'latLng': latlng}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
             var address = results[0].formatted_address;
 
             $.ajax({
               type: 'POST',
               url: '/locations/add',
-              data: {name: name, address: address, latitude: marker.getPosition().lat(), longitude: marker.getPosition().lng()},
+              data: {name: name, address: address, latitude: latlng.lat(), longitude: latlng.lng()},
               success: function(data, textStatus, jqXHR) {
                 console.log(data);
                 console.log(textStatus);
@@ -150,9 +165,10 @@
                 alertTimeout(5000);
 
                 var location_marker = new google.maps.Marker({
-                  position: marker.getPosition(),
+                  position: latlng,
                   map: map,
                   icon: "/images/red_MarkerU.png",
+                  title: name,
                 });
                 location_markers.push(location_marker);
 
@@ -163,14 +179,20 @@
                 console.log(jqXHR);
                 console.log(textStatus);
                 console.log(errorThrown);
-                $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>an error has occurred.</div>');
+                var errors = eval(jqXHR.responseText);
+
+                for (var i = 0; i < errors.length; i ++) {
+                  $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
                 }
+              }
             });
           } else {
             $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>reverse geocode was not successful for the following reason: ' + status + '</div>');
           }
         });
       }
+
+      $("#form :input").prop("disabled", false);
     });
 
     $('#show').click(function(event) {

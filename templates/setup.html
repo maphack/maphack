@@ -296,6 +296,7 @@
 <script>
 	$('#submit').click(function(event) {
 		clearAlerts();
+		$("#form :input").prop("disabled", true);
 
 		var name = $('#name').val().trim();
 		var pic = $('#pic').val().trim();
@@ -303,6 +304,7 @@
 
 		if (!name) {
 			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
+			$("#form :input").prop("disabled", false);
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -312,8 +314,6 @@
 					console.log(data);
 					console.log(textStatus);
 					console.log(jqXHR);
-
-					$("#form :input").prop("disabled", true);
 
 					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>setup complete. redirecting in 5 seconds.</div>');
 
@@ -330,6 +330,8 @@
 					for (var i = 0; i < errors.length; i ++) {
 						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
+
+					$("#form :input").prop("disabled", false);
 				}
 			});
 		}

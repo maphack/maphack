@@ -18,34 +18,31 @@
       <h3 class="panel-title">locations</h3>
     </div>
     <div class="panel-body">
-      <div style="vertical-align: middle">
+    <form id="form" role="form">
         <span class="glyphicon glyphicon-map-marker"></span>
-        <span >{{ address }}</span>
-      </div>
-      <div class="input-group">
-        <input id="name" type="textbox" class="form-control" placeholder="custom name" value="{{ name }}">
-        <span class="input-group-btn">
-          <button id="change" type="button" class="btn btn-default">change name</button>
-        </span>
-      </div>
-      <div id="alerts"></div>
-      <button id="delete" type="button" class="btn btn-default">
-        <span class="glyphicon glyphicon-trash"></span>
-      </button>
-      <a class="btn btn-default" href="/locations">back</a>
+        <span >{{ location.address }}</span>
+        <div class="input-group">
+          <input id="name" type="textbox" class="form-control" placeholder="custom name" value="{{ location.name }}">
+          <span class="input-group-btn">
+            <button id="change" type="button" class="btn btn-default">change name</button>
+          </span>
+        </div>
+        <div id="alerts"></div>
+        <button id="delete" type="button" class="btn btn-default">
+          <span class="glyphicon glyphicon-trash"></span>
+        </button>
+        <a class="btn btn-default" href="/locations">back</a>
+      </form>
     </div>
   </div>
   <div id="map-canvas"></div>
   <script>
     var map;
-    var location_id = {{ location_id }};
-    var name = '{{ name }}';
-    var latitude = {{ geopt.lat }};
-    var longitude = {{ geopt.lon }};
+    var location_url = '{{ location.key.urlsafe() }}';
+    var name = '{{ location.name }}';
     
     function initialize() {
-      $('#name').val(name);
-      var latlng = new google.maps.LatLng(latitude, longitude);
+      var latlng = new google.maps.LatLng({{ location.geopt.lat }}, {{ location.geopt.lon }});
       var mapOptions = {
         zoom: 15,
         center: latlng
@@ -59,18 +56,19 @@
 
     $('#change').click(function(event) {
       clearAlerts();
+      $("#form :input").prop("disabled", true);
 
-      var new_name = $('#name').val();
+      var new_name = $('#name').val().trim();
 
-      if (!new_name.trim()) {
+      if (!new_name) {
         $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>name cannot be empty.</div>');
       } else if (new_name == name) {
         $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>changed name is the same.</div>');
       } else {
         $.ajax({
             type: 'POST',
-            url: '/locations/view',
-            data: {name: name, location_id: location_id},
+            url: '/locations/edit',
+            data: {location_url: location_url, name: new_name},
             success: function(data, textStatus, jqXHR) {
               console.log(data);
               console.log(textStatus);
@@ -91,15 +89,18 @@
             }
           });
       }
+
+      $("#form :input").prop("disabled", false);
     });
 
     $('#delete').click(function(event) {
         clearAlerts();
+        $("#form :input").prop("disabled", true);
 
         $.ajax({
           type: 'POST',
           url: '/locations/delete',
-          data: {location_id: location_id},
+          data: {location_url: location_url},
           success: function(data, textStatus, jqXHR) {
             console.log(data);
             console.log(textStatus);
@@ -118,6 +119,8 @@
             }
           }
         });
+
+        $("#form :input").prop("disabled", false);
       });
 
     google.maps.event.addDomListener(window, 'load', initialize);

@@ -27,9 +27,4 @@ indexes:
   ancestor: yes
   properties:
   - name: date
-
-- kind: Listing
-  ancestor: yes
-  properties:
-  - name: date
     direction: desc

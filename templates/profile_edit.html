@@ -304,10 +304,10 @@
 	</div>
 </form>
 <script>
-	var name = '{{ name }}';
-	var pic = '{{ pic }}';
-	var country = '{{ country }}';
-	var bio = '{{ bio }}';
+	var name = '{{ user.name }}';
+	var pic = '{{ user.pic }}';
+	var country = '{{ user.country }}';
+	var bio = '{{ user.bio }}';
 
 	$('#name').val(name);
 	if (pic != '/images/display_pic.png') {
@@ -318,6 +318,7 @@
 
 	$('#submit').click(function(event) {
 		clearAlerts();
+		$("#form :input").prop("disabled", true);
 
 		var new_name = $('#name').val().trim();
 		var new_pic = $('#pic').val().trim();
@@ -327,6 +328,8 @@
 		if (!new_name) {
 			$('#name').val(name);
 			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
+
+			$("#form :input").prop("disabled", false);
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -354,6 +357,8 @@
 					for (var i = 0; i < errors.length; i ++) {
 						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
+
+					$("#form :input").prop("disabled", false);
 				}
 			});
 		}
