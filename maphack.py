@@ -58,7 +58,13 @@ class Listing(ndb.Model):
 	own_games = ndb.StringProperty(repeated = True)
 	seek_games = ndb.StringProperty(repeated = True)
 	topup = ndb.IntegerProperty()	
-	date = ndb.DateTimeProperty(auto_now_add = True, indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
+	comment_keys = ndb.KeyProperty(repeated = True, indexed = False)
+
+class Comment(ndb.Model):
+	owner_key = ndb.KeyProperty(indexed = False)
+	content = ndb.TextProperty(indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Platform(ndb.Model):
 	pass
@@ -1271,6 +1277,39 @@ class ListingsSearchResults(webapp2.RequestHandler):
 				self.error(403)
 				self.response.out.write(e)
 
+class ListingPage(webapp2.RequestHandler):
+	def get(self, listing_url):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				listing = ndb.Key(urlsafe = listing_url).get()
+				if listing is None:
+					raise Exception, 'no such listing.'
+
+				person = listing.owner_key.get()
+				own_games = ndb.get_multi(listing.own_keys)
+				seek_games = ndb.get_multi(listing.seek_keys)
+
+				person = listing.owner_key.get()
+				
+				template_values = {
+					'pic': user.pic,
+					'name': user.name,
+					'logout': users.create_logout_url(self.request.host_url),
+					'listing': listing,
+					'person': person,
+					'own_games': own_games,
+					'seek_games': seek_games,
+					}
+				template = JINJA_ENVIRONMENT.get_template('listing.html')
+				self.response.out.write(template.render(template_values))
+
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1292,6 +1331,8 @@ application = webapp2.WSGIApplication([
 	('/listings/delete', ListingsDelete),
 	('/listings/search', ListingsSearch),
 	('/listings/search/results', ListingsSearchResults),
+	('/listing/(.*)', ListingPage),
+
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),

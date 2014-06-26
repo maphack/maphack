@@ -1,29 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
 <div class="page-header">
-	<h1>search results
-		<a class="btn btn-default" href="/listings/search">back</a>
-	</h1>
+	<h1>{{ person.name }}'s listing</h1>
 </div>
-<div id="results-alerts">
-	{% if listings %}
-	<div class="alert alert-success alert-dismissable">
-		{{ listings|length }} search result(s)!
-	</div>
-	{% else %}
-	<div class="alert alert-info">
-		no search results!
-	</div>
-	{% endif %}
-</div>
-{% if listings|length %}
-{% for listing, own_list, seek_list, person in listings %}
 <div id="{{ listing.key.id() }}" class="row" style="margin-top: 20px; border-bottom: 1px solid #eeeeee">
-	<h3 class="listing-header"><a href="/user/{{ person.key.id() }}">{{ person.name }}</a></h3>
 	<div class="col-md-6">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
 				<h3 class="panel-title">offering</h3>
 			</div>
-			{% if own_list|length %}
+			{% if own_games|length %}
 			<div class="table-responsive">
 				<table class="sortable table table-bordered table-striped">
 					<thead>
@@ -33,7 +19,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{% for game in own_list %}
+						{% for game in own_games %}
 						<tr id="{{ game.key.id() }}">
 							<td width = "80%" style="text-align: left">{{ game.title }}</td>
 							<td width = "20%">{{ game.platform }}</td>
@@ -63,7 +49,7 @@
 			<div class="panel-heading">
 				<h3 class="panel-title">requesting</h3>
 			</div>
-			{% if seek_list|length %}
+			{% if seek_games|length %}
 			<div class="table-responsive">
 				<table class="sortable table table-bordered table-striped">
 					<thead>
@@ -73,7 +59,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						{% for game in seek_list %}
+						{% for game in seek_games %}
 						<tr id="{{ game.key.id() }}">
 							<td width = "80%" style="text-align: left">{{ game.title }}</td>
 							<td width = "20%">{{ game.platform }}</td>
@@ -98,11 +84,8 @@
 			{% endif %}
 		</div>
 	</div>
-	<div class="listing-menu">
-		<a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}">
-			<span class="glyphicon glyphicon glyphicon-link"></span>
-		</button>
-	</div>
 </div>
-{% endfor %}
-{% endif %}
+<script>
+	$('#nav-list').addClass("active");
+</script>
+{% endblock %}
