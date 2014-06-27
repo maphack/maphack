@@ -45,7 +45,7 @@
 			</div>
 			{% endif %}
 			{% if listing.topup > 0 %}
-			<div class="panel-footer topup">
+			<div class="panel-footer listing-topup">
 				<div class="input-group">
 					<span class="input-group-addon">topup ${{ listing.topup }}</span>
 				</div>
@@ -85,7 +85,7 @@
 			</div>
 			{% endif %}
 			{% if listing.topup < 0 %}
-			<div class="panel-footer topup">
+			<div class="panel-footer listing-topup">
 				<div class="input-group">
 					<span class="input-group-addon">topup ${{ -listing.topup }}</span>
 				</div>

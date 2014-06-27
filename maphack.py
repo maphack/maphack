@@ -1203,6 +1203,9 @@ class ListingsDelete(webapp2.RequestHandler):
 					game.listing_keys.remove(listing.key)
 					game.put()
 
+				for comment_key in listing.comment_keys:
+					comment_key.delete()
+
 				self.response.out.write('listing deleted.')
 			except Exception, e:
 				self.error(403)
