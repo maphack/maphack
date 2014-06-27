@@ -4,7 +4,7 @@
 <p><img class="display_pic" src="{{ person.pic }}"> {{ person.name }}</p>
 <p>
 	{{ person.name }} can trade ~{{ '%0.2f' % nearest_distance }} k.m. away.<br>
-	<a href="/user/locations/{{ person_id }}" target="_blank">view this user's trading locations</a>
+	<a href="/user/locations/{{ person.key.id() }}" target="_blank">view this user's trading locations</a>
 </p>
 <div class="game-comparison">
 	<div class="top-pad-one">
