@@ -25,6 +25,12 @@ indexes:
 
 - kind: Listing
   properties:
+  - name: own_games
+  - name: seek_games
+  - name: topup
+
+- kind: Listing
+  properties:
   - name: seek_games
   - name: date
     direction: desc

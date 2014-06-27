@@ -25,6 +25,7 @@ class Person(ndb.Model):
 	name = ndb.StringProperty()
 	pic = ndb.StringProperty(default = DISPLAY_PIC, indexed = False)
 	country = ndb.StringProperty()
+	contact = ndb.StringProperty(indexed = False)
 	bio = ndb.StringProperty(indexed = False)
 	setup = ndb.BooleanProperty(default = False, indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
@@ -219,6 +220,14 @@ class Setup(webapp2.RequestHandler):
 
 			user.setup = True
 
+			# validate contact
+			try:
+				user.contact = self.request.get('contact').rstrip()
+				if not user.contact:
+					raise Exception, 'contact information cannot be empty.'
+			except Exception, e:
+				error.append(str(e))
+
 			# validate country
 			try:
 				user.country = self.request.get('country')
@@ -288,6 +297,15 @@ class ProfileEdit(webapp2.RequestHandler):
 			self.redirect('/dashboard')
 		else:
 			error = []
+
+			# validate contact
+			try:
+				if user.contact != self.request.get('contact').rstrip():
+					user.contact = self.request.get('contact').rstrip()
+					if not user.contact:
+						raise Exception, 'contact information cannot be empty.'
+			except Exception, e:
+				error.append(str(e))
 
 			# validate bio
 			try:
@@ -1277,17 +1295,23 @@ class ListingsSearch(webapp2.RequestHandler):
 					else:
 						qry = qry.filter(Listing.own_games == game.title + game.platform)
 
-				if offer_amt > 0:
-					qry = qry.filter(Listing.topup >= offer_amt)
-				elif request_amt > 0:
-					qry = qry.filter(Listing.topup <= -request_amt)
+				listing_tuples = qry.map(listing_games)
+				results = []
 
-				qry = qry.order(Listing.date)
-				qry._Query__orders = qry.orders.reversed()
-				listings = qry.map(listing_games)
+				for listing_tuple in listing_tuples:
+					if offer_amt > 0:
+						if listing_tuple[0].topup >= 0:
+							results.append(listing_tuple)
+						elif -listing_tuple[0].topup <= offer_amt:
+							results.append(listing_tuple)
+					elif request_amt > 0:
+						if listing_tuple[0].topup > 0 and listing_tuple[0].topup >= request_amt:
+							results.append(listing_tuple)
+					elif listing_tuple[0].topup >= 0:
+						results.append(listing_tuple)
 
 				template_values = {
-					'listings': listings,
+					'listings': results,
 				}
 				template = JINJA_ENVIRONMENT.get_template('listings_search_results.html')
 				self.response.out.write(template.render(template_values))
@@ -1353,7 +1377,7 @@ class ListingComment(webapp2.RequestHandler):
 				comment.put()
 
 				listing.comment_keys.append(comment.key)
-				listing.profileut()
+				listing.put()
 
 			except Exception, e:
 				self.error(403)

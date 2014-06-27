@@ -101,7 +101,7 @@
 <div class="comment-blk">
 	{% for comment in comments %}
 	<div class="comment">
-		<p>{{ comment.owner_key.get().name }} commented on {{ comment.date.strftime('%d/%m/%Y') }}</p>
+		<p><a href="/user/{{ comment.owner_key.urlsafe() }}"><img src="{{ comment.owner_key.get().pic }}">{{ comment.owner_key.get().name }}</a> commented on {{ comment.date.strftime('%c') }}</p>
 		<p>{{ comment.content }}</p>
 	</div>
 	{% endfor %}

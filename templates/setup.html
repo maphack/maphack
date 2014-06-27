@@ -288,6 +288,17 @@
 		</div>
 	</div>
 	<div class="form-group">
+		<label for="contact" class="col-sm-2 control-label">contact</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<i class="glyphicon glyphicon-phone"></i>
+				</span>
+				<input id="contact" type="text" class="form-control" placeholder="mobile no. or e-mail">
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
 			<button id="submit" type="button" class="btn btn-default">submit</button>
 		</div>
@@ -301,15 +312,19 @@
 		var name = $('#name').val().trim();
 		var pic = $('#pic').val().trim();
 		var country = $('#country').val();
+		var contact = $('#contact').val().trim();
 
 		if (!name) {
 			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
+			$('#form :input').prop('disabled', false);
+		} else if (!contact) {
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'contact information cannot be empty.' + '</div>');
 			$('#form :input').prop('disabled', false);
 		} else {
 			$.ajax({
 				type: 'POST',
 				url: '/setup',
-				data: {name: name, pic: pic, country: country},
+				data: {name: name, pic: pic, country: country, contact: contact},
 				success: function(data, textStatus, jqXHR) {
 					console.log(data);
 					console.log(textStatus);
