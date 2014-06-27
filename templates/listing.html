@@ -8,11 +8,11 @@
 			<span class="glyphicon glyphicon-user"></span>
 		</a>
 		<div class="date">
-			{{ listing.date.strftime('%d/%m/%Y') }}
+			posted {{ listing.date.strftime('%c') }}
 		</div>
 	</h1>
 </div>
-<div class="row listing-blk">
+<div class="row listing-block">
 	<div class="col-md-6">
 		<div class="panel panel-primary">
 			<div class="panel-heading">
@@ -93,12 +93,15 @@
 			{% endif %}
 		</div>
 	</div>
-	<div style="padding-left: 15px;">
-		<h4>description</h4>
+	<div style="padding-left: 15px;" class="description-block">
+		<h3>description</h3>
 		<p>{{ listing.description }}</p>
 	</div>
 </div>
-<div class="comment-blk">
+<div class="comment-block">
+	<div class="comments-header">
+		<h3>comments</h3>
+	</div>
 	{% for comment in comments %}
 	<div class="comment">
 		<p><a href="/user/{{ comment.owner_key.urlsafe() }}"><img src="{{ comment.owner_key.get().pic }}">{{ comment.owner_key.get().name }}</a> commented on {{ comment.date.strftime('%c') }}</p>
@@ -115,7 +118,7 @@
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-italic"></i>
 				</span>
-				<textarea class="form-control" id="comment" rows="3" placeholder="flame the owner"></textarea>
+				<textarea class="form-control" id="comment" rows="3" placeholder="leave a comment here"></textarea>
 			</div>
 		</div>
 	</div>

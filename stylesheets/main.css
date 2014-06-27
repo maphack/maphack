@@ -31,6 +31,11 @@ body {
 	width: auto;
 }
 
+.comment-block > .comment > p > a > img {
+	max-height: 20px;
+	width: auto;
+}
+
 /* single alert when inventory/playlist is empty */
 .panel > .panel-body > .alert {
 	margin-bottom: 0;
@@ -39,7 +44,26 @@ body {
 /* page-header has a bottom margin of 20px and bottom border of same colour */
 .listing-block {
 	margin-top: 20px;
+}
+
+/* page-header has a bottom margin of 20px and bottom border of same colour */
+.description-block {
+	margin-top: 20px;
+}
+
+.comments-header {
 	border-bottom: 1px solid #eeeeee;
+	margin-bottom: 20px;
+}
+
+.comment-block {	
+	margin-bottom: 20px;
+}
+
+.comment {
+	border-bottom: 1px solid #eeeeee;
+	margin-bottom: 20px;
+	padding-bottom: 10px;
 }
 
 /* add padding between elements */
