@@ -6,113 +6,228 @@
 	{{ person.name }} can trade ~{{ '%0.2f' % nearest_distance }} k.m. away.<br>
 	<a href="/user/locations/{{ person_id }}" target="_blank">view this user's trading locations</a>
 </p>
-<div class="top-pad-one">
-	<h4>matching inventories and playlists:</h4><br>
-	{% if my_diff %}
-	games you own that are not in {{ person.name }}'s playlist<br>
-	<table class="sortable table table-bordered table-striped">
-		<thead>
-			<tr>
-				<th width = "20%">title</th>
-				<th width = "10%">platform</th>
-				<th width = "50%">description</th>
-				<th width = "20%">image</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for game in my_diff %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
-				<td width = "10%">{{ game.platform }}</td>
-				<td width = "50%">{{ game.description }}</td>
-				<td width = "20%"><img src="{{ game.pic }}"></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% else %}
-	you have no other games!
+<div class="game-comparison">
+	<div class="top-pad-one">
+		<h3>matching inventories and playlists:</h3><br>
+		{% if my_diff %}
+		games you own that are not in {{ person.name }}'s playlist<br>
+		<table class="sortable table table-bordered table-striped">
+			<thead>
+				<tr>
+					<th width = "20%">title</th>
+					<th width = "10%">platform</th>
+					<th width = "50%">description</th>
+					<th width = "20%">image</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for game in my_diff %}
+				<tr>
+					<td width = "20%">{{ game.title }}</td>
+					<td width = "10%">{{ game.platform }}</td>
+					<td width = "50%">{{ game.description }}</td>
+					<td width = "20%"><img src="{{ game.pic }}"></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		you have no other games!
+		{% endif %}
+	</div>
+	<div class="top-pad-one">
+		{% if my_match %}
+		games you own that are in {{ person.name }}'s playlist<br>
+		<table class="sortable table table-bordered table-striped">
+			<thead>
+				<tr>
+					<th width = "20%">title</th>
+					<th width = "10%">platform</th>
+					<th width = "50%">description</th>
+					<th width = "20%">image</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for game in my_match %}
+				<tr>
+					<td width = "20%">{{ game.title }}</td>
+					<td width = "10%">{{ game.platform }}</td>
+					<td width = "50%">{{ game.description }}</td>
+					<td width = "20%"><img src="{{ game.pic }}"></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		you have no games {{ person.name }} wants!
+		{% endif %}
+	</div>
+	<div class="top-pad-one">
+		{% if your_match %}
+		games {{ person.name }} owns that are in your playlist<br>
+		<table class="sortable table table-bordered table-striped">
+			<thead>
+				<tr>
+					<th width = "20%">title</th>
+					<th width = "10%">platform</th>
+					<th width = "50%">description</th>
+					<th width = "20%">image</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for game in your_match %}
+				<tr>
+					<td width = "20%">{{ game.title }}</td>
+					<td width = "10%">{{ game.platform }}</td>
+					<td width = "50%">{{ game.description }}</td>
+					<td width = "20%"><img src="{{ game.pic }}"></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		{{ person.name }} has no games you want!
+		{% endif %}
+	</div>
+	<div class="top-pad-one">
+		{% if your_diff %}
+		games {{ person.name }} owns that are not in your playlist<br>
+		<table class="sortable table table-bordered table-striped">
+			<thead>
+				<tr>
+					<th width = "20%">title</th>
+					<th width = "10%">platform</th>
+					<th width = "50%">description</th>
+					<th width = "20%">image</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for game in your_diff %}
+				<tr>
+					<td width = "20%">{{ game.title }}</td>
+					<td width = "10%">{{ game.platform }}</td>
+					<td width = "50%">{{ game.description }}</td>
+					<td width = "20%"><img src="{{ game.pic }}"></td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+		{{ person.name }} has no other games!
+		{% endif %}
+	</div>
+</div>
+<div class="listings-header">
+	<h3>listings</h3>
+</div>
+<div id="alerts">
+	{% if not listings|length %}
+	<div class="alert alert-info">
+		no listings!
+	</div>
 	{% endif %}
 </div>
-<div class="top-pad-one">
-	{% if my_match %}
-	games you own that are in {{ person.name }}'s playlist<br>
-	<table class="sortable table table-bordered table-striped">
-		<thead>
-			<tr>
-				<th width = "20%">title</th>
-				<th width = "10%">platform</th>
-				<th width = "50%">description</th>
-				<th width = "20%">image</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for game in my_match %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
-				<td width = "10%">{{ game.platform }}</td>
-				<td width = "50%">{{ game.description }}</td>
-				<td width = "20%"><img src="{{ game.pic }}"></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% else %}
-	you have no games {{ person.name }} wants!
-	{% endif %}
+{% if listings|length %}
+{% for listing, own_games, seek_games in listings %}
+<div id="{{ listing.key.urlsafe() }}" class="listing-block">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="listing-menu">
+				<ul>
+					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">offering</h1>
+				</div>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="80%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if listing.topup > 0 %}
+				<div class="panel-footer listing-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ listing.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">requesting</h1>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="80%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if listing.topup < 0 %}
+				<div class="panel-footer listing-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -listing.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<h4>description</h4>
+			<p>{{ listing.description or 'none' }}</p>
+		</div>
+	</div>
 </div>
-<div class="top-pad-one">
-	{% if your_match %}
-	games {{ person.name }} owns that are in your playlist<br>
-	<table class="sortable table table-bordered table-striped">
-		<thead>
-			<tr>
-				<th width = "20%">title</th>
-				<th width = "10%">platform</th>
-				<th width = "50%">description</th>
-				<th width = "20%">image</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for game in your_match %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
-				<td width = "10%">{{ game.platform }}</td>
-				<td width = "50%">{{ game.description }}</td>
-				<td width = "20%"><img src="{{ game.pic }}"></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% else %}
-	{{ person.name }} has no games you want!
-	{% endif %}
-</div>
-<div class="top-pad-one">
-	{% if your_diff %}
-	games {{ person.name }} owns that are not in your playlist<br>
-	<table class="sortable table table-bordered table-striped">
-		<thead>
-			<tr>
-				<th width = "20%">title</th>
-				<th width = "10%">platform</th>
-				<th width = "50%">description</th>
-				<th width = "20%">image</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for game in your_diff %}
-			<tr>
-				<td width = "20%">{{ game.title }}</td>
-				<td width = "10%">{{ game.platform }}</td>
-				<td width = "50%">{{ game.description }}</td>
-				<td width = "20%"><img src="{{ game.pic }}"></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-	{% else %}
-	{{ person.name }} has no other games!
-	{% endif %}
-</div>
+{% endfor %}
+{% endif %}
 {% endblock %}

@@ -26,7 +26,7 @@
 				<ul>
 					<li><a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
 					<li><button type="button" class="btn btn-default delete" value="{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon-trash"></span></button></li>
-					<li><div class="listing-date">{{ listing.date.strftime('%c') }}</div></li>
+					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
 		</div>

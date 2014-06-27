@@ -972,6 +972,14 @@ class UserPage(webapp2.RequestHandler):
 						'WHERE ANCESTOR IS :1 ',
 						ndb.Key('Person', person_id))
 
+					listings = ndb.gql('SELECT * '
+						'FROM Listing '
+						'WHERE ANCESTOR IS :1 '
+						'ORDER BY date DESC',
+						ndb.Key('Person', person_id))
+
+					listings = listings.map(listing_with_games)
+
 					my_diff = []
 					my_match = []
 					your_match = []
@@ -1008,6 +1016,7 @@ class UserPage(webapp2.RequestHandler):
 						'your_match': your_match,
 						'your_diff': your_diff,
 						'nearest_distance': nearest_distance,
+						'listings': listings,
 						}
 					template = JINJA_ENVIRONMENT.get_template('user.html')
 					self.response.out.write(template.render(template_values))

@@ -41,6 +41,10 @@ body {
 	margin-bottom: 0;
 }
 
+.listings-header {
+	border-bottom: 1px solid #eeeeee;
+}
+
 /* page-header has a bottom margin of 20px and bottom border of same colour */
 .listing-block {
 	margin-top: 20px;
@@ -66,6 +70,10 @@ body {
 	padding-bottom: 10px;
 }
 
+.comment-body {
+	padding-left: 30px;
+}
+
 /* add padding between elements */
 .listing-menu > ul > li {
 	list-style: none;
@@ -88,4 +96,8 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { 
 	-webkit-appearance: none;
 	margin: 0;
+}
+
+.game-comparison {
+	margin-bottom:40px ;
 }
