@@ -42,6 +42,7 @@ body {
 }
 
 .listings-header {
+	margin-top: 40px;
 	border-bottom: 1px solid #eeeeee;
 }
 
@@ -99,5 +100,5 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .game-comparison {
-	margin-bottom:40px ;
+	padding-bottom:40px ;
 }
