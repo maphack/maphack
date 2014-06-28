@@ -1,6 +1,9 @@
 <div class="page-header">
 	<h1>search results
 		<a class="btn btn-default" href="/listings/search">back</a>
+		{% if listings|length %}
+			<a class="btn btn-default" href="#" onclick="javascript:maphack();"><b>maphack!</b></a>
+		{% endif %}
 	</h1>
 </div>
 <div>
@@ -15,7 +18,7 @@
 	{% endif %}
 </div>
 {% if listings|length %}
-{% for listing, own_games, seek_games, person in listings %}
+{% for listing, own_games, seek_games, person, locations in listings %}
 <div id="{{ listing.key.urlsafe() }}" class="listing-block">
 	<div class="row">
 		<div class="col-md-6">
@@ -118,6 +121,73 @@
 			<p>{{ listing.description or 'none' }}</p>
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<h4>locations <a class="btn btn-default" href="/user/locations/{{ person.key.id() }}" target="_blank"><span class="glyphicon glyphicon-globe"></span></a></h4>
+			<p>
+			{% for location in locations %}
+				<span class="listings-location-block">{{ location.name }}</span>
+			{% endfor %}
+			</p>
+		</div>
+	</div>
 </div>
 {% endfor %}
 {% endif %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+var locations = [];
+var people = [];
+var listings = [];
+	function maphack() {
+		// reset the global variables
+		locations.length = 0;
+		people.length = 0;
+		listings.length = 0;
+		{% for listing, own_games, seek_games, person, locations in listings %}
+			// if the person the listing belongs to hasn't appeared before
+			if ($.inArray("{{ person.name }}", people) == -1) {
+				// record his appearance
+				people.push("{{ person.name }}");
+
+				// add the new person's locations to the list
+				{% for location in locations %}
+					var location = {
+						name: "{{ location.name }}",
+						lon: {{ location.geopt.lon }},
+						lat: {{ location.geopt.lat }},
+						owner: "{{ person.name }}",
+					};
+					locations.push(location);
+				{% endfor %}
+			}
+		{% endfor %}
+		for (var i = 0; i < people.length; i++) {
+			listings.push([]);
+		}
+		{% for listing, own_games, seek_games, person, locations in listings %}
+			var listing = {
+				own_games: [],
+				seek_games: [],
+				topup: {{ listing.topup }},
+			};
+			{% for game in own_games %}
+				var game = {
+					title: "{{ game.title }}",
+					platform: "{{ game.platform }}",
+				}
+				listing.own_games.push(game);
+			{% endfor %}
+			{% for game in seek_games %}
+				var game = {
+					title: "{{ game.title }}",
+					platform: "{{ game.platform }}",
+				}
+				listing.seek_games.push(game);
+			{% endfor %}
+			listings[people.indexOf("{{ person.name }}")].push(listing);
+		{% endfor %}
+
+		window.open("/listings/search/map");
+	}
+</script>

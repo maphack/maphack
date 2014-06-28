@@ -51,6 +51,10 @@ body {
 	margin-top: 20px;
 }
 
+.listings-location-block {
+	margin-right: 15px;
+}
+
 /* page-header has a bottom margin of 20px and bottom border of same colour */
 .description-block {
 	margin-top: 20px;
@@ -101,4 +105,14 @@ input[type=number]::-webkit-outer-spin-button {
 
 .game-comparison {
 	padding-bottom:40px ;
+}
+
+.tooltip { position:absolute;
+	width: 145px;
+	padding: 5px;
+	border: 1px solid gray;
+	font-size: 9pt;
+	font-family: Verdana;
+	background-color: #fff;
+	color: #000;
 }

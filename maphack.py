@@ -127,7 +127,10 @@ def locations_map(result):
 	return [result.geopt.lat, result.geopt.lon]
 
 def listing_games(listing):
-	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get()
+	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get(), ndb.gql('SELECT * '
+		'FROM Location '
+		'WHERE ANCESTOR IS :1 ',
+		listing.owner_key)
 
 def listing_with_games(listing):
 	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys)
@@ -1321,7 +1324,7 @@ class ListingsSearch(webapp2.RequestHandler):
 							results.append(listing_tuple)
 					elif listing_tuple[0].topup >= 0:
 						results.append(listing_tuple)
-
+ 
 				template_values = {
 					'listings': results,
 				}
@@ -1330,6 +1333,19 @@ class ListingsSearch(webapp2.RequestHandler):
 			except Exception, e:
 				self.error(403)
 				self.response.out.write([e])
+
+class ListingsSearchMap(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+
+			template_values = {
+				'user': user,
+			}
+			template = JINJA_ENVIRONMENT.get_template('listings_search_view.html')
+			self.response.out.write(template.render(template_values))
 
 class ListingPage(webapp2.RequestHandler):
 	def get(self, listing_url):
@@ -1396,7 +1412,6 @@ class ListingComment(webapp2.RequestHandler):
 				}
 				template = JINJA_ENVIRONMENT.get_template('comment_block.html')
 				self.response.out.write(template.render(template_values))
-
 			except Exception, e:
 				self.error(403)
 				self.response.out.write(e)
@@ -1422,6 +1437,7 @@ application = webapp2.WSGIApplication([
 	('/listings/add', ListingsAdd),
 	('/listings/delete', ListingsDelete),
 	('/listings/search', ListingsSearch),
+	('/listings/search/map', ListingsSearchMap),
 	('/listing/comment', ListingComment),
 	('/listing/(.*)', ListingPage),
 

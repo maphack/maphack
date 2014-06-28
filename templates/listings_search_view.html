@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>maphack | search. trade. play.</title>
+  <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/stylesheets/map.css" rel="stylesheet">
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/scripts/alerts.js"></script>
+</head>
+<body>
+  <div id="map-canvas"></div>
+<script>
+  var country = "{{ user.country }}";
+  var locations = window.opener.locations;
+  console.log(locations);
+  var listings = window.opener.listings;
+  console.log(listings);
+  var people = window.opener.people;
+  console.log(people);
+
+	var map;
+	var location_markers = [];
+  var marker;
+
+  function initialize() {
+    map = new google.maps.Map(document.getElementById('map-canvas'));
+    geocoder = new google.maps.Geocoder();
+
+    if (locations.length) {
+      var bounds = new google.maps.LatLngBounds();
+        for (var i = 0; i < locations.length; i++) {
+          var latlng = new google.maps.LatLng(locations[i].lat, locations[i].lon);
+          bounds.extend(latlng);
+
+          var location_marker = new google.maps.Marker({
+            position: latlng,
+            map: map,
+            title: locations[i].name,
+          });
+          location_markers.push(location_marker);
+
+          var relevantListings = listings[people.indexOf(""+locations[i].owner)];
+          console.log(relevantListings.length);
+          var contentString = "<h4>" + locations[i].owner + "'s listings</h4>";
+          // create table for each listing
+          for (var j = 0; j < relevantListings.length; j++) {
+            contentString += '<h5>listing ' + (j+1) + '</h5>';
+
+            // add the games offered
+            contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">offering</h4></div>' +
+              '<table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">title</th>' +
+              '<th width="20%">platform</th></tr></thead><tbody>';
+            for (var k = 0; k < relevantListings[j].own_games.length; k++) {
+              contentString += '<tr><td width="80%" style="text-align: left">' + relevantListings[j].own_games[k].title + '</td>' +
+                '<td width="20%">' + relevantListings[j].own_games[k].platform + '</td></tr>'
+            }
+            contentString += '</tbody></table>';
+            if (relevantListings[j].topup > 0) {
+              contentString += '<div class="panel-footer listing-topup" style="text-align:center">' +
+                'topup $' + relevantListings[j].topup + '</div></div></div>';
+            }
+            contentString += '</div></div>';
+
+            // add the games requested
+            contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">requesting</h4></div>' +
+              '<table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">title</th>' +
+              '<th width="20%">platform</th></tr></thead><tbody>';
+            for (var l = 0; l < relevantListings[j].seek_games.length; l++) {
+              contentString += '<tr><td width="80%" style="text-align: left">' + relevantListings[j].own_games[l].title + '</td>' +
+                '<td width="20%">' + relevantListings[j].own_games[l].platform + '</td></tr>'
+            }
+            contentString += '</tbody></table>';
+            if (relevantListings[j].topup < 0) {
+              contentString += '<div class="panel-footer listing-topup" style="text-align:center">' +
+                'topup $' + (-relevantListings[j].topup) + '</div></div></div>';
+            }
+            contentString += '</div></div>';
+          }
+          
+          var infowindow = new google.maps.InfoWindow({
+              content: contentString
+          });
+          google.maps.event.addListener(location_marker, 'click', function() {
+            infowindow.open(map, this);
+          });
+        }
+
+      map.fitBounds(bounds);
+      map.panToBounds(bounds);
+    } else {
+      geocoder.geocode({'componentRestrictions': {country: country}}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          map.setCenter(results[0].geometry.location);
+          map.fitBounds(results[0].geometry.viewport);
+        } else {
+          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+        }
+      });
+    }
+
+    google.maps.event.addListener(map, 'click', function(event) {
+      placeMarker(event.latLng);
+    });
+  }
+  google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+</body>
+</html>
