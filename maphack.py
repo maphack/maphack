@@ -1391,6 +1391,12 @@ class ListingComment(webapp2.RequestHandler):
 				listing.comment_keys.append(comment.key)
 				listing.put()
 
+				template_values = {
+					'comment': comment,
+				}
+				template = JINJA_ENVIRONMENT.get_template('comment_block.html')
+				self.response.out.write(template.render(template_values))
+
 			except Exception, e:
 				self.error(403)
 				self.response.out.write(e)

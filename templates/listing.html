@@ -98,7 +98,7 @@
 		<p>{{ listing.description }}</p>
 	</div>
 </div>
-<div class="comment-block">
+<div class="comment-block" id="comment-block">
 	<div class="comments-header">
 		<h3>comments</h3>
 	</div>
@@ -151,6 +151,7 @@
 					console.log(jqXHR);
 
 					$('#comment-alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>comment posted.</div>');
+					$('#comment-block').append(data);
 
 					alertTimeout(5000);
 
