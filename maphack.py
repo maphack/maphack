@@ -1030,7 +1030,6 @@ class UserLocations(webapp2.RequestHandler):
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			person = ndb.Key('Person', person_id).get()
 			if person is None:
 				self.redirect('/dashboard')
 
@@ -1339,9 +1338,14 @@ class ListingsSearchMap(webapp2.RequestHandler):
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Person', users.get_current_user().user_id()))
 
 			template_values = {
 				'user': user,
+				'locations': jsonify(locations),
 			}
 			template = JINJA_ENVIRONMENT.get_template('listings_search_view.html')
 			self.response.out.write(template.render(template_values))
