@@ -28,6 +28,7 @@
 			<div class="listing-menu">
 				<ul>
 					<li><a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
+					<li><a class="btn btn-default" href="/user/locations/{{ person.key.id() }}" target="_blank"><span class="glyphicon glyphicon-globe"></span></a></li>
 					<li><div class="listing-date">{{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
@@ -121,16 +122,6 @@
 			<p>{{ listing.description or 'none' }}</p>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-md-12">
-			<h4>locations <a class="btn btn-default" href="/user/locations/{{ person.key.id() }}" target="_blank"><span class="glyphicon glyphicon-globe"></span></a></h4>
-			<p>
-			{% for location in locations %}
-				<span class="listings-location-block">{{ location.name }}</span>
-			{% endfor %}
-			</p>
-		</div>
-	</div>
 </div>
 {% endfor %}
 {% endif %}
@@ -185,7 +176,7 @@ var listings = [];
 				}
 				listing.seek_games.push(game);
 			{% endfor %}
-			listings[people.indexOf("{{ person.name }}")].push(listing);
+			listings[$.inArray("{{ person.name }}", people)].push(listing);
 		{% endfor %}
 
 		window.open("/listings/search/map");

@@ -41,7 +41,7 @@ body {
 	margin-bottom: 0;
 }
 
-.listings-header {
+.user-listings-header {
 	margin-top: 40px;
 	border-bottom: 1px solid #eeeeee;
 }
@@ -49,6 +49,8 @@ body {
 /* page-header has a bottom margin of 20px and bottom border of same colour */
 .listing-block {
 	margin-top: 20px;
+	padding-bottom: 20px;
+	border-bottom: 1px solid #eeeeee;
 }
 
 .listings-location-block {
