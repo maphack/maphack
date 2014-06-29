@@ -10,16 +10,6 @@ body {
 	margin-right: 4px;
 }
 
-.page-header > h1 > .display_pic {
-	max-height: 1.1em;
-	width: auto;
-}
-
-.page-header > h1 > .date {
-	float: right;
-	font-size: 18px;
-}
-
 .table > thead > tr > th,
 .table > tbody > tr > td {
 	text-align: center;
@@ -31,9 +21,24 @@ body {
 	width: auto;
 }
 
-.comment-block > .comment > p > a > img {
+.listing-block {
+	border-bottom: 1px solid #eeeeee;
+}
+
+.display-pic {
 	max-height: 20px;
 	width: auto;
+}
+
+.listing-menu > ul > li {
+	list-style: none;
+	float: right;
+	padding-right: 10px;
+	margin-bottom: 10px;
+}
+
+.listing-menu > ul > li:first-child {
+	padding-right: 0px;
 }
 
 /* single alert when inventory/playlist is empty */
@@ -41,80 +46,21 @@ body {
 	margin-bottom: 0;
 }
 
-.user-listings-header {
-	margin-top: 40px;
-	border-bottom: 1px solid #eeeeee;
-}
-
-/* page-header has a bottom margin of 20px and bottom border of same colour */
-.listing-block {
-	margin-top: 20px;
-	padding-bottom: 20px;
-	border-bottom: 1px solid #eeeeee;
-}
-
-.listings-location-block {
-	margin-right: 15px;
-}
-
-/* page-header has a bottom margin of 20px and bottom border of same colour */
-.description-block {
-	margin-top: 20px;
-}
-
-.comments-header {
-	border-bottom: 1px solid #eeeeee;
-	margin-bottom: 20px;
-}
-
-.comment-block {	
-	margin-bottom: 20px;
-}
-
-.comment {
-	border-bottom: 1px solid #eeeeee;
-	margin-bottom: 20px;
-	padding-bottom: 10px;
-}
-
-.comment-body {
-	padding-left: 30px;
-}
-
-/* add padding between elements */
-.listing-menu > ul > li {
-	list-style: none;
-	float: right;
-	padding-right: 15px;
-	margin-bottom: 20px;
-}
-
-/* horizontally align date with buttons */
-.listing-menu > ul > li .listing-date {
-	margin-top: 9px;
-}
-
 /* panel footer topup input group */
 .listing-topup {
 	padding: 0;
+}
+
+.comments-block {
+	border-bottom: 1px solid #eeeeee;
+}
+
+.top-pad-ten {
+	margin-top: 10px;
 }
 
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
 	-webkit-appearance: none;
 	margin: 0;
-}
-
-.game-comparison {
-	padding-bottom:40px ;
-}
-
-.tooltip { position:absolute;
-	width: 145px;
-	padding: 5px;
-	border: 1px solid gray;
-	font-size: 9pt;
-	font-family: Verdana;
-	background-color: #fff;
-	color: #000;
 }

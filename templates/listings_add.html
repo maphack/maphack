@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>add listing
+	<h1>
+		add listing
 		<a class="btn btn-default" href="/listings">back</a>
 	</h1>
 </div>
@@ -18,7 +19,7 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">inventory</h1>
+					<h3 class="panel-title">inventory</h3>
 				</div>
 				{% if inventory.count() %}
 				<div class="table-responsive">
@@ -63,7 +64,7 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">playlist</h1>
+					<h3 class="panel-title">playlist</h3>
 				</div>
 				{% if playlist.count() %}
 				<div class="table-responsive">
@@ -113,7 +114,7 @@
 				<span class="input-group-addon">
 					<i class="glyphicon glyphicon-italic"></i>
 				</span>
-				<textarea id="description" maxlength="500" class="form-control" rows="3" placeholder="add more info"></textarea>
+				<textarea id="description" class="form-control" rows="3" maxlength="500" placeholder="add more info"></textarea>
 			</div>
 		</div>
 	</div>
@@ -188,20 +189,20 @@
 			}
 		});
 
-		if (listing.offer_amt == null || typeof(listing.offer_amt) != 'number') {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>offer a topup amount.</div>');
-		} else if (listing.request_amt == null || typeof(listing.request_amt) != 'number') {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>request a topup amount.</div>');
+		if (listing.offer_amt == null) {
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>offer a topup amount.</div>');
+		} else if (listing.request_amt == null) {
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>request a topup amount.</div>');
 		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
 		} else if (!listing.own_urls.length && !listing.seek_urls.length) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');
 		} else if ((listing.own_urls.length || listing.offer_amt > 0) && !listing.seek_urls.length && listing.request_amt == 0) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
 		} else if (!listing.own_urls.length  && listing.offer_amt == 0 && (listing.seek_urls.length || listing.request_amt > 0)) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
 		} else if (listing.description.length > 500) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing description exceeds 500 characters.</div>');
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing description exceeds 500 characters.</div>');
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -225,7 +226,7 @@
 					var errors = eval(jqXHR.responseText);
 
 					for (var i = 0; i < errors.length; i ++) {
-						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
 				}
 			});

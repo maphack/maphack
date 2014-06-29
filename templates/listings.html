@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>listings
+	<h1>
+		listings
 		<a class="btn btn-default" href="/listings/add">
 			<span class="glyphicon glyphicon-plus"></span>
 		</a>
@@ -35,7 +36,7 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">offering</h1>
+					<h3 class="panel-title">offering</h3>
 				</div>
 				{% if own_games|length %}
 				<div class="table-responsive">
@@ -75,7 +76,7 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">requesting</h1>
+					<h3 class="panel-title">requesting</h3>
 				</div>
 				{% if seek_games|length %}
 				<div class="table-responsive">
@@ -113,12 +114,8 @@
 			</div>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-md-12">
-			<h4>description</h4>
-			<p>{{ listing.description or 'none' }}</p>
-		</div>
-	</div>
+	<h4>description</h4>
+	<p>{{ listing.description or 'none' }}</p>
 </div>
 {% endfor %}
 {% endif %}
@@ -149,7 +146,7 @@
 				var errors = eval(jqXHR.responseText);
 
 				for (var i = 0; i < errors.length; i ++) {
-					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 				}
 			}
 		});

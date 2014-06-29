@@ -1065,8 +1065,7 @@ class ListingsPage(webapp2.RequestHandler):
 				'FROM Listing '
 				'WHERE ANCESTOR IS :1 '
 				'ORDER BY date DESC',
-				ndb.Key('Person', users.get_current_user().user_id()))
-
+				user.key)
 			listings = listings.map(listing_with_games)
 
 			template_values = {
@@ -1355,35 +1354,34 @@ class ListingPage(webapp2.RequestHandler):
 		else:
 			try:
 				listing = ndb.Key(urlsafe = listing_url).get()
-
 				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid argument.'
-
+					raise Exception, 'invalid key.'
 				if listing is None:
 					raise Exception, 'no such listing.'
 
 				person = listing.owner_key.get()
+				locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					listing.owner_key)
 				own_games = ndb.get_multi(listing.own_keys)
 				seek_games = ndb.get_multi(listing.seek_keys)
 				comments = ndb.get_multi(listing.comment_keys)
-
-				person = listing.owner_key.get()
 				
 				template_values = {
 					'user': user,
 					'logout': users.create_logout_url(self.request.host_url),
 					'listing': listing,
 					'person': person,
+					'locations': locations,
 					'own_games': own_games,
 					'seek_games': seek_games,
 					'comments': comments,
 				}
 				template = JINJA_ENVIRONMENT.get_template('listing.html')
 				self.response.out.write(template.render(template_values))
-
 			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
+				self.redirect('/listings')
 
 class ListingComment(webapp2.RequestHandler):
 	def post(self):
@@ -1393,28 +1391,30 @@ class ListingComment(webapp2.RequestHandler):
 		else:
 			try:
 				listing = ndb.Key(urlsafe = self.request.get('listing_url')).get()
-
 				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid argument.'
-
-				content = self.request.get('comment').rstrip()
+					raise Exception, 'invalid key.'
+				if listing is None:
+					raise Exception, 'no such listing.'
 
 				comment = Comment(parent = user.key)
 				comment.owner_key = user.key
-				comment.content = content
+				comment.content = self.request.get('comment').rstrip()
+				if not comment:
+					raise Exception, 'comment cannot be empty.'
 				comment.put()
 
 				listing.comment_keys.append(comment.key)
 				listing.put()
 
 				template_values = {
+					'user': user,
 					'comment': comment,
 				}
-				template = JINJA_ENVIRONMENT.get_template('comment_block.html')
+				template = JINJA_ENVIRONMENT.get_template('comment.html')
 				self.response.out.write(template.render(template_values))
 			except Exception, e:
 				self.error(403)
-				self.response.out.write(e)
+				self.response.out.write([e])
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),

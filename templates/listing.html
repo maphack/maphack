@@ -1,145 +1,157 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>
-		<img class="display_pic" src="{{ person.pic }}">
-		{{ person.name }}'s listing
-		<a class="btn btn-default" href="/user/{{ person.key.id() }}">
-			<span class="glyphicon glyphicon-user"></span>
-		</a>
-		<div class="date">
-			posted {{ listing.date.strftime('%c') }}
-		</div>
-	</h1>
+	<h1>listing</h1>
 </div>
-<div class="row listing-block">
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">offering</h3>
+<div id="{{ listing.key.urlsafe() }}" class="listing-block">
+	<div class="row">
+		<div class="col-md-6">
+			<h4><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a></h4>
+		</div>
+		<div class="col-md-6">
+			<div class="listing-menu">
+				<ul>
+					<li><a class="btn btn-default" href="#"><span class="glyphicon glyphicon-globe"></span></a></li>
+					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
+				</ul>
 			</div>
-			{% if own_games|length %}
-			<div class="table-responsive">
-				<table class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th width = "80%" style="text-align: left">title</th>
-							<th width = "20%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in own_games %}
-						<tr id="{{ game.key.id() }}">
-							<td width = "80%" style="text-align: left">{{ game.title }}</td>
-							<td width = "20%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games here!
-				</div>
-			</div>
-			{% endif %}
-			{% if listing.topup > 0 %}
-			<div class="panel-footer listing-topup">
-				<div class="input-group">
-					<span class="input-group-addon">topup ${{ listing.topup }}</span>
-				</div>
-			</div>
-			{% endif %}
 		</div>
 	</div>
-	<div class="col-md-6">
-		<div class="panel panel-primary">
-			<div class="panel-heading">
-				<h3 class="panel-title">requesting</h3>
-			</div>
-			{% if seek_games|length %}
-			<div class="table-responsive">
-				<table class="sortable table table-bordered table-striped">
-					<thead>
-						<tr>
-							<th width = "80%" style="text-align: left">title</th>
-							<th width = "20%">platform</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for game in seek_games %}
-						<tr id="{{ game.key.id() }}">
-							<td width = "80%" style="text-align: left">{{ game.title }}</td>
-							<td width = "20%">{{ game.platform }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-			{% else %}
-			<div class="panel-body">
-				<div class="alert alert-info">
-					no games here!
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">offering</h3>
 				</div>
-			</div>
-			{% endif %}
-			{% if listing.topup < 0 %}
-			<div class="panel-footer listing-topup">
-				<div class="input-group">
-					<span class="input-group-addon">topup ${{ -listing.topup }}</span>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="80%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
 				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if listing.topup > 0 %}
+				<div class="panel-footer listing-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ listing.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
 			</div>
-			{% endif %}
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">requesting</h3>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="80%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							<tr id="{{ game.key.urlsafe() }}">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if listing.topup < 0 %}
+				<div class="panel-footer listing-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -listing.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
 		</div>
 	</div>
-	<div style="padding-left: 15px;" class="description-block">
-		<h3>description</h3>
-		<p>{{ listing.description }}</p>
-	</div>
+	<h4>description</h4>
+	<p>{{ listing.description or 'none' }}</p>
 </div>
-<div class="comment-block" id="comment-block">
-	<div class="comments-header">
-		<h3>comments</h3>
-	</div>
+<div id="comments-block" class="comments-block">
+	<h4>comments</h4>
+	{% if comments|length %}
 	{% for comment in comments %}
+	{% set owner = comment.owner_key.get() %}
 	<div class="comment">
-		<p><a href="/user/{{ comment.owner_key.urlsafe() }}"><img src="{{ comment.owner_key.get().pic }}">{{ comment.owner_key.get().name }}</a> commented on {{ comment.date.strftime('%c') }}</p>
-		<div class="comment-body">
-			<p>{{ comment.content }}</p>
-		</div>
+		<a href="/user/{{ owner.key.urlsafe() }}"><img class="display-pic" src="{{ owner.pic }}">{{ owner.name }}</a> commented {{ comment.date.strftime('%c') }}
+		<p>{{ comment.content }}</p>
 	</div>
 	{% endfor %}
+	{% else %}
+	<div id="no-comments" class="alert alert-info">
+		no comments!
+	</div>
+	{% endif %}
 </div>
-<div id="comment-alerts"></div>
-<form id="form" class="form-horizontal" role="form">
-	<div class="form-group">
-		<label for="comment" class="col-sm-2 control-label">comment</label>
-		<div class="col-sm-10">
-			<div class="input-group">
-				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-italic"></i>
-				</span>
-				<textarea class="form-control" id="comment" rows="3" placeholder="leave a comment here"></textarea>
+<div class="top-pad-ten">
+	<div id="alerts"></div>
+	<form id="form" class="form-horizontal" role="form">
+		<div class="form-group">
+			<label for="comment" class="col-sm-2 control-label">comment</label>
+			<div class="col-sm-10">
+				<div class="input-group">
+					<span class="input-group-addon">
+						<i class="glyphicon glyphicon-italic"></i>
+					</span>
+					<textarea id="comment" class="form-control" rows="3" maxlength="500" placeholder="leave a comment here"></textarea>
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="form-group">
-		<div class="col-sm-offset-2 col-sm-10">
-			<button id="post" type="button" class="btn btn-default">post</button>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button id="post" type="button" class="btn btn-default">post</button>
+			</div>
 		</div>
-	</div>
-</form>
+	</form>
+</div>
 <script>
 	var listing_url = '{{ listing.key.urlsafe() }}';
 
 	$('#post').click( function(event) {
-				clearAlerts();
+		clearAlerts();
+		 $('#form :input').prop('disabled', true);
 
 		var comment = $('#comment').val().trim();
 
 		if (!comment) {
-			$('#comment-alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>comment cannot be empty.</div>');
+			$('#comment-alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>comment cannot be empty.</div>');
+		} else if (comment.length > 500) {
+			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>your comment exceeds 500 characters.</div>');
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -150,10 +162,13 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#comment-alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>comment posted.</div>');
-					$('#comment-block').append(data);
-
+					$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>comment posted.</div>');
 					alertTimeout(5000);
+
+					$('#no-comments').fadeTo(500, 0).slideUp(500, function() {
+						$(this).remove();
+					});
+					$('#comments-block').append(data);
 
 					$('#form')[0].reset();
 				},
@@ -164,11 +179,13 @@
 					var errors = eval(jqXHR.responseText);
 
 					for (var i = 0; i < errors.length; i ++) {
-						$('#comment-alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+						$('#comment-alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
 					}
 				}
 			});
 		}
+
+		$('#form :input').prop('disabled', false);
 	});
 </script>
 <script>
