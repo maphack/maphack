@@ -103,7 +103,7 @@ class NdbEncoder(json.JSONEncoder):
 			return {'lat': obj.lat, 'lon': obj.lon}
 
 		if isinstance(obj, ndb.Key):
-			return 'key'
+			return obj.urlsafe()
 
 		return json.JSONEncoder.default(self, obj)
 
@@ -112,7 +112,7 @@ def user_game_map(result):
 	my_locations = ndb.gql('SELECT * '
 		'FROM Location '
 		'WHERE ANCESTOR IS :1 ',
-		ndb.Key('Person', users.get_current_user().user_id()))
+		user.key)
 
 	your_locations = ndb.gql('SELECT * '
 		'FROM Location '
@@ -378,7 +378,7 @@ class LocationsPage(webapp2.RequestHandler):
 			locations = ndb.gql('SELECT * '
 				'FROM Location '
 				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Person', users.get_current_user().user_id()))
+				user.key)
 
 			template_values = {
 				'user': user,
@@ -397,7 +397,7 @@ class LocationsAdd(webapp2.RequestHandler):
 			locations = ndb.gql('SELECT * '
 				'FROM Location '
 				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Person', users.get_current_user().user_id()))
+				user.key)
 
 			template_values = {
 				'user': user,
@@ -412,7 +412,7 @@ class LocationsAdd(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			error = []
-			location = Location(parent = ndb.Key('Person', users.get_current_user().user_id()))
+			location = Location(parent = user.key)
 
 			# validate name
 			try:
@@ -967,7 +967,7 @@ class UserPage(webapp2.RequestHandler):
 					my_locations = ndb.gql('SELECT * '
 						'FROM Location '
 						'WHERE ANCESTOR IS :1 ',
-						ndb.Key('Person', users.get_current_user().user_id()))
+						user.key)
 
 					your_locations = ndb.gql('SELECT * '
 						'FROM Location '
@@ -1036,7 +1036,7 @@ class UserLocations(webapp2.RequestHandler):
 			my_locations = ndb.gql('SELECT * '
 				'FROM Location '
 				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Person', users.get_current_user().user_id()))
+				user.key)
 
 			your_locations = ndb.gql('SELECT * '
 				'FROM Location '
@@ -1242,6 +1242,8 @@ class ListingsSearch(webapp2.RequestHandler):
 				'logout': users.create_logout_url(self.request.host_url),
 				'inventory': inventory,
 				'playlist': playlist,
+				'own_url': self.request.get('own_url'),
+				'seek_url': self.request.get('seek_url'),
 			}
 			template = JINJA_ENVIRONMENT.get_template('listings_search.html')
 			self.response.out.write(template.render(template_values))
@@ -1266,10 +1268,6 @@ class ListingsSearch(webapp2.RequestHandler):
 					raise Exception, 'topup amounts cannot be positive at the same time.'
 				if len(own_urls) == 0 and len(seek_urls) == 0:
 					raise Exception, 'listing cannot be empty.'
-				if (len(own_urls) > 0 or offer_amt > 0) and len(seek_urls) == 0 and request_amt == 0:
-					raise Exception, 'offer cannot be empty.'
-				if (len(seek_urls) > 0 or request_amt > 0) and len(own_urls) == 0 and offer_amt == 0:
-					raise Exception, 'request cannot be empty.'
 
 				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
 				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
@@ -1341,7 +1339,7 @@ class ListingsSearchMap(webapp2.RequestHandler):
 			locations = ndb.gql('SELECT * '
 				'FROM Location '
 				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Person', users.get_current_user().user_id()))
+				user.key)
 
 			template_values = {
 				'user': user,

@@ -96,7 +96,7 @@
 					$('#alerts').append(alertBootstrap('success', title + ' added to inventory'));
 					alertTimeout(5000);
 
-					$('#form')[0].reset()
+					$('#form').reset()
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);
@@ -104,10 +104,10 @@
 					console.log(errorThrown);
 					var errors = eval(jqXHR.responseText);
 
-					for (var i = 0; i < errors.length; i ++) {
+					for (var i = 0; i < errors.length; i++) {
 						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
-				},
+				}
 			});
 		}
 

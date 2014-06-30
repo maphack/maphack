@@ -342,12 +342,12 @@
 					console.log(errorThrown);
 					var errors = eval(jqXHR.responseText);
 
-					for (var i = 0; i < errors.length; i ++) {
+					for (var i = 0; i < errors.length; i++) {
 						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
 
 					$('#form :input').prop('disabled', false);
-				},
+				}
 			});
 		}
 	});

@@ -42,9 +42,9 @@
 				</td>
 				<td width="10%">{{ game.date.strftime('%c') }}</td>
 				<td width="10%">
-					<button type="button" class="btn btn-default search" value="{{ game.key.urlsafe() }}">
+					<a class="btn btn-default" href="/listings/search?own_url={{ game.key.urlsafe() }}">
 						<span class="glyphicon glyphicon-search"></span>
-					</button>
+					</a>
 				</td>
 				<td width="10%">
 					<button type="button" class="btn btn-default delete" value="{{ game.key.urlsafe() }}">

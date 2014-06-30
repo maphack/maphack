@@ -2,7 +2,8 @@
 {% block content %}
 <div id="search-div">
 	<div class="page-header">
-		<h1>search listings
+		<h1>
+			search listings
 			<a class="btn btn-default" href="/listings/add">
 				<span class="glyphicon glyphicon-plus"></span>
 			</a>
@@ -21,11 +22,11 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">inventory</h1>
+					<h3 class="panel-title">inventory</h3>
 				</div>
 				{% if inventory.count() %}
 				<div class="table-responsive">
-					<table id="inventory" class="sortable table table-bordered table-striped">
+					<table class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
 								<th class="sorttable_nosort" width="10%" style="text-align: left"></th>
@@ -66,11 +67,11 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">playlist</h1>
+					<h3 class="panel-title">playlist</h3>
 				</div>
 				{% if playlist.count() %}
 				<div class="table-responsive">
-					<table id="playlist" class="sortable table table-bordered table-striped">
+					<table class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
 								<th class="sorttable_nosort" width="10%" style="text-align: left"></th>
@@ -183,24 +184,25 @@
 			}
 		});
 
-		if (listing.offer_amt == null || typeof(listing.offer_amt) != 'number') {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>specify an offer topup amount.</div>');
-			$('#form :input').prop('disabled', false);
-		} else if (listing.request_amt == null || typeof(listing.request_amt) != 'number') {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>specify a request topup amount.</div>');
-			$('#form :input').prop('disabled', false);
+		var error = false;
+		if (isNaN(listing.offer_amt)) {
+			$('#alerts').append(alertBootstrap('danger', 'invalid offer topup amount.'));
+			error = true;
+		} else if (isNaN(listing.request_amt)) {
+			$('#alerts').append(alertBootstrap('danger', 'invalid request topup amount.'));
+			error = true;
 		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
-			$('#form :input').prop('disabled', false);
+			$('#alerts').append(alertBootstrap('danger', 'you cannot offer and request a topup amount at the same time.'));
+			error = true;
 		} else if (!listing.own_urls.length && !listing.seek_urls.length) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your search query.</div>');
-			$('#form :input').prop('disabled', false);
+			$('#alerts').append(alertBootstrap('danger', 'listing cannot be empty.'));
+			error = true;
 		} else if ((listing.own_urls.length || listing.offer_amt > 0) && !listing.seek_urls.length && listing.request_amt == 0) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
-			$('#form :input').prop('disabled', false);
+			$('#alerts').append(alertBootstrap('danger', 'add a topup amount and/or games you want to trade for.'));
+			error = true;
 		} else if (!listing.own_urls.length  && listing.offer_amt == 0 && (listing.seek_urls.length || listing.request_amt > 0)) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
-			$('#form :input').prop('disabled', false);
+			$('#alerts').append(alertBootstrap('danger', 'add a topup amount and/or games you want to trade away.'));
+			error = true;
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -224,11 +226,15 @@
 					var errors = eval(jqXHR.responseText);
 
 					for (var i = 0; i < errors.length; i ++) {
-						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
-					$('#form :input').prop('disabled', false);
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					error = true;
 					}
 				}
 			});
+
+			if (error) {
+				$('#form :input').prop('disabled', false);
+			}
 		}
 	});
 
@@ -255,10 +261,59 @@
 			}
 		});
 	});
+
+	var own_url = '{{ own_url }}';
+	var seek_url = '{{ seek_url }}';
+
+	$(document).ready(function(){
+		if (own_url != '' || seek_url != '') {
+			$('#form :input').prop('disabled', true);
+
+			var listing = {
+				own_urls: [],
+				seek_urls: [],
+				offer_amt: Number.MAX_VALUE,
+				request_amt: 0,
+			};
+
+			if (own_url != '') {
+				listing.own_urls.push(own_url);
+			} else {
+				listing.seek_urls.push(seek_url);
+			}
+
+			$.ajax({
+				type: 'POST',
+				url: '/listings/search',
+				data: JSON.stringify(listing),
+				contentType: 'application/json',
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#search-div').fadeTo(500, 0).slideUp(500, function() {
+						$(this).remove();
+					});
+					$('#search-results').append(data);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					$('#form :input').prop('disabled', false);
+					}
+				}
+			});
+		}
+	});
 </script>
 <script>
 	$('#nav-list').addClass("active");
 	$('#nav-list-search').addClass("active");
 </script>
-
 {% endblock %}

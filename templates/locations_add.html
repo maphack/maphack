@@ -185,10 +185,10 @@
                 console.log(errorThrown);
                 var errors = eval(jqXHR.responseText);
 
-                for (var i = 0; i < errors.length; i ++) {
+                for (var i = 0; i < errors.length; i++) {
                   $('#alerts').append(alertBootstrap('danger' + errors[i]));
                 }
-              },
+              }
             });
           } else {
             $('#alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
