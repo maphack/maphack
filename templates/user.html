@@ -6,6 +6,7 @@
 		<a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}">
 			<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % nearest_distance }} k.m. away
 		</a>
+		<div class="pull-right" style="font-size:18px; padding-top: 15px;">contact: {{ person.contact }}</div>
 	</h1>
 </div>
 <div class="game-comparison">
