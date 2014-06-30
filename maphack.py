@@ -127,10 +127,17 @@ def locations_map(result):
 	return [result.geopt.lat, result.geopt.lon]
 
 def listing_games(listing):
-	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get(), ndb.gql('SELECT * '
-		'FROM Location '
-		'WHERE ANCESTOR IS :1 ',
-		listing.owner_key)
+	my_locations = ndb.gql('SELECT * '
+			'FROM Location '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Person', users.get_current_user().user_id()))
+
+	your_locations = ndb.gql('SELECT * '
+			'FROM Location '
+			'WHERE ANCESTOR IS :1 ',
+			listing.owner_key)
+
+	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get(), your_locations, min_dist(my_locations, your_locations)
 
 def listing_with_games(listing):
 	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys)

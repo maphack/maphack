@@ -18,7 +18,7 @@
 	{% endif %}
 </div>
 {% if listings|length %}
-{% for listing, own_games, seek_games, person, locations in listings %}
+{% for listing, own_games, seek_games, person, locations, distance in listings %}
 <div id="{{ listing.key.urlsafe() }}" class="listing-block">
 	<div class="row">
 		<div class="col-md-6" style="padding-top: 9px">
@@ -29,7 +29,7 @@
 				<ul>
 					<li><a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon-link"></span></a></li>
 					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}" target="_blank">
-						<span class="glyphicon glyphicon-map-marker"></span></a></li>
+						<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away</a></li>
 					<li><div class="listing-date">{{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
@@ -136,7 +136,7 @@ var listings = [];
 		locations.length = 0;
 		people.length = 0;
 		listings.length = 0;
-		{% for listing, own_games, seek_games, person, locations in listings %}
+		{% for listing, own_games, seek_games, person, locations, distance in listings %}
 			// if the person the listing belongs to hasn't appeared before
 			if ($.inArray("{{ person.name }}", people) == -1) {
 				// record his appearance
@@ -159,7 +159,7 @@ var listings = [];
 		for (var i = 0; i < people.length; i++) {
 			listings.push([]);
 		}
-		{% for listing, own_games, seek_games, person, locations in listings %}
+		{% for listing, own_games, seek_games, person, locations, distance in listings %}
 			var listing = {
 				own_games: [],
 				seek_games: [],

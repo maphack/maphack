@@ -15,7 +15,7 @@
 <body>
   <div id="panel" class="panel panel-primary">
     <div class="panel-heading">
-      <h3 class="panel-title"><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}"> {{ person.name }}</a>'s locations</h3>
+      <h3 class="panel-title"><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a>'s locations</h3>
     </div>
     <div class="panel-body">
       <p><img src="/images/red_MarkerU.png"> your locations <img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
@@ -97,7 +97,6 @@
       $('#show').show();
       $('#hide').hide();
     });
-
 
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
