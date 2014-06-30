@@ -7,106 +7,82 @@
   <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   <link href="/stylesheets/map.css" rel="stylesheet">
-  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="/bootstrap/js/bootstrap.min.js"></script>
   <script src="/scripts/alerts.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 </head>
 <body>
   <div id="panel" class="panel panel-primary">
     <div class="panel-heading">
-      <h1 class="panel-title">locations</h1>
+      <h3 class="panel-title">locations</h3>
     </div>
     <div class="panel-body">
+      <span class="glyphicon glyphicon-map-marker"></span>
+      <span>{{ location.address }}</span>
       <form id="form" role="form">
-        <span class="glyphicon glyphicon-map-marker"></span>
-        <span >{{ location.address }}</span>
         <div class="input-group">
-          <input id="name" type="textbox" class="form-control" placeholder="custom name" value="{{ location.name }}">
+          <input id="name" type="text" class="form-control" placeholder="name">
           <span class="input-group-btn">
-            <button id="change" type="button" class="btn btn-default">change name</button>
+            <button id="submit" type="button" class="btn btn-default">
+              <span class="glyphicon glyphicon-edit"></span>
+            </button>
           </span>
         </div>
-        <div id="alerts"></div>
-        <button id="delete" type="button" class="btn btn-default">
-          <span class="glyphicon glyphicon-trash"></span>
-        </button>
-        <a class="btn btn-default" href="/locations">back</a>
       </form>
+      <div id="alerts"></div>
+      <button id="delete" type="button" class="btn btn-default">
+        <span class="glyphicon glyphicon-trash"></span>
+      </button>
+      <a class="btn btn-default" href="/locations">back</a>
     </div>
   </div>
   <div id="map-canvas"></div>
   <script>
-    var map;
     var location_url = '{{ location.key.urlsafe() }}';
     var name = '{{ location.name }}';
-    
+
+    var map;
+
     function initialize() {
       var latlng = new google.maps.LatLng({{ location.geopt.lat }}, {{ location.geopt.lon }});
       var mapOptions = {
-        zoom: 15,
-        center: latlng
+        zoom: 8,
+        center: latlng,
       }
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-      var marker = new google.maps.Marker({
+
+      marker = new google.maps.Marker({
         position: latlng,
-        map: map,
+        map: map
       });
+
+      $('#name').val(name);
     }
 
-    $('#change').click(function(event) {
+    $('#submit').click(function(event) {
       clearAlerts();
       $('#form :input').prop('disabled', true);
 
       var new_name = $('#name').val().trim();
 
       if (!new_name) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>name cannot be empty.</div>');
+        $('#name').val(name);
+        $('#alerts').append(alertBootstrap('danger', 'display name cannot be empty.'));
       } else if (new_name == name) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>changed name is the same.</div>');
+        $('#alerts').append(alertBootstrap('danger', 'name is still the same.'));
       } else {
         $.ajax({
-            type: 'POST',
-            url: '/locations/edit',
-            data: {location_url: location_url, name: new_name},
-            success: function(data, textStatus, jqXHR) {
-              console.log(data);
-              console.log(textStatus);
-              console.log(jqXHR);
-
-              $('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location name changed.</div>');
-              alertTimeout(5000);
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-              console.log(jqXHR);
-              console.log(textStatus);
-              console.log(errorThrown);
-              var errors = eval(jqXHR.responseText);
-
-              for (var i = 0; i < errors.length; i ++) {
-                $('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
-              }
-            }
-          });
-      }
-
-      $('#form :input').prop('disabled', false);
-    });
-
-    $('#delete').click(function(event) {
-        clearAlerts();
-        $('#form :input').prop('disabled', true);
-
-        $.ajax({
           type: 'POST',
-          url: '/locations/delete',
-          data: {location_url: location_url},
+          url: '/locations/edit',
+          data: {location_url: location_url, name: new_name},
           success: function(data, textStatus, jqXHR) {
             console.log(data);
             console.log(textStatus);
             console.log(jqXHR);
 
-            window.location.href = '/locations';
+            $('#alerts').append(alertBootstrap('success', 'name changed.'));
+            alertTimeout(5000);
           },
           error: function(jqXHR, textStatus, errorThrown) {
             console.log(jqXHR);
@@ -115,12 +91,41 @@
             var errors = eval(jqXHR.responseText);
 
             for (var i = 0; i < errors.length; i ++) {
-              $('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+              $('#alerts').append(alertBootstrap('danger' + errors[i]));
             }
-          }
+          },
         });
+      }
 
-        $('#form :input').prop('disabled', false);
+      $('#form :input').prop('disabled', false);
+    });
+
+    $('#delete').click(function(event) {
+      clearAlerts();
+      $('#form :input').prop('disabled', true);
+
+      $.ajax({
+        type: 'POST',
+        url: '/locations/delete',
+        data: {location_url: location_url},
+        success: function(data, textStatus, jqXHR) {
+          console.log(data);
+          console.log(textStatus);
+          console.log(jqXHR);
+
+          window.location.href = '/locations';
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR);
+          console.log(textStatus);
+          console.log(errorThrown);
+          var errors = eval(jqXHR.responseText);
+
+          for (var i = 0; i < errors.length; i ++) {
+            $('#alerts').append(alertBootstrap('danger', errors[i]));
+          }
+        },
+      });
     });
 
     google.maps.event.addDomListener(window, 'load', initialize);

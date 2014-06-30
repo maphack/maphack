@@ -7,20 +7,20 @@
   <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   <link href="/stylesheets/map.css" rel="stylesheet">
-  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script src="/bootstrap/js/bootstrap.min.js"></script>
   <script src="/scripts/alerts.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 </head>
 <body>
   <div id="panel" class="panel panel-primary">
     <div class="panel-heading">
-      <h1 class="panel-title">locations</h1>
+      <h3 class="panel-title">locations</h3>
     </div>
     <div class="panel-body">
       <form id="form" role="form">
         <div class="input-group">
-          <input id="address" type="textbox" class="form-control" placeholder="address">
+          <input id="address" type="text" class="form-control" placeholder="address">
           <span class="input-group-btn">
             <button id="locate" type="button" class="btn btn-default">
               <span class="glyphicon glyphicon-search"></span>
@@ -28,16 +28,18 @@
           </span>
         </div>
         <div class="input-group">
-          <input id="name" type="textbox" class="form-control" placeholder="custom name">
+          <input id="name" type="text" class="form-control" placeholder="name">
           <span class="input-group-btn">
-            <button id="add" type="button" class="btn btn-default">add location</button>
+            <button id="submit" type="button" class="btn btn-default">
+              <span class="glyphicon glyphicon-plus"></span>
+            </button>
           </span>
         </div>
-        <div id="alerts"></div>
-        <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-        <button id="hide" type="button" class="btn btn-default">hide my locations</button>
-        <a class="btn btn-default" href="/locations">back</a>
       </form>
+      <div id="alerts"></div>
+      <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
+      <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+      <a class="btn btn-default" href="/locations">back</a>
     </div>
   </div>
   <div id="map-canvas"></div>
@@ -78,7 +80,7 @@
             map.setCenter(results[0].geometry.location);
             map.fitBounds(results[0].geometry.viewport);
           } else {
-            $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+            $('#alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
           }
         });
       }
@@ -115,19 +117,21 @@
       var address = $('#address').val().trim();
 
       if (!address) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>address cannot be empty.</div>');
+        $('#alerts').append(alertBootstrap('danger', 'address cannot be empty.'));
       } else {
         geocoder.geocode({'address': address, 'componentRestrictions': {country: country}}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
+            if(results[0].partial_match) {
+              $('#alerts').append(alertBootstrap('info', 'location may be inaccurate. drag the marker to the correct location before adding it.'));
+            } else {
+              $('#alerts').append(alertBootstrap('success', 'location found.'));
+              alertTimeout(5000);
+            }
+
             placeMarker(results[0].geometry.location);
             map.fitBounds(results[0].geometry.viewport);
-
-            if (results[0].partial_match) {
-              $('#alerts').append('<div class="alert alert-info alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location may be inaccurate. drag the marker to the correct location before adding it.</div>');
-            }
           } else {
-            $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
-
+            $('$alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
           }
         });
       }
@@ -135,16 +139,16 @@
       $('#form :input').prop('disabled', false);
     });
 
-    $('#add').click(function(event) {
+    $('#submit').click(function(event) {
       clearAlerts();
       $('#form :input').prop('disabled', true);
 
       var name = $('#name').val().trim();
 
       if (!name) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>name cannot be empty.</div>');
+        $('#alerts').append(alertBootstrap('danger', 'name cannot be empty.'));
       } else if (!marker) {
-        $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>please set a location.</div>');
+        $('#alerts').append(alertBootstrap('danger', 'please set a location.'));
       } else {
         var latlng = marker.getPosition();
 
@@ -161,7 +165,7 @@
                 console.log(textStatus);
                 console.log(jqXHR);
 
-                $('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location added.</div>');
+                $('#alerts').append(alertBootstrap('success', 'location added'));
                 alertTimeout(5000);
 
                 var location_marker = new google.maps.Marker({
@@ -182,12 +186,12 @@
                 var errors = eval(jqXHR.responseText);
 
                 for (var i = 0; i < errors.length; i ++) {
-                  $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+                  $('#alerts').append(alertBootstrap('danger' + errors[i]));
                 }
-              }
+              },
             });
           } else {
-            $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>reverse geocode was not successful for the following reason: ' + status + '</div>');
+            $('#alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
           }
         });
       }

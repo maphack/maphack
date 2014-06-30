@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>playlist
+	<h1>
+		playlist
 		<a class="btn btn-default" href="/playlist/add">
 			<span class="glyphicon glyphicon-plus"></span>
 		</a>
@@ -24,7 +25,7 @@
 				<th width="20%" style="text-align: left">description</th>
 				<th class="sorttable_nosort" width="20%">image</th>
 				<th width= "10%">date</th>
-				<th class="sorttable_nosort" width="10%">search</th>
+				<th class="sorttable_nosort" width="10%">search listings</th>
 				<th class="sorttable_nosort" width="10%">delete</th>
 			</tr>
 		</thead>
@@ -39,16 +40,11 @@
 					<img src="{{ game.pic }}">
 					{% endif %}
 				</td>
+				<td width="10%">{{ game.date.strftime('%c') }}</td>
 				<td width="10%">
-					{{ game.date.strftime('%d/%m/%Y') }}
-				</td>
-				<td width="10%">
-					<form action="/search/results" method="get">
-						<input type="hidden" name="title" value="{{ game.title }}">
-						<input type="hidden" name="platform" value="{{ game.platform }}">
-						<input type="hidden" name="query_type" value="have">
-						<input type="submit" value="search">
-					</form>
+					<button type="button" class="btn btn-default search" value="{{ game.key.urlsafe() }}">
+						<span class="glyphicon glyphicon-search"></span>
+					</button>
 				</td>
 				<td width="10%">
 					<button type="button" class="btn btn-default delete" value="{{ game.key.urlsafe() }}">
@@ -76,16 +72,16 @@
 				console.log(textStatus);
 				console.log(jqXHR);
 
-				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>game deleted.</div>');
+				$('#alerts').append(alertBootstrap('success', 'game deleted.'));
 				alertTimeout(5000);
 
 				$('#' + game_url).remove();
 
-				if ($('#playlist tr').length == 1) {
-					$('#playlist').fadeTo(500, 0).slideUp(500, function() {
+				if ($('#inventory tr').length == 1) {
+					$('#inventory').fadeTo(500, 0).slideUp(500, function() {
 						$(this).remove();
 					});
-					$('#alerts').append('<div class="alert alert-info">no games in your playlist! add the games you want to trade for.</div>');
+					$('#alerts').append(alertBootstrap('info', 'no games in your inventory! add the games you want to trade away.'));
 				}
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -95,7 +91,7 @@
 				var errors = eval(jqXHR.responseText);
 
 				for (var i = 0; i < errors.length; i ++) {
-					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
 				}
 			}
 		});

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="../favicon.ico">
   <title>maphack | search. trade. play.</title>
-  <link rel="shortcut icon" href="../favicon.ico">
   <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   <link href="/stylesheets/main.css" rel="stylesheet">
@@ -29,8 +29,8 @@
       <div class="navbar-collapse collapse">
         <ul class="nav navbar-nav">
           <li id="nav-dash" class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">dashboard <b class="caret"></b></a>
-            <ul class="dropdown-menu">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">dashboard <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
               <li id="nav-dash-profile"><a href="/profile">profile</a></li>
               <li id="nav-dash-loc"><a href="/locations">locations</a></li>
             </ul>
@@ -38,8 +38,8 @@
           <li id="nav-inv"><a href="/inventory">inventory</a></li>
           <li id="nav-pl"><a href="/playlist">playlist</a></li>
           <li id="nav-list" class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">listings <b class="caret"></b></a>
-            <ul class="dropdown-menu">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">listings <span class="caret"></span></a>
+            <ul class="dropdown-menu" role="menu">
               <li id="nav-list-my"><a href="/listings">my listings</a></li>
               <li id="nav-list-add"><a href="/listings/add">add</a></li>
               <li class="divider"></li>
@@ -47,11 +47,10 @@
               <li id="nav-list-search"><a href="/listings/search">search</a></li>
             </ul>
           </li>
-          <li id="nav-search"><a href="/search">search</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="/profile"><img src="{{ user.pic }}">{{ user.name }}</a></li>
-          <li><a href="{{ logout }}"><span class="glyphicon glyphicon-off" /></a></li>
+          <li><a href="/profile"><img class="display-pic" src="{{ user.pic }}"> {{ user.name or 'user' }}</a></li>
+          <li><a href="{{ logout }}"><span class="glyphicon glyphicon-off"></span></a></li>
         </ul>
       </div>
     </div>

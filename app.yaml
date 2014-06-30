@@ -20,7 +20,7 @@ handlers:
 
 # Twitter Bootstrap
 - url: /bootstrap
-  static_dir: bootstrap-3.1.1-dist
+  static_dir: bootstrap-3.2.0-dist
 
 # Font Awesome
 - url: /font-awesome

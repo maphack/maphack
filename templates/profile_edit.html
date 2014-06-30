@@ -1,32 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>update profile
+	<h1>
+		update profile
 		<a class="btn btn-default" href="/profile">back</a>
 	</h1>
 </div>
-<div id="alerts">
-</div>
+<div id="alerts"></div>
 <form id="form" class="form-horizontal" role="form">
 	<div class="form-group">
-		<label for="display name" class="col-sm-2 control-label">display name</label>
+		<label for="name" class="col-sm-2 control-label">display name</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-user"></i>
+					<span class="glyphicon glyphicon-user"></span>
 				</span>
-				<input id="name" type="text" class="form-control">
+				<input id="name" type="text" class="form-control" placeholder="display name">
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="display picture" class="col-sm-2 control-label">display picture</label>
+		<label for="pic" class="col-sm-2 control-label">display picture</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-picture"></i>
+					<span class="glyphicon glyphicon-picture"></span>
 				</span>
-				<input id="pic" type="text" class="form-control">
+				<input id="pic" type="text" class="form-control" placeholder="image url">
 			</div>
 		</div>
 	</div>
@@ -35,9 +35,9 @@
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-globe"></i>
+					<span class="glyphicon glyphicon-globe"></span>
 				</span>
-				<select id="country" class="form-control">
+				<select id="country"class="form-control">
 					<option value="AF">Afghanistan</option>
 					<option value="AX">Åland Islands</option>
 					<option value="AL">Albania</option>
@@ -287,22 +287,22 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="contact" class="col-sm-2 control-label">contact</label>
+		<label for="contact" class="col-sm-2 control-label">contact information</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-phone"></i>
+					<span class="glyphicon glyphicon-phone"></span>
 				</span>
 				<input id="contact" type="text" class="form-control" placeholder="mobile no. or e-mail">
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="description" class="col-sm-2 control-label">about myself</label>
+		<label for="bio" class="col-sm-2 control-label">about myself</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-italic"></i>
+					<span class="glyphicon glyphicon-italic"></span>
 				</span>
 				<textarea id="bio" class="form-control" rows="5"></textarea>
 			</div>
@@ -341,11 +341,11 @@
 
 		if (!new_name) {
 			$('#name').val(name);
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'display name cannot be empty.' + '</div>');
+			$('#alerts').append(alertBootstrap('danger', 'display name cannot be empty.'));
 			$('#form :input').prop('disabled', false);
 		} else if (!new_contact) {
 			$('#contact').val(contact);
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + 'contact information cannot be empty.' + '</div>');
+			$('#alerts').append(alertBootstrap('danger', 'contact information cannot be empty.'));
 			$('#form :input').prop('disabled', false);
 		} else {
 			$.ajax({
@@ -357,9 +357,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#form :input').prop('disabled', true);
-
-					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>profile updated. redirecting in 5 seconds.</div>');
+					$('#alerts').append(alertBootstrap('success', 'profile updated. redirecting in 5 seconds.'));
 
 					window.setTimeout(function(){
 						window.location.href = '/profile';
@@ -372,11 +370,11 @@
 					var errors = eval(jqXHR.responseText);
 
 					for (var i = 0; i < errors.length; i ++) {
-						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
 
 					$('#form :input').prop('disabled', false);
-				}
+				},
 			});
 		}
 	});

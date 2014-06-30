@@ -198,7 +198,6 @@ class Setup(webapp2.RequestHandler):
 			if user is None:
 				user = Person(id = users.get_current_user().user_id())
 				user.email = users.get_current_user().email()
-				user.name = users.get_current_user().nickname()
 				user.put()
 
 				inventory = Inventory(id = users.get_current_user().user_id())
@@ -1030,6 +1029,7 @@ class UserLocations(webapp2.RequestHandler):
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
+			person = ndb.Key('Person', person_id).get()
 			if person is None:
 				self.redirect('/dashboard')
 

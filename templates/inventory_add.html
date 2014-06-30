@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>add to inventory
+	<h1>
+		add to inventory
 		<a class="btn btn-default" href="/inventory">back</a>
 	</h1>
 </div>
@@ -12,7 +13,7 @@
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-book"></i>
+					<span class="glyphicon glyphicon-book"></span>
 				</span>
 				<input id="title" type="text" class="form-control" placeholder="title">
 			</div>
@@ -23,20 +24,20 @@
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-tower"></i>
+					<span class="glyphicon glyphicon-tower"></span>
 				</span>
 				<select id="platform" class="form-control">
 					<option>PC</option>
 					<option>PS4</option>
-					<option>XBONE</option>
+					<option>Xbox One</option>
 					<option>Wii U</option>
 					<option>PS3</option>
-					<option>XB360</option>
+					<option>Xbox 360</option>
 					<option>Wii</option>
-					<option>PSV</option>
+					<option>PS Vita</option>
 					<option>3DS</option>
 					<option>PSP</option>
-					<option>NDS</option>
+					<option>DS</option>
 					<option>Other</option>
 				</select>
 			</div>
@@ -47,7 +48,7 @@
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-picture"></i>
+					<span class="glyphicon glyphicon-book"></span>
 				</span>
 				<input id="pic" type="text" class="form-control" placeholder="image url">
 			</div>
@@ -58,20 +59,20 @@
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
-					<i class="glyphicon glyphicon-italic"></i>
+					<span class="glyphicon glyphicon-italic"></span>
 				</span>
-				<textarea id="description" class="form-control" rows="3" placeholder="write a short description of your game (e.g. condition)"></textarea>
+				<textarea id="description" class="form-control" rows="5" placeholder="special edition, DLC, condition, etc."></textarea>
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button id="add" type="button" class="btn btn-default">add</button>
+			<button id="submit" type="button" class="btn btn-default">add</button>
 		</div>
 	</div>
 </form>
 <script>
-	$("#add").click( function(event) {
+	$("#submit").click( function(event) {
 		clearAlerts();
 		$('#form :input').prop('disabled', true);
 
@@ -81,9 +82,7 @@
 		var description = $('#description').val().trim();
 
 		if (!title) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>title cannot be empty.</div>');
-		} else if (!platform) {
-			$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>platform cannot be empty.</div>');
+			$('#alerts').append(alertBootstrap('danger', 'title cannot be empty.'));
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -94,7 +93,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 					
-					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + title + ' added to inventory.</div>');
+					$('#alerts').append(alertBootstrap('success', title + ' added to inventory'));
 					alertTimeout(5000);
 
 					$('#form')[0].reset()
@@ -105,10 +104,10 @@
 					console.log(errorThrown);
 					var errors = eval(jqXHR.responseText);
 
-					for (var i = 0; i < errors.length; i++) {
-						$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					for (var i = 0; i < errors.length; i ++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
-				}
+				},
 			});
 		}
 

@@ -18,7 +18,6 @@
 	</div>
 	{% endif %}
 </div>
-{% if listings|length %}
 {% for listing, own_games, seek_games in listings %}
 <div id="{{ listing.key.urlsafe() }}" class="listing-block">
 	<div class="row">
@@ -118,7 +117,6 @@
 	<p>{{ listing.description or 'none' }}</p>
 </div>
 {% endfor %}
-{% endif %}
 <script>
 	$('.delete').click(function(event) {
 		clearAlerts();
@@ -134,7 +132,7 @@
 				console.log(textStatus);
 				console.log(jqXHR);
 
-				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing deleted.</div>');
+				$('#alerts').append(alertBootstrap('success', 'listing deleted.'));
 				alertTimeout(5000);
 
 				$('#' + listing_url).remove();
@@ -146,9 +144,9 @@
 				var errors = eval(jqXHR.responseText);
 
 				for (var i = 0; i < errors.length; i ++) {
-					$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
 				}
-			}
+			},
 		});
 	});
 </script>

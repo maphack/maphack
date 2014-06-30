@@ -119,7 +119,7 @@
 		</div>
 	</div>
 	<div class="pull-right">
-		<button id="add" type="button" class="btn btn-default">add</button>
+		<button id="submit" type="button" class="btn btn-default">add</button>
 	</div>
 </form>
 {% endif %}
@@ -165,7 +165,7 @@
 		}
 	});
 
-	$('#add').click(function() {
+	$('#submit').click(function() {
 		clearAlerts();
 		$('#form :input').prop('disabled', true);
 
@@ -189,20 +189,20 @@
 			}
 		});
 
-		if (listing.offer_amt == null) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>offer a topup amount.</div>');
-		} else if (listing.request_amt == null) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>request a topup amount.</div>');
+		if (isNaN(listing.offer_amt)) {
+			$('#alerts').append(alertBootstrap('danger', 'invalid offer topup amount.'));
+		} else if (isNaN(listing.request_amt)) {
+			$('#alerts').append(alertBootstrap('danger', 'invalid request topup amount.'));
 		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>you cannot offer and request a cash amount at the same time.</div>');
+			$('#alerts').append(alertBootstrap('danger', 'you cannot offer and request a topup amount at the same time.'));
 		} else if (!listing.own_urls.length && !listing.seek_urls.length) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add games to your listing.</div>');
+			$('#alerts').append(alertBootstrap('danger', 'listing cannot be empty.'));
 		} else if ((listing.own_urls.length || listing.offer_amt > 0) && !listing.seek_urls.length && listing.request_amt == 0) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade for.</div>');
+			$('#alerts').append(alertBootstrap('danger', 'add a topup amount or games you want to trade for.'));
 		} else if (!listing.own_urls.length  && listing.offer_amt == 0 && (listing.seek_urls.length || listing.request_amt > 0)) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>add a price or games you would like to trade away.</div>');
+			$('#alerts').append(alertBootstrap('danger', 'add a topup amount or games you want to trade away.'));
 		} else if (listing.description.length > 500) {
-			$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing description exceeds 500 characters.</div>');
+			$('#alerts').append(alertBootstrap('danger', 'listing description exceeds 500 characters'));
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -214,7 +214,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>listing added.</div>');
+					$('#alerts').append(alertBootstrap('success', 'listing added.'));
 					alertTimeout(5000);
 
 					$('#form')[0].reset()
@@ -226,7 +226,7 @@
 					var errors = eval(jqXHR.responseText);
 
 					for (var i = 0; i < errors.length; i ++) {
-						$('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
 				}
 			});

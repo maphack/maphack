@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>locations
+	<h1>
+		locations
 		<a class="btn btn-default" href="/locations/add">
 			<span class="glyphicon glyphicon-plus"></span>
 		</a>
@@ -59,7 +60,7 @@
 				console.log(textStatus);
 				console.log(jqXHR);
 
-				$('#alerts').append('<div class="alert alert-success alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>location deleted.</div>');
+				$('#alerts').append(alertBootstrap('success', 'location deleted.'));
 				alertTimeout(5000);
 
 				$('#' + location_url).remove();
@@ -68,7 +69,7 @@
 					$('#locations').fadeTo(500, 0).slideUp(500, function() {
 						$(this).remove();
 					});
-					$('#alerts').append('<div class="alert alert-info">no locations added! add the locations you want to trade at.</div>');
+					$('#alerts').append(alertBootstrap('info', 'no locations added! add the locations you want to trade at.'));
 				}
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
@@ -78,9 +79,9 @@
 				var errors = eval(jqXHR.responseText);
 
 				for (var i = 0; i < errors.length; i ++) {
-					$('#alerts').append('<div class="alertdiv alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' + errors[i] + '</div>');
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
 				}
-			}
+			},
 		});
 	});
 </script>
