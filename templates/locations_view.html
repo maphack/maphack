@@ -47,7 +47,7 @@
     function initialize() {
       var latlng = new google.maps.LatLng({{ location.geopt.lat }}, {{ location.geopt.lon }});
       var mapOptions = {
-        zoom: 8,
+        zoom: 15,
         center: latlng,
       }
       map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
