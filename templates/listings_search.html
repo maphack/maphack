@@ -37,7 +37,7 @@
 						<tbody>
 							{% for game in inventory %}
 							<tr id="{{ game.key.urlsafe() }}">
-								<td width="10%"><input type="checkbox" class="own" value="{{ game.key.urlsafe() }}"></td>
+								<td width="10%"><input id="{{ game.key.urlsafe() }}" type="checkbox" class="own"></td>
 								<td width="75%" style="text-align: left">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
 							</tr>
@@ -55,13 +55,6 @@
 					</div>
 				</div>
 				{% endif %}
-				<div id="offer" class="panel-footer listing-topup" style="display: none">
-					<div class="input-group">
-						<span class="input-group-addon">topup &#60; $</span>
-						<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
-						<span class="input-group-addon">.00</span>
-					</div>
-				</div>
 			</div>
 		</div>
 		<div class="col-md-6">
@@ -82,7 +75,7 @@
 						<tbody>
 							{% for game in playlist %}
 							<tr id="{{ game.key.urlsafe() }}">
-								<td width="10%"><input type="checkbox" class="seek" value="{{ game.key.urlsafe() }}"></td>
+								<td width="10%"><input id="{{ game.key.urlsafe() }}" type="checkbox" class="seek" ></td>
 								<td width="75%" style="text-align: left">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
 							</tr>
@@ -100,18 +93,11 @@
 					</div>
 				</div>
 				{% endif %}
-				<div id="request" class="panel-footer listing-topup" style="display: none">
-					<div class="input-group">
-						<span class="input-group-addon">topup > $</span>
-						<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
-						<span class="input-group-addon">.00</span>
-					</div>
-				</div>
 			</div>
 		</div>
 	</div>
 	<div class="pull-right">
-		<button id="search" type="button" class="btn btn-default">
+		<button id="submit" type="button" class="btn btn-default">
 			<span class="glyphicon glyphicon-search"></span>
 		</button>
 	</div>
@@ -120,88 +106,30 @@
 </div>
 <div id="search-results"></div>
 <script>
-	var num_own = 0;
-	var num_seek = 0;
-
-	$(':checkbox').change(function() {
-		if ($(this).attr('class') == 'own') {
-			this.checked ? num_own++ : num_own--;
-		} else {
-			this.checked ? num_seek++ : num_seek--;
-		}
-
-		if (num_own && num_seek) {
-			$('#offer-amt').prop('disabled', false);
-			$('#offer').slideDown('fast');
-
-			$('#request-amt').prop('disabled', false);
-			$('#request').slideDown('fast');
-		} else if (num_own) {
-			$('#offer-amt').prop('disabled', true);
-			$('#offer-amt').val(0);
-			$('#offer').slideUp('fast');
-
-			$('#request-amt').prop('disabled', false);
-			$('#request').slideDown('fast');
-		} else if (num_seek) {
-			$('#offer-amt').prop('disabled', false);
-			$('#offer').slideDown('fast');
-
-			$('#request-amt').prop('disabled', true);
-			$('#request-amt').val(0);
-			$('#request').slideUp('fast');
-		} else {
-			$('#offer-amt').prop('disabled', true);
-			$('#offer-amt').val(0);
-			$('#offer').slideUp('fast');
-
-			$('#request-amt').prop('disabled', true);
-			$('#request-amt').val(0);
-			$('#request').slideUp('fast');
-		}
-	});
-
-	$('#search').click(function() {
+	function search() {
 		clearAlerts();
 		$('#form :input').prop('disabled', true);
 
 		var listing = {
 			own_urls: [],
 			seek_urls: [],
-			offer_amt: parseInt($('#offer-amt').val()),
-			request_amt: parseInt($('#request-amt').val()),
 		};
 
 		$('.own').each(function () {
 			if (this.checked) {
-				listing.own_urls.push(this.value);
+				listing.own_urls.push(this.id);
 			}
 		});
 
 		$('.seek').each(function () {
 			if (this.checked) {
-				listing.seek_urls.push(this.value);
+				listing.seek_urls.push(this.id);
 			}
 		});
 
-		var error = false;
-		if (isNaN(listing.offer_amt)) {
-			$('#alerts').append(alertBootstrap('danger', 'invalid offer topup amount.'));
-			error = true;
-		} else if (isNaN(listing.request_amt)) {
-			$('#alerts').append(alertBootstrap('danger', 'invalid request topup amount.'));
-			error = true;
-		} else if (listing.offer_amt > 0 && listing.request_amt > 0) {
-			$('#alerts').append(alertBootstrap('danger', 'you cannot offer and request a topup amount at the same time.'));
-			error = true;
-		} else if (!listing.own_urls.length && !listing.seek_urls.length) {
+		var error;
+		if (!listing.own_urls.length && !listing.seek_urls.length) {
 			$('#alerts').append(alertBootstrap('danger', 'listing cannot be empty.'));
-			error = true;
-		} else if ((listing.own_urls.length || listing.offer_amt > 0) && !listing.seek_urls.length && listing.request_amt == 0) {
-			$('#alerts').append(alertBootstrap('danger', 'add a topup amount and/or games you want to trade for.'));
-			error = true;
-		} else if (!listing.own_urls.length  && listing.offer_amt == 0 && (listing.seek_urls.length || listing.request_amt > 0)) {
-			$('#alerts').append(alertBootstrap('danger', 'add a topup amount and/or games you want to trade away.'));
 			error = true;
 		} else {
 			$.ajax({
@@ -225,17 +153,21 @@
 					console.log(errorThrown);
 					var errors = eval(jqXHR.responseText);
 
-					for (var i = 0; i < errors.length; i ++) {
+					for (var i = 0; i < errors.length; i++) {
 						$('#alerts').append(alertBootstrap('danger', errors[i]));
-					error = true;
 					}
+					error = true;
 				}
 			});
-
-			if (error) {
-				$('#form :input').prop('disabled', false);
-			}
 		}
+
+		if (error) {
+			$('#form :input').prop('disabled', false);
+		}
+	}
+
+	$('#submit').click(function() {
+		search();
 	});
 
 	$(document).ready(function(){
@@ -262,55 +194,14 @@
 		});
 	});
 
-	var own_url = '{{ own_url }}';
-	var seek_url = '{{ seek_url }}';
-
+	{% if own_url or seek_url %}
 	$(document).ready(function(){
-		if (own_url != '' || seek_url != '') {
-			$('#form :input').prop('disabled', true);
+		$('input[id={{ own_url }}]').prop('checked', true);
+		$('input[id={{ seek_url }}]').prop('checked', true);
 
-			var listing = {
-				own_urls: [],
-				seek_urls: [],
-				offer_amt: Number.MAX_VALUE,
-				request_amt: 0,
-			};
-
-			if (own_url != '') {
-				listing.own_urls.push(own_url);
-			} else {
-				listing.seek_urls.push(seek_url);
-			}
-
-			$.ajax({
-				type: 'POST',
-				url: '/listings/search',
-				data: JSON.stringify(listing),
-				contentType: 'application/json',
-				success: function(data, textStatus, jqXHR) {
-					console.log(data);
-					console.log(textStatus);
-					console.log(jqXHR);
-
-					$('#search-div').fadeTo(500, 0).slideUp(500, function() {
-						$(this).remove();
-					});
-					$('#search-results').append(data);
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					console.log(jqXHR);
-					console.log(textStatus);
-					console.log(errorThrown);
-					var errors = eval(jqXHR.responseText);
-
-					for (var i = 0; i < errors.length; i++) {
-						$('#alerts').append(alertBootstrap('danger', errors[i]));
-					$('#form :input').prop('disabled', false);
-					}
-				}
-			});
-		}
+		search();
 	});
+	{% endif %}
 </script>
 <script>
 	$('#nav-list').addClass("active");

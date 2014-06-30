@@ -1257,15 +1257,7 @@ class ListingsSearch(webapp2.RequestHandler):
 				jdata = json.loads(self.request.body)
 				own_urls = jdata['own_urls']
 				seek_urls = jdata['seek_urls']
-				offer_amt = int(jdata['offer_amt'])
-				request_amt = int(jdata['request_amt'])
 
-				if offer_amt is None or request_amt is None:
-					raise Exception, 'topup amounts cannot be empty.'
-				if offer_amt < 0 or request_amt < 0:
-					raise Exception, 'topup amounts cannot be negative.'
-				if offer_amt > 0 and request_amt > 0:
-					raise Exception, 'topup amounts cannot be positive at the same time.'
 				if len(own_urls) == 0 and len(seek_urls) == 0:
 					raise Exception, 'listing cannot be empty.'
 
@@ -1306,23 +1298,10 @@ class ListingsSearch(webapp2.RequestHandler):
 					else:
 						qry = qry.filter(Listing.own_games == game.title + game.platform)
 
-				listing_tuples = qry.map(listing_games)
-				results = []
-
-				for listing_tuple in listing_tuples:
-					if offer_amt > 0:
-						if listing_tuple[0].topup >= 0:
-							results.append(listing_tuple)
-						elif -listing_tuple[0].topup <= offer_amt:
-							results.append(listing_tuple)
-					elif request_amt > 0:
-						if listing_tuple[0].topup > 0 and listing_tuple[0].topup >= request_amt:
-							results.append(listing_tuple)
-					elif listing_tuple[0].topup >= 0:
-						results.append(listing_tuple)
+				listings = qry.map(listing_games)
  
 				template_values = {
-					'listings': results,
+					'listings': listings,
 				}
 				template = JINJA_ENVIRONMENT.get_template('listings_search_results.html')
 				self.response.out.write(template.render(template_values))

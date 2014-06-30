@@ -339,14 +339,15 @@
 		var new_contact = $('#contact').val().trim();
 		var new_bio = $('#bio').val().trim();
 
+		var error;
 		if (!new_name) {
 			$('#name').val(name);
 			$('#alerts').append(alertBootstrap('danger', 'display name cannot be empty.'));
-			$('#form :input').prop('disabled', false);
+			error = true;
 		} else if (!new_contact) {
 			$('#contact').val(contact);
 			$('#alerts').append(alertBootstrap('danger', 'contact information cannot be empty.'));
-			$('#form :input').prop('disabled', false);
+			error = true;
 		} else {
 			$.ajax({
 				type: 'POST',
@@ -373,9 +374,13 @@
 						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
 
-					$('#form :input').prop('disabled', false);
+					error = true;
 				}
 			});
+		}
+
+		if (error) {
+			$('#form :input').prop('disabled', false);
 		}
 	});
 </script>
