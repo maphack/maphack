@@ -148,6 +148,8 @@ var listings = [];
 						lon: {{ location.geopt.lon }},
 						lat: {{ location.geopt.lat }},
 						owner: "{{ person.name }}",
+						ownerPic: "{{ person.pic }}",
+						ownerId: "{{ person.key.id() }}",
 					};
 					locations.push(location);
 				{% endfor %}
@@ -161,6 +163,8 @@ var listings = [];
 				own_games: [],
 				seek_games: [],
 				topup: {{ listing.topup }},
+				date: "{{ listing.date.strftime('%c') }}",
+				urlsafe: "{{ listing.key.urlsafe() }}",
 			};
 			{% for game in own_games %}
 				var game = {
