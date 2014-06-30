@@ -1024,35 +1024,43 @@ class UserPage(webapp2.RequestHandler):
 					self.response.out.write(template.render(template_values))
 
 class UserLocations(webapp2.RequestHandler):
-	def get(self, person_id):
+	def get(self, person_url):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			person = ndb.Key('Person', person_id).get()
-			if person is None:
+			try:
+				person_key = ndb.Key(urlsafe = person_url)
+				if person_key.kind() != 'Person':
+					raise Exception, 'invalid key.'
+
+				if person_key == user.key:
+					raise Exception, 'same user.'
+
+				person = person_key.get()
+				if person is None:
+					raise Exception, 'no such person.'
+
+				my_locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					user.key)
+
+				your_locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					person_key)
+
+				template_values = {
+					'user': user,
+					'person': person,
+					'my_locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in my_locations], cls = NdbEncoder),
+					'your_locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in your_locations], cls = NdbEncoder),
+				}
+				template = JINJA_ENVIRONMENT.get_template('user_locations.html')
+				self.response.out.write(template.render(template_values))
+			except:
 				self.redirect('/dashboard')
-
-			my_locations = ndb.gql('SELECT * '
-				'FROM Location '
-				'WHERE ANCESTOR IS :1 ',
-				user.key)
-
-			your_locations = ndb.gql('SELECT * '
-				'FROM Location '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Person', person_id))
-
-			my_locations = my_locations.map(locations_map)
-			your_locations = your_locations.map(locations_map)
-
-			template_values = {
-				'my_locations': my_locations,
-				'your_locations': your_locations,
-				'person_name': person.name,
-			}
-			template = JINJA_ENVIRONMENT.get_template('user_locations.html')
-			self.response.out.write(template.render(template_values))
 
 class ListingsPage(webapp2.RequestHandler):
 	def get(self):
