@@ -7,6 +7,11 @@ body {
 	width: auto;
 }
 
+.display-pic-lg {
+	max-height: 33px;
+	width: auto;
+}
+
 .table > thead > tr > th,
 .table > tbody > tr > td {
 	text-align: center;
@@ -20,6 +25,10 @@ body {
 
 .listing-block {
 	border-bottom: 1px solid #eeeeee;
+}
+
+.listing-date {
+	padding-top: 9px;
 }
 
 .listing-menu > ul > li {

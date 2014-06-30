@@ -932,96 +932,103 @@ class SearchResults(webapp2.RequestHandler):
 				self.show(error = error)
 
 class UserPage(webapp2.RequestHandler):
-	def get(self, person_id):
+	def get(self, person_url):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			if user.key.id() == person_id:
-				self.redirect('/dashboard')
-			else:
-				person = ndb.Key('Person', person_id).get()
+			try:
+				person_key = ndb.Key(urlsafe = person_url)
+				if person_key.kind() != 'Person':
+					raise Exception, 'invalid key.'
+
+				if person_key == user.key:
+					raise Exception, 'same user.'
+
+				person = person_key.get()
 				if person is None:
-					self.redirect('/dashboard')
-				else:
-					my_inventory = ndb.gql('SELECT * '
-						'FROM Game '
-						'WHERE ANCESTOR IS :1 ',
-						ndb.Key('Inventory', users.get_current_user().user_id()))
+					raise Exception, 'no such person.'
 
-					my_playlist = ndb.gql('SELECT * '
-						'FROM Game '
-						'WHERE ANCESTOR IS :1 ',
-						ndb.Key('Playlist', users.get_current_user().user_id()))
+				my_inventory = ndb.gql('SELECT * '
+					'FROM Game '
+					'WHERE ANCESTOR IS :1 ',
+					ndb.Key('Inventory', users.get_current_user().user_id()))
 
-					your_inventory = ndb.gql('SELECT * '
-						'FROM Game '
-						'WHERE ANCESTOR IS :1 ',
-						ndb.Key('Inventory', person_id))
+				my_playlist = ndb.gql('SELECT * '
+					'FROM Game '
+					'WHERE ANCESTOR IS :1 ',
+					ndb.Key('Playlist', users.get_current_user().user_id()))
 
-					your_playlist = ndb.gql('SELECT * '
-						'FROM Game '
-						'WHERE ANCESTOR IS :1 ',
-						ndb.Key('Playlist', person_id))
+				your_inventory = ndb.gql('SELECT * '
+					'FROM Game '
+					'WHERE ANCESTOR IS :1 ',
+					ndb.Key('Inventory', person_key.id()))
 
-					my_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						user.key)
+				your_playlist = ndb.gql('SELECT * '
+					'FROM Game '
+					'WHERE ANCESTOR IS :1 ',
+					ndb.Key('Playlist', person_key.id()))
 
-					your_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						ndb.Key('Person', person_id))
+				my_locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					user.key)
 
-					listings = ndb.gql('SELECT * '
-						'FROM Listing '
-						'WHERE ANCESTOR IS :1 '
-						'ORDER BY date DESC',
-						ndb.Key('Person', person_id))
+				your_locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					person_key)
 
-					listings = listings.map(listing_with_games)
+				listings = ndb.gql('SELECT * '
+					'FROM Listing '
+					'WHERE ANCESTOR IS :1 '
+					'ORDER BY date DESC',
+					person_key)
 
-					my_diff = []
-					my_match = []
-					your_match = []
-					your_diff = []
+				listings = listings.map(listing_with_games)
 
-					for i_own in my_inventory:
-						found = False
-						for you_seek in your_playlist:
-							if i_own.title == you_seek.title and i_own.platform == you_seek.platform:
-								my_match.append(i_own)
-								found = True;
-								break;
-						if not found:
-							my_diff.append(i_own)
+				my_diff = []
+				my_match = []
+				your_match = []
+				your_diff = []
 
-					for you_own in your_inventory:
-						found = False
-						for i_seek in my_playlist:
-							if you_own.title == i_seek.title and you_own.platform == i_seek.platform:
-								your_match.append(you_own)
-								found = True;
-								break;
-						if not found:
-							your_diff.append(you_own)
+				for i_own in my_inventory:
+					found = False
+					for you_seek in your_playlist:
+						if i_own.title == you_seek.title and i_own.platform == you_seek.platform:
+							my_match.append(i_own)
+							found = True;
+							break;
+					if not found:
+						my_diff.append(i_own)
 
-					nearest_distance = min_dist(my_locations, your_locations)
+				for you_own in your_inventory:
+					found = False
+					for i_seek in my_playlist:
+						if you_own.title == i_seek.title and you_own.platform == i_seek.platform:
+							your_match.append(you_own)
+							found = True;
+							break;
+					if not found:
+						your_diff.append(you_own)
 
-					template_values = {
-						'user': user,
-						'logout': users.create_logout_url(self.request.host_url),
-						'person': person,
-						'my_diff': my_diff,
-						'my_match': my_match,
-						'your_match': your_match,
-						'your_diff': your_diff,
-						'nearest_distance': nearest_distance,
-						'listings': listings,
-						}
-					template = JINJA_ENVIRONMENT.get_template('user.html')
-					self.response.out.write(template.render(template_values))
+				nearest_distance = min_dist(my_locations, your_locations)
+
+				template_values = {
+					'user': user,
+					'logout': users.create_logout_url(self.request.host_url),
+					'person': person,
+					'my_diff': my_diff,
+					'my_match': my_match,
+					'your_match': your_match,
+					'your_diff': your_diff,
+					'nearest_distance': nearest_distance,
+					'listings': listings,
+					}
+				template = JINJA_ENVIRONMENT.get_template('user.html')
+				self.response.out.write(template.render(template_values))
+			except:
+				self.redirect('/dashboard')
 
 class UserLocations(webapp2.RequestHandler):
 	def get(self, person_url):

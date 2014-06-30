@@ -3,15 +3,15 @@
 <div class="page-header">
 	<h1>listing</h1>
 </div>
-<div id="{{ listing.key.urlsafe() }}" class="listing-block">
+<div class="listing-block">
 	<div class="row">
 		<div class="col-md-6">
-			<h4><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}"> {{ person.name }}</a></h4>
+			<h4><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a></h4>
 		</div>
 		<div class="col-md-6">
 			<div class="listing-menu">
 				<ul>
-					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-globe"></span></a></li>
+					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-map-marker"></span></a></li>
 					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>

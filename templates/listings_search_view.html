@@ -70,12 +70,12 @@
         bounds.extend(latlng);
 
         var relevantListings = listings[$.inArray((""+locations[i].owner), people)];
-        contentString = '<h4><a href="/user/' + locations[i].ownerId + '">' + locations[i].owner + '</a><img class="display-pic" src=' + locations[i].ownerPic + ' style="max-height: 16px; width: auto; padding-left: 5px;"></h4>';
+        contentString = '<h4><a href="/user/' + locations[i].ownerUrlsafe + '">' + locations[i].owner + '</a><img class="display-pic" src=' + locations[i].ownerPic + ' style="max-height: 16px; width: auto; padding-left: 5px;"></h4>';
 
         // create table for each listing
         for (var j = 0; j < relevantListings.length; j++) {
           contentString += '<div class="listing-menu"><ul><li style="list-style: none; float: right"><a class="btn btn-default" href="/listing/' +
-          relevantListings[j].urlsafe + '"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>' +
+          relevantListings[j].urlsafe + '"><span class="glyphicon glyphicon-link"></span></a></li>' +
            '<li style="list-style: none; float: right; padding-right: 10px; padding-top: 10px;"><div class="listing-date">posted ' + relevantListings[j].date + 
            '</div></li></ul></div>';
           contentString += '<div class="row"><div style="padding-left: 20px;"><h5>listing ' + (j+1) + '</h5></div>';
