@@ -190,7 +190,7 @@
 					});
 					$('#comments').append(data);
 
-					$('#form').reset();
+					$('#form')[0].reset();
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);

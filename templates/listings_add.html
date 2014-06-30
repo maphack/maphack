@@ -237,7 +237,7 @@
 					$('#alerts').append(alertBootstrap('success', 'listing added.'));
 					alertTimeout(5000);
 
-					$('#form').reset()
+					$('#form')[0].reset()
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);

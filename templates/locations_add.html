@@ -178,6 +178,8 @@
 
                 marker.setMap(null);
                 marker = null;
+
+                $('#form')[0].reset()
               },
               error: function(jqXHR, textStatus, errorThrown) {
                 console.log(jqXHR);
