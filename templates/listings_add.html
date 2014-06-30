@@ -27,16 +27,26 @@
 						<thead>
 							<tr>
 								<th class="sorttable_nosort" width="10%"></th>
-								<th width="75%" style="text-align: left">title</th>
+								<th width="65%" style="text-align: left">title</th>
 								<th width="15%">platform</th>
+								<th width="10%">picture</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in inventory %}
-							<tr id="{{ game.key.urlsafe() }}">
+							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
 								<td width="10%"><input type="checkbox" class="own" value="{{ game.key.urlsafe() }}"></td>
-								<td width="75%" style="text-align: left">{{ game.title }}</td>
+								<td width="65%" style="text-align: left">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
+								<td width="10%">
+									{% if game.pic %}
+									<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+										<span class="glyphicon glyphicon-picture"></span>
+									</a>
+									{% else %}
+									n/a
+									{% endif %}
+								</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -72,16 +82,26 @@
 						<thead>
 							<tr>
 								<th class="sorttable_nosort" width="10%"></th>
-								<th width="75%" style="text-align: left">title</th>
+								<th width="65%" style="text-align: left">title</th>
 								<th width="15%">platform</th>
+								<th width="10%">picture</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in playlist %}
-							<tr id="{{ game.key.urlsafe() }}">
+							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
 								<td width="10%"><input type="checkbox" class="seek" value="{{ game.key.urlsafe() }}"></td>
-								<td width="75%" style="text-align: left">{{ game.title }}</td>
+								<td width="65%" style="text-align: left">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
+								<td width="10%">
+									{% if game.pic %}
+									<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+										<span class="glyphicon glyphicon-picture"></span>
+									</a>
+									{% else %}
+									n/a
+									{% endif %}
+								</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -257,6 +277,13 @@
 				}
 			}
 		});
+	});
+</script>
+<script>
+	$('.game').popover({
+		html: true,
+		trigger: 'hover',
+		placement: 'bottom',
 	});
 </script>
 <script>

@@ -167,15 +167,25 @@
 						<table class="sortable table table-bordered table-striped">
 							<thead>
 								<tr>
-									<th width="80%" style="text-align: left">title</th>
+									<th width="70%" style="text-align: left">title</th>
 									<th width="20%">platform</th>
+									<th width="10%">picture</th>
 								</tr>
 							</thead>
 							<tbody>
 								{% for game in own_games %}
-								<tr id="{{ game.key.urlsafe() }}">
-									<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
+									<td width="70%" style="text-align: left">{{ game.title }}</td>
 									<td width="20%">{{ game.platform }}</td>
+									<td width="10%">
+										{% if game.pic %}
+										<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+											<span class="glyphicon glyphicon-picture"></span>
+										</a>
+										{% else %}
+										n/a
+										{% endif %}
+									</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -207,15 +217,25 @@
 						<table class="sortable table table-bordered table-striped">
 							<thead>
 								<tr>
-									<th width="80%" style="text-align: left">title</th>
+									<th width="70%" style="text-align: left">title</th>
 									<th width="20%">platform</th>
+									<th width="10%">picture</th>
 								</tr>
 							</thead>
 							<tbody>
 								{% for game in seek_games %}
-								<tr id="{{ game.key.urlsafe() }}">
-									<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
+									<td width="70%" style="text-align: left">{{ game.title }}</td>
 									<td width="20%">{{ game.platform }}</td>
+									<td width="10%">
+										{% if game.pic %}
+										<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+											<span class="glyphicon glyphicon-picture"></span>
+										</a>
+										{% else %}
+										n/a
+										{% endif %}
+									</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -244,4 +264,11 @@
 </div>
 {% endfor %}
 {% endif %}
+<script>
+	$('.game').popover({
+		html: true,
+		trigger: 'hover',
+		placement: 'bottom',
+	});
+</script>
 {% endblock %}
