@@ -1419,6 +1419,32 @@ class ListingComment(webapp2.RequestHandler):
 				self.error(403)
 				self.response.out.write([e])
 
+class Feedback(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			template_values = {
+				'user': user,
+				'logout': users.create_logout_url(self.request.host_url),
+			}
+			template = JINJA_ENVIRONMENT.get_template('feedback.html')
+			self.response.out.write(template.render(template_values))
+
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				feedback = self.request.get('feedback').rstrip()
+				if not feedback:
+					raise Exception, 'feedback cannot empty.'
+			except:
+				self.error(403)
+				self.response.out.write([e])
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1443,6 +1469,7 @@ application = webapp2.WSGIApplication([
 	('/listings/search/map', ListingsSearchMap),
 	('/listing/comment', ListingComment),
 	('/listing/(.*)', ListingPage),
+	('/feedback', Feedback),
 
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
