@@ -96,7 +96,7 @@
 					$('#alerts').append(alertBootstrap('success', title + ' added to playlist'));
 					alertTimeout(5000);
 
-					$('#form').reset()
+					$('#form')[0].reset()
 				},
 				error: function(jqXHR, textStatus, errorThrown) {
 					console.log(jqXHR);
