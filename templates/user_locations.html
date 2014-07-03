@@ -13,15 +13,17 @@
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 </head>
 <body>
-  <div id="panel" class="panel panel-primary">
-    <div class="panel-heading">
-      <h3 class="panel-title"><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a>'s locations</h3>
-    </div>
-    <div class="panel-body">
-      <div id="alerts"></div>
-      <p><img src="/images/red_MarkerU.png"> your locations <img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
-      <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-      <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+  <div class="col-md-3">
+    <div id="panel" class="panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title"><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a>'s locations</h3>
+      </div>
+      <div class="panel-body">
+        <div id="alerts"></div>
+        <p><img src="/images/red_MarkerU.png"> your locations <img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
+        <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
+        <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+      </div>
     </div>
   </div>
   <div id="map-canvas"></div>
@@ -32,6 +34,9 @@
     function initialize() {
       var my_locations = {{ my_locations|safe }};
       var your_locations = {{ your_locations|safe }};
+      console.log(my_locations);
+      console.log(your_locations);
+
       map = new google.maps.Map(document.getElementById('map-canvas'));
       var bounds = new google.maps.LatLngBounds();
 
@@ -76,7 +81,7 @@
           }
         });
 
-        $('#alerts').append(alertBootstrap('info', 'both users have not added locations.'));
+        $('#alerts').append(alertBootstrap('info', 'both users have not added any locations.'));
       }
     }
 
