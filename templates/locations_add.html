@@ -13,35 +13,33 @@
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 </head>
 <body>
-  <div class="col-md-3">
-    <div id="panel" class="panel panel-primary">
-      <div class="panel-heading">
-        <h3 class="panel-title">locations</h3>
-      </div>
-      <div class="panel-body">
-        <form id="form" role="form">
-          <div class="input-group">
-            <input id="address" type="text" class="form-control" placeholder="address">
-            <span class="input-group-btn">
-              <button id="locate" type="button" class="btn btn-default">
-                <span class="glyphicon glyphicon-search"></span>
-              </button>
-            </span>
-          </div>
-          <div class="input-group">
-            <input id="name" type="text" class="form-control" placeholder="name">
-            <span class="input-group-btn">
-              <button id="submit" type="button" class="btn btn-default">
-                <span class="glyphicon glyphicon-plus"></span>
-              </button>
-            </span>
-          </div>
-        </form>
-        <div id="alerts"></div>
-        <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-        <button id="hide" type="button" class="btn btn-default">hide my locations</button>
-        <a class="btn btn-default" href="/locations">back</a>
-      </div>
+  <div id="panel" class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">locations</h3>
+    </div>
+    <div class="panel-body">
+      <form id="form" role="form">
+        <div class="input-group">
+          <input id="address" type="text" class="form-control" placeholder="address">
+          <span class="input-group-btn">
+            <button id="locate" type="button" class="btn btn-default">
+              <span class="glyphicon glyphicon-search"></span>
+            </button>
+          </span>
+        </div>
+        <div class="input-group">
+          <input id="name" type="text" class="form-control" placeholder="name">
+          <span class="input-group-btn">
+            <button id="submit" type="button" class="btn btn-default">
+              <span class="glyphicon glyphicon-plus"></span>
+            </button>
+          </span>
+        </div>
+      </form>
+      <div id="alerts"></div>
+      <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
+      <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+      <a class="btn btn-default" href="/locations">back</a>
     </div>
   </div>
   <div id="map-canvas"></div>

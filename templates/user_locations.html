@@ -13,17 +13,15 @@
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 </head>
 <body>
-  <div class="col-md-3">
-    <div id="panel" class="panel panel-primary">
-      <div class="panel-heading">
-        <h3 class="panel-title"><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a>'s locations</h3>
-      </div>
-      <div class="panel-body">
-        <div id="alerts"></div>
-        <p><img src="/images/red_MarkerU.png"> your locations <img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
-        <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-        <button id="hide" type="button" class="btn btn-default">hide my locations</button>
-      </div>
+  <div id="panel" class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title"><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a>'s locations</h3>
+    </div>
+    <div class="panel-body">
+      <div id="alerts"></div>
+      <p><img src="/images/red_MarkerU.png"> your locations <img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
+      <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
+      <button id="hide" type="button" class="btn btn-default">hide my locations</button>
     </div>
   </div>
   <div id="map-canvas"></div>

@@ -13,30 +13,28 @@
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
 </head>
 <body>
-  <div class="col-md-3">
-    <div id="panel" class="panel panel-primary">
-      <div class="panel-heading">
-        <h3 class="panel-title">locations</h3>
-      </div>
-      <div class="panel-body">
-        <span class="glyphicon glyphicon-map-marker"></span>
-        <span>{{ location.address }}</span>
-        <form id="form" role="form">
-          <div class="input-group">
-            <input id="name" type="text" class="form-control" placeholder="name">
-            <span class="input-group-btn">
-              <button id="submit" type="button" class="btn btn-default">
-                <span class="glyphicon glyphicon-edit"></span>
-              </button>
-            </span>
-          </div>
-        </form>
-        <div id="alerts"></div>
-        <button id="delete" type="button" class="btn btn-default">
-          <span class="glyphicon glyphicon-trash"></span>
-        </button>
-        <a class="btn btn-default" href="/locations">back</a>
-      </div>
+  <div id="panel" class="panel panel-primary">
+    <div class="panel-heading">
+      <h3 class="panel-title">locations</h3>
+    </div>
+    <div class="panel-body">
+      <span class="glyphicon glyphicon-map-marker"></span>
+      <span>{{ location.address }}</span>
+      <form id="form" role="form">
+        <div class="input-group">
+          <input id="name" type="text" class="form-control" placeholder="name">
+          <span class="input-group-btn">
+            <button id="submit" type="button" class="btn btn-default">
+              <span class="glyphicon glyphicon-edit"></span>
+            </button>
+          </span>
+        </div>
+      </form>
+      <div id="alerts"></div>
+      <button id="delete" type="button" class="btn btn-default">
+        <span class="glyphicon glyphicon-trash"></span>
+      </button>
+      <a class="btn btn-default" href="/locations">back</a>
     </div>
   </div>
   <div id="map-canvas"></div>
