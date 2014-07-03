@@ -186,8 +186,20 @@ class MainPage(webapp2.RequestHandler):
 		if user:
 			self.redirect('/dashboard')
 		else:
+			qry = Listing.query().order(-Listing.date).fetch(1)
+			listing = qry[0]
+			person = listing.owner_key.get()
+			own_games = ndb.get_multi(listing.own_keys)
+			seek_games = ndb.get_multi(listing.seek_keys)
+
+			template_values = {
+				'listing': listing,
+				'person': person,
+				'own_games': own_games,
+				'seek_games': seek_games,
+			}
 			template = JINJA_ENVIRONMENT.get_template('front.html')
-			self.response.out.write(template.render())
+			self.response.out.write(template.render(template_values))
 
 class Dashboard(webapp2.RequestHandler):
 	def get(self):
