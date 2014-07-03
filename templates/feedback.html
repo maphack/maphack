@@ -29,7 +29,11 @@
 
 		var feedback = $('#feedback').val().trim();
 
-		if (feedback.length > 500) {
+		console.log(feedback);
+
+		if (!feedback) {
+			$('#alerts').append(alertBootstrap('danger', 'feedback cannot be empty.'))
+		} else if (feedback.length > 500) {
 			$('#alerts').append(alertBootstrap('danger', 'feedback exceeds 500 characters.'))
 		} else {
 			$.ajax({

@@ -11,7 +11,9 @@
 		<div class="col-md-6">
 			<div class="listing-menu">
 				<ul>
-					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-map-marker"></span></a></li>
+					{% if person.key != user.key %}
+					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away</a></li>
+					{% endif %}
 					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
@@ -30,7 +32,7 @@
 							<tr>
 								<th width="70%" style="text-align: left">title</th>
 								<th width="20%">platform</th>
-								<th width="10%">picture</th>
+								<th class="sorttable_nosort" width="10%">picture</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -80,7 +82,7 @@
 							<tr>
 								<th width="70%" style="text-align: left">title</th>
 								<th width="20%">platform</th>
-								<th width="10%">picture</th>
+								<th class="sorttable_nosort" width="10%">picture</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -206,13 +208,6 @@
 		}
 
 		$('#form :input').prop('disabled', false);
-	});
-</script>
-<script>
-	$('.game').popover({
-		html: true,
-		trigger: 'hover',
-		placement: 'right',
 	});
 </script>
 <script>

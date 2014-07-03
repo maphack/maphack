@@ -65,7 +65,12 @@ class Listing(ndb.Model):
 
 class Comment(ndb.Model):
 	owner_key = ndb.KeyProperty(indexed = False)
-	content = ndb.TextProperty(indexed = False)
+	content = ndb.StringProperty(indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
+
+class Feedback(ndb.Model):
+	owner_key = ndb.KeyProperty(indexed = False)
+	content = ndb.StringProperty(indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Platform(ndb.Model):
@@ -1351,10 +1356,7 @@ class ListingsSearchMap(webapp2.RequestHandler):
 
 class ListingPage(webapp2.RequestHandler):
 	def get(self, listing_url):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user is None or user.setup == False:
-			self.redirect('/setup')
-		else:
+		if not users.get_current_user():
 			try:
 				listing = ndb.Key(urlsafe = listing_url).get()
 				if listing.key.kind() != 'Listing':
@@ -1363,28 +1365,70 @@ class ListingPage(webapp2.RequestHandler):
 					raise Exception, 'no such listing.'
 
 				person = listing.owner_key.get()
-				locations = ndb.gql('SELECT * '
-					'FROM Location '
-					'WHERE ANCESTOR IS :1 ',
-					listing.owner_key)
 				own_games = ndb.get_multi(listing.own_keys)
 				seek_games = ndb.get_multi(listing.seek_keys)
 				comments = ndb.get_multi(listing.comment_keys)
-				
+
 				template_values = {
-					'user': user,
-					'logout': users.create_logout_url(self.request.host_url),
+					'login': users.create_login_url(self.request.uri),
 					'listing': listing,
 					'person': person,
-					'locations': locations,
 					'own_games': own_games,
 					'seek_games': seek_games,
 					'comments': comments,
 				}
-				template = JINJA_ENVIRONMENT.get_template('listing.html')
+				template = JINJA_ENVIRONMENT.get_template('listing_public.html')
 				self.response.out.write(template.render(template_values))
 			except Exception, e:
-				self.redirect('/listings')
+				self.redirect('/')
+		else:
+			user = ndb.Key('Person', users.get_current_user().user_id()).get()
+			if user is None or user.setup == False:
+				self.redirect('/setup')
+			else:
+				try:
+					listing = ndb.Key(urlsafe = listing_url).get()
+					if listing.key.kind() != 'Listing':
+						raise Exception, 'invalid key.'
+					if listing is None:
+						raise Exception, 'no such listing.'
+
+					if listing.owner_key == user.key:
+						person = user
+						distance = 0
+					else:
+						person = listing.owner_key.get()
+
+						my_locations = ndb.gql('SELECT * '
+							'FROM Location '
+							'WHERE ANCESTOR IS :1 ',
+							user.key)
+
+						your_locations = ndb.gql('SELECT * '
+							'FROM Location '
+							'WHERE ANCESTOR IS :1 ',
+							listing.owner_key)
+
+						distance = min_dist(my_locations, your_locations)
+
+					own_games = ndb.get_multi(listing.own_keys)
+					seek_games = ndb.get_multi(listing.seek_keys)
+					comments = ndb.get_multi(listing.comment_keys)
+
+					template_values = {
+						'user': user,
+						'logout': users.create_logout_url(self.request.host_url),
+						'listing': listing,
+						'person': person,
+						'distance': distance,
+						'own_games': own_games,
+						'seek_games': seek_games,
+						'comments': comments,
+					}
+					template = JINJA_ENVIRONMENT.get_template('listing.html')
+					self.response.out.write(template.render(template_values))
+				except Exception, e:
+					self.redirect('/dashboard')
 
 class ListingComment(webapp2.RequestHandler):
 	def post(self):
@@ -1401,9 +1445,11 @@ class ListingComment(webapp2.RequestHandler):
 
 				comment = Comment(parent = user.key)
 				comment.owner_key = user.key
-				comment.content = self.request.get('comment').rstrip()
-				if not comment:
+				comment.content = str(self.request.get('comment').rstrip())
+				if not comment.content:
 					raise Exception, 'comment cannot be empty.'
+				if len(comment.content) > 500:
+					raise Exception, 'comment exceeds 500 characters.'
 				comment.put()
 
 				listing.comment_keys.append(comment.key)
@@ -1419,7 +1465,7 @@ class ListingComment(webapp2.RequestHandler):
 				self.error(403)
 				self.response.out.write([e])
 
-class Feedback(webapp2.RequestHandler):
+class FeedbackPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user is None or user.setup == False:
@@ -1438,12 +1484,34 @@ class Feedback(webapp2.RequestHandler):
 			self.redirect('/setup')
 		else:
 			try:
-				feedback = self.request.get('feedback').rstrip()
-				if not feedback:
-					raise Exception, 'feedback cannot empty.'
-			except:
+				feedback = Feedback(parent = user.key)
+				feedback.owner_key = user.key
+				feedback.content = str(self.request.get('feedback').rstrip())
+				if not feedback.content:
+					raise Exception, 'feedback cannot be empty.'
+				if len(feedback.content) > 500:
+					raise Exception, 'feedback exceeds 500 characters.'
+				feedback.put()
+			except Exception, e:
 				self.error(403)
 				self.response.out.write([e])
+
+class GetListing(webapp2.RequestHandler):
+	def get(self):
+		qry = Listing.query().order(-Listing.date).fetch(1)
+		listing = qry[0]
+		person = listing.owner_key.get()
+		own_games = ndb.get_multi(listing.own_keys)
+		seek_games = ndb.get_multi(listing.seek_keys)
+
+		template_values = {
+			'listing': listing,
+			'person': person,
+			'own_games': own_games,
+			'seek_games': seek_games,
+		}
+		template = JINJA_ENVIRONMENT.get_template('latestlisting.html')
+		self.response.out.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
@@ -1469,7 +1537,8 @@ application = webapp2.WSGIApplication([
 	('/listings/search/map', ListingsSearchMap),
 	('/listing/comment', ListingComment),
 	('/listing/(.*)', ListingPage),
-	('/feedback', Feedback),
+	('/feedback', FeedbackPage),
+	('/get/listing', GetListing),
 
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),

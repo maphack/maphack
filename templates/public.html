@@ -10,7 +10,7 @@
 	<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 	<link href="/bootstrap-social/css/bootstrap-social.css" rel="stylesheet">
 	<link href="/stylesheets/jumbotron.css" rel="stylesheet">
-	<link href="/stylesheets/main.css" rel="stylesheet">
+  	<link href="/stylesheets/main.css" rel="stylesheet">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script src="/bootstrap/js/bootstrap.min.js"></script>
 	<script src="/scripts/sorttable.js"></script>
@@ -30,39 +30,15 @@
 			</div>
 			<div class="navbar-collapse collapse">
 				<form class="navbar-form navbar-right" role="form">
-					<a class="btn btn-block btn-social btn-google-plus" href="/dashboard">
+					<a class="btn btn-block btn-social btn-google-plus" href="{{ login }}">
 						<i class="fa fa-google-plus"></i>Sign in with Google
 					</a>
 				</form>
 			</div>
 		</div>
 	</div>
-	<div class="jumbotron">
-		<div class="container">
-			<h1>search. trade. play.</h1>
-			<p>the best prices. the best deals. the best games.</p>
-			<p>start saving - start saving the world!</p>
-		</div>
-	</div>
 	<div class="container">
-		<div class="row">
-			<div class="col-md-4">
-				<h2>search</h2>
-				<p>It's never been easier to save money on games! Just finished a game and want to trade it for the latest, hottest games? Browse the newest listings and get what you want!</p>
-			</div>
-			<div class="col-md-4">
-				<h2>trade</h2>
-				<p>Less travelling, more playing! Trade with other gamers near your home, school, or office. You might even make new friends to share games with!</p>
-			</div>
-			<div class="col-md-4">
-				<h2>play</h2>
-				<p>Save time and money so you can play more - for less! No more bumping threads in buy/sell forums. Just create a listing - it's that simple!</p>
-			</div>
-		</div>
-		<hr>
-		<footer>
-			<p>&copy; maphack 2014</p>
-		</footer>
+		{% block content %}{% endblock %}
 	</div>
 </body>
 </html>
