@@ -1,5 +1,6 @@
 import datetime
 import jinja2
+import ndbpager
 import os
 import webapp2
 import json
@@ -1269,6 +1270,59 @@ class ListingsDelete(webapp2.RequestHandler):
 				self.error(403)
 				self.response.out.write([e])
 
+class ListingsRecent(webapp2.RequestHandler):
+	def get(self):
+		if not users.get_current_user():
+			try:
+				qry = Listing.query().order(-Listing.date)
+				pager = ndbpager.Pager(query = qry, page = self.request.get('page', default_value = 1))
+				listings, cursor, more = pager.paginate(page_size = 10)
+
+				listings = [(listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get()) for listing in listings]
+
+				template_values = {
+					'listings': listings,
+					'pager': pager,
+				}
+				template = JINJA_ENVIRONMENT.get_template('listings_recent_public.html')
+				self.response.out.write(template.render(template_values))
+			except:
+				self.redirect('/listings/recent')
+		else:
+			user = ndb.Key('Person', users.get_current_user().user_id()).get()
+			if user is None or user.setup == False:
+				self.redirect('/setup')
+			else:
+				try:
+					qry = Listing.query().order(-Listing.date)
+					pager = ndbpager.Pager(query = qry, page = self.request.get('page', default_value = 1))
+					listings, cursor, more = pager.paginate(page_size = 10)
+
+					my_locations = ndb.gql('SELECT * '
+						'FROM Location '
+						'WHERE ANCESTOR IS :1 ',
+						user.key)
+
+					listings = [(listing,
+						ndb.get_multi(listing.own_keys),
+						ndb.get_multi(listing.seek_keys),
+						listing.owner_key.get(),
+						min_dist(my_locations, ndb.gql('SELECT * '
+							'FROM Location '
+							'WHERE ANCESTOR IS :1 ',
+							listing.owner_key))) for listing in listings]
+
+					template_values = {
+						'user': user,
+						'logout': users.create_logout_url(self.request.host_url),
+						'listings': listings,
+						'pager': pager,
+					}
+					template = JINJA_ENVIRONMENT.get_template('listings_recent.html')
+					self.response.out.write(template.render(template_values))
+				except:
+					self.redirect('/listings/recent')
+
 class ListingsSearch(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
@@ -1531,7 +1585,7 @@ class GetListing(webapp2.RequestHandler):
 			'own_games': own_games,
 			'seek_games': seek_games,
 		}
-		template = JINJA_ENVIRONMENT.get_template('latestlisting.html')
+		template = JINJA_ENVIRONMENT.get_template('latest_listing.html')
 		self.response.out.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
@@ -1554,6 +1608,7 @@ application = webapp2.WSGIApplication([
 	('/listings', ListingsPage),
 	('/listings/add', ListingsAdd),
 	('/listings/delete', ListingsDelete),
+	('/listings/recent', ListingsRecent),
 	('/listings/search', ListingsSearch),
 	('/listings/search/map', ListingsSearchMap),
 	('/listing/comment', ListingComment),

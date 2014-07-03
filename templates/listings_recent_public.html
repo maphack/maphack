@@ -1,8 +1,23 @@
-{% extends "base.html" %}
+{% extends "public.html" %}
 {% block content %}
 <div class="page-header">
-	<h1>listing</h1>
+	<h1>recent listings</h1>
 </div>
+{% if pager %}
+<ul class="pager">
+	{% if pager.has_prev %}
+	<li class="previous"><a href="/listings/recent?page={{ pager.prev_page }}">&larr; newer</a></li>
+	{% else %}
+	<li class="previous disabled"><a>&larr; newer</a></li>
+	{% endif %}
+	{% if pager.has_next %}
+	<li class="next"><a href="/listings/recent?page={{ pager.next_page }}">older &rarr;</a></li>
+	{% else %}
+	<li class="next disabled"><a>older &rarr;</a></li>
+	{% endif %}
+</ul>
+{% endif %}
+{% for listing, own_games, seek_games, person in listings %}
 <div class="listing-block">
 	<div class="row">
 		<div class="col-md-6">
@@ -11,7 +26,8 @@
 		<div class="col-md-6">
 			<div class="listing-menu">
 				<ul>
-					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away</a></li>
+					<li><a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
+					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-map-marker"></span></a></li>
 					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
@@ -122,93 +138,19 @@
 	<h4>description</h4>
 	<p>{{ listing.description or 'none' }}</p>
 </div>
-<div id="comments" class="comments">
-	<h4>comments</h4>
-	{% if comments|length %}
-	{% for comment in comments %}
-	{% set owner = comment.owner_key.get() %}
-	<div class="comment">
-		<a href="/user/{{ owner.key.urlsafe() }}"><img class="display-pic" src="{{ owner.pic }}">{{ owner.name }}</a> commented {{ comment.date.strftime('%c') }}
-		<p>{{ comment.content }}</p>
-	</div>
-	{% endfor %}
+{% endfor %}
+{% if pager %}
+<ul class="pager">
+	{% if pager.has_prev %}
+	<li class="previous"><a href="/listings/recent?page={{ pager.prev_page }}">&larr; newer</a></li>
 	{% else %}
-	<div id="no-comments" class="alert alert-info">
-		no comments!
-	</div>
+	<li class="previous disabled"><a>&larr; newer</a></li>
 	{% endif %}
-</div>
-<div class="top-pad-ten">
-	<div id="alerts"></div>
-	<form id="form" class="form-horizontal" role="form">
-		<div class="form-group">
-			<label for="comment" class="col-sm-2 control-label">comment</label>
-			<div class="col-sm-10">
-				<div class="input-group">
-					<span class="input-group-addon">
-						<span class="glyphicon glyphicon-italic"></span>
-					</span>
-					<textarea id="comment" class="form-control" rows="3" maxlength="500" placeholder="leave a comment"></textarea>
-				</div>
-			</div>
-		</div>
-		<div class="form-group">
-			<div class="col-sm-offset-2 col-sm-10">
-				<button id="submit" type="button" class="btn btn-default">post</button>
-			</div>
-		</div>
-	</form>
-</div>
-<script>
-	var listing_url = '{{ listing.key.urlsafe() }}';
-
-	$('#submit').click( function(event) {
-		clearAlerts();
-		 $('#form :input').prop('disabled', true);
-
-		var comment = $('#comment').val().trim();
-
-		if (!comment) {
-			$('#alerts').append(alertBootstrap('danger', 'comment cannot be empty.'));
-		} else if (comment.length > 500) {
-			$('#alerts').append(alertBootstrap('danger', 'comment exceeds 500 characters.'));
-		} else {
-			$.ajax({
-				type: 'POST',
-				url: '/listing/comment',
-				data: {listing_url: listing_url, comment: comment},
-				success: function(data, textStatus, jqXHR) {
-					console.log(data);
-					console.log(textStatus);
-					console.log(jqXHR);
-
-					$('#alerts').append(alertBootstrap('success', 'comment posted.'));
-					alertTimeout(5000);
-
-					$('#no-comments').fadeTo(500, 0).slideUp(500, function() {
-						$(this).remove();
-					});
-					$('#comments').append(data);
-
-					$('#form')[0].reset();
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					console.log(jqXHR);
-					console.log(textStatus);
-					console.log(errorThrown);
-					var errors = eval(jqXHR.responseText);
-
-					for (var i = 0; i < errors.length; i++) {
-						$('#alerts').append(alertBootstrap('danger', errors[i]));
-					}
-				}
-			});
-		}
-
-		$('#form :input').prop('disabled', false);
-	});
-</script>
-<script>
-	$('#nav-list').addClass("active");
-</script>
+	{% if pager.has_next %}
+	<li class="next"><a href="/listings/recent?page={{ pager.next_page }}">older &rarr;</a></li>
+	{% else %}
+	<li class="next disabled"><a>older &rarr;</a></li>
+	{% endif %}
+</ul>
+{% endif %}
 {% endblock %}
