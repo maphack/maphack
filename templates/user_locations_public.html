@@ -19,39 +19,23 @@
     </div>
     <div class="panel-body">
       <div id="alerts"></div>
-      <p><img src="/images/red_MarkerU.png"> your locations <img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
-      <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-      <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+      {% if locations.length %}
+      <p><img src="/images/blue_MarkerU.png"> {{ person.name }}'s locations</p>
+      {% endif %}
     </div>
   </div>
   <div id="map-canvas"></div>
   <script>
     var map;
-    var my_location_markers = [];
 
     function initialize() {
-      var my_locations = {{ my_locations|safe }};
-      var your_locations = {{ your_locations|safe }};
+      var locations = {{ locations|safe }};
       map = new google.maps.Map(document.getElementById('map-canvas'));
       var bounds = new google.maps.LatLngBounds();
 
-      if (my_locations.length) {
-        for (var i = 0; i < my_locations.length; i++) {
-          var latlng = new google.maps.LatLng(my_locations[i].geopt.lat, my_locations[i].geopt.lon);
-          bounds.extend(latlng);
-
-          var location_marker = new google.maps.Marker({
-            position: latlng,
-            map: map,
-            icon: "/images/red_MarkerU.png",
-          });
-          my_location_markers.push(location_marker);
-        }
-      }
-
-      if (your_locations.length) {
-        for (var i = 0; i < your_locations.length; i++) {
-          var latlng = new google.maps.LatLng(your_locations[i].geopt.lat, your_locations[i].geopt.lon);
+      if (locations.length) {
+        for (var i = 0; i < locations.length; i++) {
+          var latlng = new google.maps.LatLng(locations[i].geopt.lat, locations[i].geopt.lon);
           bounds.extend(latlng);
 
           var location_marker = new google.maps.Marker({
@@ -60,14 +44,12 @@
             icon: "/images/blue_MarkerU.png",
           });
         }
-      }
 
-      if (my_locations.length || your_locations.length) {
         map.fitBounds(bounds);
         map.panToBounds(bounds);
       } else {
         var geocoder = new google.maps.Geocoder();
-        geocoder.geocode({'componentRestrictions': {country: '{{ user.country }}'}}, function(results, status) {
+        geocoder.geocode({'componentRestrictions': {country: '{{ person.country }}'}}, function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
             map.setCenter(results[0].geometry.location);
             map.fitBounds(results[0].geometry.viewport);
@@ -76,27 +58,9 @@
           }
         });
 
-        $('#alerts').append(alertBootstrap('info', 'both users have not added locations.'));
+        $('#alerts').append(alertBootstrap('info', '{{ person.name }} has not added any locations.'));
       }
     }
-
-    function setAllMap(map) {
-      for (var i = 0; i < my_location_markers.length; i++) {
-        my_location_markers[i].setMap(map);
-      }
-    }
-
-    $('#show').click(function(event) {
-      setAllMap(map);
-      $('#show').hide();
-      $('#hide').show();
-    });
-
-    $('#hide').click(function(event) {
-      setAllMap(null);
-      $('#show').show();
-      $('#hide').hide();
-    });
 
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>

@@ -39,9 +39,7 @@
 	</div>
 	<div class="jumbotron">
 		<div class="container">
-			<h1>search. trade. play.</h1>
-			<p>the best prices. the best deals. the best games.</p>
-			<p>start saving - start saving the world!</p>
+			<div id="listing"></div>
 		</div>
 	</div>
 	<div class="container">
@@ -64,5 +62,32 @@
 			<p>&copy; maphack 2014</p>
 		</footer>
 	</div>
+	<script>
+		function getListing() {
+			console.log('lets go');
+			$.ajax({
+				type: 'GET',
+				url: '/get/listing',
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#listing').fadeOut("slow", function(){
+						$('#listing').html(data);
+						$('#listing').fadeIn("slow");
+					});
+				}
+			});
+		}
+
+		$(document).ready(function(){
+			getListing();
+
+			setInterval(function () {
+				getListing()
+			}, 10000);
+		});
+	</script>
 </body>
 </html>

@@ -38,6 +38,9 @@ handlers:
 - url: /get/listing
   script: maphack.application
 
+- url: /user/locations/.*
+  script: maphack.application
+
 - url: /listing/.*
   script: maphack.application
 
