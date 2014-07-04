@@ -41,6 +41,9 @@ handlers:
 - url: /listings/recent
   script: maphack.application
 
+- url: /listings/search
+  script: maphack.application
+
 - url: /listing/.*
   script: maphack.application
 

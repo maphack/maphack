@@ -186,20 +186,8 @@ class MainPage(webapp2.RequestHandler):
 		if user:
 			self.redirect('/dashboard')
 		else:
-			qry = Listing.query().order(-Listing.date).fetch(1)
-			listing = qry[0]
-			person = listing.owner_key.get()
-			own_games = ndb.get_multi(listing.own_keys)
-			seek_games = ndb.get_multi(listing.seek_keys)
-
-			template_values = {
-				'listing': listing,
-				'person': person,
-				'own_games': own_games,
-				'seek_games': seek_games,
-			}
 			template = JINJA_ENVIRONMENT.get_template('front.html')
-			self.response.out.write(template.render(template_values))
+			self.response.out.write(template.render())
 
 class Dashboard(webapp2.RequestHandler):
 	def get(self):
@@ -1293,6 +1281,7 @@ class ListingsRecent(webapp2.RequestHandler):
 				listings = [(listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get()) for listing in listings]
 
 				template_values = {
+					'login': users.create_login_url(self.request.uri),
 					'listings': listings,
 					'pager': pager,
 				}
@@ -1337,30 +1326,60 @@ class ListingsRecent(webapp2.RequestHandler):
 
 class ListingsSearch(webapp2.RequestHandler):
 	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user is None or user.setup == False:
-			self.redirect('/setup')
+		if users.get_current_user():
+			user = ndb.Key('Person', users.get_current_user().user_id()).get()
+			if user is None or user.setup == False:
+				self.redirect('/setup')
+			else:
+				inventory = ndb.gql('SELECT * '
+					'FROM Game '
+					'WHERE ANCESTOR IS :1 ',
+					ndb.Key('Inventory', users.get_current_user().user_id()))
+
+				playlist = ndb.gql('SELECT * '
+					'FROM Game '
+					'WHERE ANCESTOR IS :1 ',
+					ndb.Key('Playlist', users.get_current_user().user_id()))
+
+				template_values = {
+					'user': user,
+					'logout': users.create_logout_url(self.request.host_url),
+					'inventory': inventory,
+					'playlist': playlist,
+					'own_url': self.request.get('own_url'),
+					'seek_url': self.request.get('seek_url'),
+				}
+				template = JINJA_ENVIRONMENT.get_template('listings_search.html')
+				self.response.out.write(template.render(template_values))
 		else:
-			inventory = ndb.gql('SELECT * '
-				'FROM Game '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Inventory', users.get_current_user().user_id()))
+			try:
+				query_type = self.request.get('query_type')
+				title = self.request.get('title')
+				platform = self.request.get('platform')
 
-			playlist = ndb.gql('SELECT * '
-				'FROM Game '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Playlist', users.get_current_user().user_id()))
+				if query_type == 'own':
+					qry = Listing.query(Listing.seek_games == title + platform).order(-Listing.date)
 
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-				'inventory': inventory,
-				'playlist': playlist,
-				'own_url': self.request.get('own_url'),
-				'seek_url': self.request.get('seek_url'),
-			}
-			template = JINJA_ENVIRONMENT.get_template('listings_search.html')
-			self.response.out.write(template.render(template_values))
+				if query_type == 'seek':
+					qry = Listing.query(Listing.own_games == title + platform).order(-Listing.date)
+
+				pager = ndbpager.Pager(query = qry, page = self.request.get('page', default_value = 1))
+				listings, cursor, more = pager.paginate(page_size = 10)
+
+				listings = [(listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys), listing.owner_key.get()) for listing in listings]
+
+				template_values = {
+					'login': users.create_login_url(self.request.uri),
+					'listings': listings,
+					'pager': pager,
+					'query_type': query_type,
+					'title': title,
+					'platform': platform,
+				}
+				template = JINJA_ENVIRONMENT.get_template('listings_search_public.html')
+				self.response.out.write(template.render(template_values))
+			except:
+				self.redirect('/')
 
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()

@@ -8,6 +8,27 @@
 	width: auto;
 }
 
+/* user agent stylesheet is giving this a padding-left of 40px */
+.main-search > ul {
+	padding-left: 0 !important;
+}
+
+
+.main-search > ul > li {
+	list-style: none;
+	float: left;
+	padding-left: 10px;
+	margin-bottom: 10px;
+}
+
+.main-search > ul > li:first-child {
+	padding-left: 0;
+}
+
+.main-search > ul > li.main-search-text {
+	margin-top: 9px;
+}
+
 .table > thead > tr > th,
 .table > tbody > tr > td {
 	text-align: center;
@@ -35,7 +56,7 @@
 }
 
 .listing-menu > ul > li:first-child {
-	padding-right: 0px;
+	padding-right: 0;
 }
 
 /* single alert when inventory/playlist is empty */
