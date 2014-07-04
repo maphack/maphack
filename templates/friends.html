@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+	<h1>friends</h1>
+</div>
+<div id="alerts">
+	{% if not friends|length %}
+	<div class="alert alert-info">
+		no friends! awww.
+	</div>
+	{% endif %}
+</div>
+{% for friend in friends %}
+<div id="{{ friend.key.urlsafe() }}">
+	<a href="/user/{{ friend.key.urlsafe() }}"><img class="display-pic-lg" src="{{ friend.pic }}">{{ friend.name }}</a>
+	<button type="button" class="btn btn-default delete" value="{{ friend.key.urlsafe() }}">
+		<span class="glyphicon glyphicon-remove"></span>
+	</button>
+</div>
+{% endfor %}
+<script>
+	$('.delete').click(function(event) {
+		clearAlerts();
+
+		var person_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/friends/delete',
+			data: {person_url: person_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts').append(alertBootstrap('success', 'friend removed.'));
+				alertTimeout(5000);
+
+				$('#' + person_url).remove();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
+				}
+			}
+		});
+	});
+</script>
+<script>
+	$('#nav-dash').addClass("active");
+	$('#nav-dash-friends').addClass("active");
+</script>
+{% endblock %}

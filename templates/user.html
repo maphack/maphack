@@ -6,9 +6,28 @@
 		<a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}">
 			<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % nearest_distance }} k.m. away
 		</a>
+		{% if person.key in user.friend_keys %}
+		<span id="friend-div" style="display: none">
+		{% else %}
+		<span id="friend-div">
+		{% endif %}
+			<button id="friend" type="button" class="btn btn-default" value="{{ person.key.urlsafe() }}">
+				<span class="glyphicon glyphicon-heart"></span> friend
+			</button>
+		</span>
+		{% if person.key not in user.friend_keys %}
+		<span id="unfriend-div" style="display: none">
+		{% else %}
+		<span id="unfriend-div">
+		{% endif %}
+			<button id="unfriend" type="button" class="btn btn-default" value="{{ person.key.urlsafe() }}">
+				<span class="glyphicon glyphicon-remove"></span> unfriend
+			</button>
+		</span>
 		<div class="pull-right" style="font-size:18px; padding-top: 15px;">contact: {{ person.contact }}</div>
 	</h1>
 </div>
+<div id="alerts"></div>
 <div class="game-comparison">
 	<ul class="nav nav-tabs nav-justified" role="tablist">
 		<li class="active"><a href="#my_diff" role="tab" data-toggle="tab">your other games</a></li>
@@ -144,7 +163,6 @@
 		</div>
 		{% endif %}
 	</div>
-	{% if listings|length %}
 	{% for listing, own_games, seek_games in listings %}
 	<div class="listing-block">
 		<div class="row">
@@ -262,14 +280,73 @@
 		<h4>description</h4>
 		<p>{{ listing.description or 'none' }}</p>
 	</div>
+	{% endfor %}
 </div>
-{% endfor %}
-{% endif %}
 <script>
-	$('.game').popover({
-		html: true,
-		trigger: 'hover',
-		placement: 'right',
+	$('#friend').click(function(event) {
+		clearAlerts();
+
+		var person_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/friends/add',
+			data: {person_url: person_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts').append(alertBootstrap('success', 'friend added.'));
+				alertTimeout(5000);
+
+				$('#friend-div').hide();
+				$('#unfriend-div').show();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
+				}
+			}
+		});
+	});
+
+		$('#unfriend').click(function(event) {
+		clearAlerts();
+
+		var person_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/friends/delete',
+			data: {person_url: person_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts').append(alertBootstrap('success', 'friend removed.'));
+				alertTimeout(5000);
+
+				$('#friend-div').show();
+				$('#unfriend-div').hide();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
+				}
+			}
+		});
 	});
 </script>
 {% endblock %}

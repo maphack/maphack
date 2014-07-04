@@ -28,6 +28,7 @@ class Person(ndb.Model):
 	country = ndb.StringProperty()
 	contact = ndb.StringProperty(indexed = False)
 	bio = ndb.StringProperty(indexed = False)
+	friend_keys = ndb.KeyProperty(repeated = True)
 	setup = ndb.BooleanProperty(default = False, indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
@@ -962,98 +963,95 @@ class UserPage(webapp2.RequestHandler):
 		if user is None or user.setup == False:
 			self.redirect('/setup')
 		else:
-			try:
-				person_key = ndb.Key(urlsafe = person_url)
-				if person_key.kind() != 'Person':
-					raise Exception, 'invalid key.'
+			person_key = ndb.Key(urlsafe = person_url)
+			if person_key.kind() != 'Person':
+				raise Exception, 'invalid key.'
 
-				if person_key == user.key:
-					raise Exception, 'same user.'
+			if person_key == user.key:
+				raise Exception, 'same user.'
 
-				person = person_key.get()
-				if person is None:
-					raise Exception, 'no such person.'
+			person = person_key.get()
+			if person is None:
+				raise Exception, 'no such person.'
 
-				my_inventory = ndb.gql('SELECT * '
-					'FROM Game '
-					'WHERE ANCESTOR IS :1 ',
-					ndb.Key('Inventory', users.get_current_user().user_id()))
+			my_inventory = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Inventory', users.get_current_user().user_id()))
 
-				my_playlist = ndb.gql('SELECT * '
-					'FROM Game '
-					'WHERE ANCESTOR IS :1 ',
-					ndb.Key('Playlist', users.get_current_user().user_id()))
+			my_playlist = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Playlist', users.get_current_user().user_id()))
 
-				your_inventory = ndb.gql('SELECT * '
-					'FROM Game '
-					'WHERE ANCESTOR IS :1 ',
-					ndb.Key('Inventory', person_key.id()))
+			your_inventory = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Inventory', person_key.id()))
 
-				your_playlist = ndb.gql('SELECT * '
-					'FROM Game '
-					'WHERE ANCESTOR IS :1 ',
-					ndb.Key('Playlist', person_key.id()))
+			your_playlist = ndb.gql('SELECT * '
+				'FROM Game '
+				'WHERE ANCESTOR IS :1 ',
+				ndb.Key('Playlist', person_key.id()))
 
-				my_locations = ndb.gql('SELECT * '
-					'FROM Location '
-					'WHERE ANCESTOR IS :1 ',
-					user.key)
+			my_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
+				user.key)
 
-				your_locations = ndb.gql('SELECT * '
-					'FROM Location '
-					'WHERE ANCESTOR IS :1 ',
-					person_key)
+			your_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
+				person_key)
 
-				listings = ndb.gql('SELECT * '
-					'FROM Listing '
-					'WHERE ANCESTOR IS :1 '
-					'ORDER BY date DESC',
-					person_key)
+			listings = ndb.gql('SELECT * '
+				'FROM Listing '
+				'WHERE ANCESTOR IS :1 '
+				'ORDER BY date DESC',
+				person_key)
 
-				listings = listings.map(listing_with_games)
+			listings = listings.map(listing_with_games)
 
-				my_diff = []
-				my_match = []
-				your_match = []
-				your_diff = []
+			my_diff = []
+			my_match = []
+			your_match = []
+			your_diff = []
 
-				for i_own in my_inventory:
-					found = False
-					for you_seek in your_playlist:
-						if i_own.title == you_seek.title and i_own.platform == you_seek.platform:
-							my_match.append(i_own)
-							found = True;
-							break;
-					if not found:
-						my_diff.append(i_own)
+			for i_own in my_inventory:
+				found = False
+				for you_seek in your_playlist:
+					if i_own.title == you_seek.title and i_own.platform == you_seek.platform:
+						my_match.append(i_own)
+						found = True;
+						break;
+				if not found:
+					my_diff.append(i_own)
 
-				for you_own in your_inventory:
-					found = False
-					for i_seek in my_playlist:
-						if you_own.title == i_seek.title and you_own.platform == i_seek.platform:
-							your_match.append(you_own)
-							found = True;
-							break;
-					if not found:
-						your_diff.append(you_own)
+			for you_own in your_inventory:
+				found = False
+				for i_seek in my_playlist:
+					if you_own.title == i_seek.title and you_own.platform == i_seek.platform:
+						your_match.append(you_own)
+						found = True;
+						break;
+				if not found:
+					your_diff.append(you_own)
 
-				nearest_distance = min_dist(my_locations, your_locations)
+			nearest_distance = min_dist(my_locations, your_locations)
 
-				template_values = {
-					'user': user,
-					'logout': users.create_logout_url(self.request.host_url),
-					'person': person,
-					'my_diff': my_diff,
-					'my_match': my_match,
-					'your_match': your_match,
-					'your_diff': your_diff,
-					'nearest_distance': nearest_distance,
-					'listings': listings,
-					}
-				template = JINJA_ENVIRONMENT.get_template('user.html')
-				self.response.out.write(template.render(template_values))
-			except:
-				self.redirect('/dashboard')
+			template_values = {
+				'user': user,
+				'logout': users.create_logout_url(self.request.host_url),
+				'person': person,
+				'my_diff': my_diff,
+				'my_match': my_match,
+				'your_match': your_match,
+				'your_diff': your_diff,
+				'nearest_distance': nearest_distance,
+				'listings': listings,
+				}
+			template = JINJA_ENVIRONMENT.get_template('user.html')
+			self.response.out.write(template.render(template_values))
 
 class UserLocations(webapp2.RequestHandler):
 	def get(self, person_url):
@@ -1600,6 +1598,65 @@ class GetListing(webapp2.RequestHandler):
 		template = JINJA_ENVIRONMENT.get_template('latest_listing.html')
 		self.response.out.write(template.render(template_values))
 
+class FriendsPage(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			friends = ndb.get_multi(user.friend_keys)
+
+			template_values = {
+				'user': user,
+				'logout': users.create_logout_url(self.request.host_url),
+				'friends': friends,
+			}
+			template = JINJA_ENVIRONMENT.get_template('friends.html')
+			self.response.out.write(template.render(template_values))
+
+class FriendsAdd(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				person_key = ndb.Key(urlsafe = self.request.get('person_url'))
+				if person_key.kind() != 'Person':
+					raise Exception, 'invalid key.'
+				if person_key == user.key:
+					raise Exception, 'forever alone'
+				person = person_key.get()
+				if person is None:
+					raise Exception, 'no such person.'
+				if person_key in user.friend_keys:
+					raise Exception, 'person is already a friend.'
+
+				user.friend_keys.append(person_key)
+				user.put()
+			except:
+				self.error(403)
+				self.response.out.write([e])
+
+class FriendsDelete(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user is None or user.setup == False:
+			self.redirect('/setup')
+		else:
+			try:
+				person_key = ndb.Key(urlsafe = self.request.get('person_url'))
+				if person_key.kind() != 'Person':
+					raise Exception, 'invalid key.'
+				if person_key not in user.friend_keys:
+					raise Exception, 'person is not a friend.'
+
+				user.friend_keys.remove(person_key)
+				user.put()
+			except:
+				self.error(403)
+				self.response.out.write([e])
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/dashboard', Dashboard),
@@ -1627,6 +1684,9 @@ application = webapp2.WSGIApplication([
 	('/listing/(.*)', ListingPage),
 	('/feedback', FeedbackPage),
 	('/get/listing', GetListing),
+	('/friends', FriendsPage),
+	('/friends/add', FriendsAdd),
+	('/friends/delete', FriendsDelete),
 
 	('/search/results', SearchResults),
 	('/user/locations/(.*)', UserLocations),
