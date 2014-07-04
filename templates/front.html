@@ -16,11 +16,6 @@
 	<script src="/scripts/sorttable.js"></script>
 	<script src="/scripts/games.js"></script>
 </head>
-<style type="text/css">
-		::-webkit-scrollbar { 
-		    display: none; 
-		}
-</style>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
 		<div class="container">
@@ -42,183 +37,70 @@
 			</div>
 		</div>
 	</div>
-	<div class="jumbotron" style="padding-top: 0px; margin-bottom 10px;">
-		<div class="jumbotron" style="height: 350px; overflow-y: scroll; padding-bottom: 10px; margin-top: 0px;	padding-top: 0px;">
-			<div class="container">
-				<h3 style="text-align: center">latest listing</h3>
-				<div id="listing">
-					<div class="listing-block">
-						<div class="row">
-							<div class="col-md-6">
-								<h4><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a></h4>
-							</div>
-							<div class="col-md-6">
-								<div class="listing-menu">
-									<ul>
-										<li><a class="btn btn-default" href="/listing/{{ listing.key.urlsafe() }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
-										<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
-									</ul>
-								</div>
-							</div>
+	<div class="jumbotron">
+		<div class="container">
+			<h1>search. trade. play.</h1>
+			<p>the best prices. the best deals. the best games.</p>
+			<p>start saving - start saving the world!</p>
+			<form class="main-search" action="/listings/search" method="get">
+				<ul>
+					<li class="main-search-text">I want to trade</li>
+					<li>
+						<div class="btn-group" data-toggle="buttons">
+							<label class="btn btn-primary active"><input name="query_type" value="seek" type="radio" checked>for</label>
+							<label class="btn btn-primary"><input name="query_type" value="own" type="radio">away</label>
 						</div>
-						<div class="row">
-							<div class="col-md-6">
-								<div class="panel panel-primary">
-									<div class="panel-heading">
-										<h3 class="panel-title">offering</h3>
-									</div>
-									{% if own_games|length %}
-									<div class="table-responsive">
-										<table class="sortable table table-bordered table-striped">
-											<thead>
-												<tr>
-													<th width="70%" style="text-align: left">title</th>
-													<th width="20%">platform</th>
-													<th class="sorttable_nosort" width="10%">picture</th>
-												</tr>
-											</thead>
-											<tbody>
-												{% for game in own_games %}
-												<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
-													<td width="70%" style="text-align: left">{{ game.title }}</td>
-													<td width="20%">{{ game.platform }}</td>
-													<td width="10%">
-														{% if game.pic %}
-														<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
-															<span class="glyphicon glyphicon-picture"></span>
-														</a>
-														{% else %}
-														n/a
-														{% endif %}
-													</td>
-												</tr>
-												{% endfor %}
-											</tbody>
-										</table>
-									</div>
-									{% else %}
-									<div class="panel-body">
-										<div class="alert alert-info">
-											no games here!
-										</div>
-									</div>
-									{% endif %}
-									{% if listing.topup > 0 %}
-									<div class="panel-footer listing-topup">
-										<div class="input-group">
-											<span class="input-group-addon">topup ${{ listing.topup }}</span>
-										</div>
-									</div>
-									{% endif %}
-								</div>
-							</div>
-							<div class="col-md-6">
-								<div class="panel panel-primary">
-									<div class="panel-heading">
-										<h3 class="panel-title">requesting</h3>
-									</div>
-									{% if seek_games|length %}
-									<div class="table-responsive">
-										<table class="sortable table table-bordered table-striped">
-											<thead>
-												<tr>
-													<th width="70%" style="text-align: left">title</th>
-													<th width="20%">platform</th>
-													<th class="sorttable_nosort" width="10%">picture</th>
-												</tr>
-											</thead>
-											<tbody>
-												{% for game in seek_games %}
-												<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
-													<td width="70%" style="text-align: left">{{ game.title }}</td>
-													<td width="20%">{{ game.platform }}</td>
-													<td width="10%">
-														{% if game.pic %}
-														<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
-															<span class="glyphicon glyphicon-picture"></span>
-														</a>
-														{% else %}
-														n/a
-														{% endif %}
-													</td>
-												</tr>
-												{% endfor %}
-											</tbody>
-										</table>
-									</div>
-									{% else %}
-									<div class="panel-body">
-										<div class="alert alert-info">
-											no games here!
-										</div>
-									</div>
-									{% endif %}
-									{% if listing.topup < 0 %}
-									<div class="panel-footer listing-topup">
-										<div class="input-group">
-											<span class="input-group-addon">topup ${{ -listing.topup }}</span>
-										</div>
-									</div>
-									{% endif %}
-								</div>
-							</div>
-						</div>
-						<h4>description</h4>
-						<p>{{ listing.description or 'none' }}</p>
-					</div>
-				</div>
-			</div>
+					</li>
+					<li><input name="title" type="text" class="form-control" placeholder="game title"></li>
+					<li class="main-search-text">on</li>
+					<li>
+						<select name="platform" class="form-control">
+							<option>PC</option>
+							<option>Mac</option>
+							<option>PS4</option>
+							<option>Xbox One</option>
+							<option>Wii U</option>
+							<option>PS3</option>
+							<option>Xbox 360</option>
+							<option>Wii</option>
+							<option>PS Vita</option>
+							<option>3DS</option>
+							<option>PSP</option>
+							<option>DS</option>
+							<option>Other</option>
+						</select>
+					</li>
+					<li>
+						<button type="submit" class="btn btn-default">
+							<span class="glyphicon glyphicon-search"></span>
+						</button>
+					</li>
+				</ul>
+			</form>
 		</div>
-	</div> 
+	</div>
 	<div class="container">
 		<div class="row">
 			<div class="col-md-4">
 				<h2>search</h2>
-				<p>It's never been easier to save money on games! Just finished a game and want to trade it for the latest, hottest games? Browse the newest listings and get what you want!</p>
+				<p>It's never been easier to save money on games! Finished a game and want to trade it for the hottest games? Browse the latest listings and get what you want!</p>
+				<p><a class="btn btn-default" href="/listings/recent">View recent listings &raquo;</a></p>
 			</div>
 			<div class="col-md-4">
 				<h2>trade</h2>
 				<p>Less travelling, more playing! Trade with other gamers near your home, school, or office. You might even make new friends to share games with!</p>
+				<p><a class="btn btn-default" href="#">Search listings &raquo;</a></p>
 			</div>
 			<div class="col-md-4">
 				<h2>play</h2>
 				<p>Save time and money so you can play more - for less! No more bumping threads in buy/sell forums. Just create a listing - it's that simple!</p>
+				<p><a class="btn btn-default" href="/dashboard">Sign up now &raquo;</a></p>
 			</div>
-		</div>
-		<hr>
-		<div>
-
 		</div>
 		<hr>
 		<footer>
 			<p>&copy; maphack 2014</p>
 		</footer>
 	</div>
-	<script>
-
-		function getListing() {
-			console.log('lets go');
-			$.ajax({
-				type: 'GET',
-				url: '/get/listing',
-				success: function(data, textStatus, jqXHR) {
-					console.log(data);
-					console.log(textStatus);
-					console.log(jqXHR);
-
-					$('#listing').fadeOut("slow", function(){
-						$('#listing').html(data);
-						$('#listing').fadeIn("slow");
-					});			
-				}
-			});
-		}
-
-		$(document).ready(function() {
-			setInterval(function () {
-				getListing()
-			}, 10000);
-		});
-	</script>
 </body>
 </html>
