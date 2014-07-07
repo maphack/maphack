@@ -4,6 +4,7 @@ import ndbpager
 import os
 import webapp2
 import json
+from google.appengine.api import mail
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from math import radians, cos, sin, asin, sqrt
@@ -18,6 +19,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 DISPLAY_PIC = '/images/display_pic.png'
 
 COUNTRY_CODES = ['AF', 'AD', 'AE', 'AG', 'AI', 'AL', 'AM', 'AN', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BM', 'BN', 'BO', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 'HM', 'HN', 'HR', 'HT', 'HU', 'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'ST', 'SV', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW']
+
+ADMIN_MAIL = 'developer.maph4ck@gmail.com'
 
 # Datastore definitions
 class Person(ndb.Model):
@@ -63,6 +66,7 @@ class Listing(ndb.Model):
 	topup = ndb.IntegerProperty(default = 0)
 	description = ndb.TextProperty(indexed = False)
 	comment_keys = ndb.KeyProperty(repeated = True, indexed = False)
+	subscriber_keys = ndb.KeyProperty(repeated = True, indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Comment(ndb.Model):
@@ -180,7 +184,7 @@ def jsonify(query):
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
-		if users.get_current_user()
+		if users.get_current_user():
 			self.redirect('/dashboard')
 		else:
 			template = JINJA_ENVIRONMENT.get_template('front.html')
@@ -262,6 +266,11 @@ class Setup(webapp2.RequestHandler):
 					self.response.out.write(error)
 				else:
 					user.put()
+					mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+					to="%s <%s>" %(user.name, user.email),
+					subject="Welcome to maph4ck, %s!" %user.name,
+					body="""Hello, %s! Thank you for signing up at maph4ck. We hope you will enjoy your stay. Please look at the FAQ if you have any doubts.
+					""" % user.name)
 
 					self.response.out.write('setup complete.')
 		else:
@@ -1331,7 +1340,7 @@ class ListingsSearchMap(webapp2.RequestHandler):
 
 class ListingPage(webapp2.RequestHandler):
 	def get(self, listing_url):
-		if users.get_current_user();
+		if users.get_current_user():
 			user = ndb.Key('Person', users.get_current_user().user_id()).get()
 			if user and user.setup:
 				try:
@@ -1433,6 +1442,18 @@ class ListingComment(webapp2.RequestHandler):
 				comment.put()
 
 				listing.comment_keys.append(comment.key)
+
+				for key in listing.subscriber_keys:
+					subscriber = key.get()
+					if subscriber is not user:
+						mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+										to="%s <%s>" %(subscriber.name, subscriber.email),
+										subject="New comment posted",
+										body="""%s has posted a new comment at http://maph4cktest.appspot.com/listing/%s:\n\n%s
+										""" % (user.name, listing.key.urlsafe(), comment.content) )
+
+				if user.key not in listing.subscriber_keys:
+					listing.subscriber_keys.append(user.key)
 				listing.put()
 
 				template_values = {
