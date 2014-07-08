@@ -22,6 +22,8 @@ COUNTRY_CODES = ['AF', 'AD', 'AE', 'AG', 'AI', 'AL', 'AM', 'AN', 'AO', 'AQ', 'AR
 
 ADMIN_MAIL = 'developer.maph4ck@gmail.com'
 
+MAX_STR_LEN = 500
+
 # Datastore definitions
 class Person(ndb.Model):
 	# Key: person id
@@ -70,9 +72,19 @@ class Listing(ndb.Model):
 	date = ndb.DateTimeProperty(auto_now_add = True)
 
 class Comment(ndb.Model):
-	owner_key = ndb.KeyProperty(indexed = False)
+	owner_key  = ndb.KeyProperty(indexed = False)
 	content = ndb.StringProperty(indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
+
+class Message(ndb.Model):
+	content = ndb.StringProperty(indexed = False)
+	date = ndb.DateTimeProperty(auto_now_add = True)
+
+class Conversation(ndb.Model):
+	person_keys = ndb.KeyProperty(repeated = True)
+	messages = ndb.StructuredProperty(Message, repeated = True)
+	num_unread = ndb.IntegerProperty(indexed = False, repeated = True)
+	date = ndb.DateTimeProperty()
 
 class Feedback(ndb.Model):
 	owner_key = ndb.KeyProperty(indexed = False)
@@ -1624,6 +1636,100 @@ class UserLocations(webapp2.RequestHandler):
 			except:
 				self.redirect('/')
 
+class ConversationsPage(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			conversations = ndb.gql('SELECT * '
+				'FROM Conversation '
+				'WHERE ANCESTOR IS :1 ',
+				user.key)
+
+			template_values = {
+						'user': user,
+						'conversations': conversations,
+					}
+			template = JINJA_ENVIRONMENT.get_template('conversations.html')
+			self.response.out.write(template.render(template_values))
+		else:
+			self.redirect('/setup')
+
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			jdata = json.loads(self.request.body)
+			person_urls = jdata['person_urls']
+
+			qry = Conversation.query(Conversation.person_keys == user.key)
+			person_keys = None
+			for person_url in person_urls:
+				person_keys.append(ndb.Key(urlsafe = person_url))
+				if person_key.kind() != 'Person':
+					raise Exception, 'invalid key.'
+				if person_key == user.key:
+					raise Exception, 'you cannot add yourself to conversation.'
+				if not person_key.get():
+					raise Exception, 'no such person.'
+
+				qry = qry.filter(Conversation.person_keys == person_key)
+
+			if qry:
+				conversation = qry.fetch(1)
+			else:
+				conversation = Conversation()
+				conversation.person_keys.append(user.key)
+				for person_key in person_keys:
+					conversation.person_keys.append(person_key)
+
+				conversation.num_unread = [0] * len(person_keys)
+
+			message = Message()
+			message.content = self.request.get('message').rstrip()
+			if not message.content:
+				raise Exception, 'message cannot be empty.'
+			if len(message) > MAX_STR_LEN:
+				raise Exception, 'message exceeds max length.'
+			conversation.messages.append(message)
+
+			for counter, person_key in enumerate(person_keys):
+				if person_key == user.key:
+					num_unread[counter] = 0
+				else:
+					num_unread[counter] += 1
+
+			conversation.date = message.date
+			conversation.put()
+
+			self.response.out.write('message sent.')
+		else:
+			self.redirect('/setup')
+
+class MarkAsRead(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			self.redirect('/conversations')
+		else:
+			self.redirect('/setup')
+	def post(self, conversation_url):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			conversation_key = ndb.Key(urlsafe = conversation_url)
+			if conversation_key.kind() != 'Conversation':
+				raise Exception, 'invalid key.'
+			conversation = conversation_key.get()
+			if conversation is None:
+				raise Exception, 'no such conversation.'
+			if user.key not in conversation.person_keys:
+				raise Exception, 'access denied.'
+			
+			conversation.num_unread[conversation.person_keys.index(user.key)] = 0
+			conversation.put()
+
+			self.response.out.write('conversation read.')
+		else:
+			self.redirect('/setup')
+
 class FeedbackPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
@@ -1736,6 +1842,19 @@ class SearchResults(webapp2.RequestHandler):
 		else:
 			self.redirect('/setup')
 
+class FAQ(webapp2.RequestHandler):
+	def get(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			template_values = {
+				'user': user,
+				'logout': users.create_logout_url(self.request.host_url),
+			}
+			template = JINJA_ENVIRONMENT.get_template('faq.html')
+			self.response.out.write(template.render(template_values))
+		else:
+			self.redirect('/setup')
+
 application = webapp2.WSGIApplication([
 	('/', MainPage),
 	('/setup', Setup),
@@ -1766,7 +1885,9 @@ application = webapp2.WSGIApplication([
 	('/listing/(.*)', ListingPage),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
+	('/conversations', ConversationsPage),
 	('/feedback', FeedbackPage),
+	('/faq', FAQ),
 
 	('/get/listing', GetListing),
 	('/search/results', SearchResults),

@@ -3,11 +3,8 @@
 <div class="page-header">
 	<h1>setup</h1>
 </div>
-<div id="alerts">
-	<div class="alert alert-info">
-		please set up your profile before continuing to use maphack.
-	</div>
-</div>
+<div id="setup" class="alert alert-info">please set up your profile before continuing to use maphack.</div>
+<div id="alerts"></div>
 <form id="form" class="form-horizontal" role="form">
 	<div class="form-group">
 		<label for="name" class="col-sm-2 control-label">display name</label>
@@ -355,6 +352,15 @@
 		if (error) {
 			$('#form :input').prop('disabled', false);
 		}
+	});
+
+	$('a').click(function(event) {
+		event.preventDefault();
+
+		$('#setup').fadeOut("slow", function(){
+			$('#setup').replaceWith('<div id="setup" class="alert alert-danger">please set up your profile before continuing to use maphack.</div>');
+			$('#setup').fadeIn("slow");
+		});
 	});
 </script>
 {% endblock %}
