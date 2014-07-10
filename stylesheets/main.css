@@ -13,7 +13,6 @@
 	padding-left: 0 !important;
 }
 
-
 .main-search > ul > li {
 	list-style: none;
 	float: left;
@@ -75,6 +74,11 @@
 
 .top-pad-ten {
 	margin-top: 10px;
+}
+
+.answer-block {
+	padding-top: 20px;
+	padding-bottom: 30px;
 }
 
 input[type=number]::-webkit-inner-spin-button, 

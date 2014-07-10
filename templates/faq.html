@@ -1,32 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
-What is maph4ck?
-maph4ck is a site where users can trade the games they no longer want for the games that they need. Users can look for trades at places convenient to them by viewing their locations on our map.
 
-How do I buy/sell/trade my game(s)?
-Add the games you own and want to trade away to your inventory.
-Add the games you want other people to trade to you to your playlist.
-Put up listings that tell others what trades you want to make (e.g. Battlefield and Call of Duty for Destiny and $10).
+<h2>Frequently Asked Questions</h2><br>
 
-What is a listing?
-A listing is a user selection of games that the user wants to trade for/away (e.g. Battlefield and Call of Duty for Destiny and $10).
-Listings are publicly viewable. Other users can search for listings, comment and view the user's profile page.
+<a href="#whatismaph4ck">What is maph4ck?</a><br>
+<a href="#howdoitrade">How do I buy/sell/trade my game(s)?</a><br>
+<a href="#whatislisting">What is a listing?</a><br>
+<a href="#profilepage">What appears on my personal profile page?</a><br>
+<a href="#inventoryplaylist">What is the inventory/playlist? Why should I add games to them?</a><br>
+<a href="#locations">What are locations for?</a><br>
+<a href="#howcontact">How do I contact you?</a><br><br>
 
-What appears on my personal profile page?
-Your profile page at http://maph4ck.appspot.com/users/&lt;userid&gt; is public and will contain the following:
-Your country.
-Your bio.
-Your trading locations.
-Games in your inventory/playlist.
-Your contact information can only be viewed by a logged in maph4ck user.
-
-What is the inventory/playlist? Why should I add games to them?
-Your inventory keeps track of games that you have and want to trade away; your playlist keeps track of games that you want to trade for. By adding games to your inventory/playlist, other users can make you trade offers without having to ask you whether you'd be interested in certain games.
-
-What are locations for?
-Locations represent the places where you are willing to meet other users to trade. They let users determine if it is convenient to trade with you. Your locations will also be made publicly available so that users who are not logged in can determine if it is convenient to trade with you.
-
-How do I contact?
-For feedback regarding maph4ck, please use the feedback page found at the menu bar. For other enquiries, feel free to send an email to developer.maph4ck[at]gmail.com.
-
+<div id="whatismaph4ck" class="answer-block jumbotron">
+	<h4>What is maph4ck?</h4>
+	maph4ck is a site where users can trade the games they no longer want for the games that they need. Users can look for trades at places convenient to them by viewing their locations on our map.
+</div>
+<div id="howdoitrade" class="answer-block jumbotron">
+	<h4>How do I buy/sell/trade my game(s)?</h4>
+	Add the games you own and want to trade away to your inventory.
+	Add the games you want other people to trade to you to your playlist.
+	Put up listings that tell others what trades you want to make (e.g. Battlefield and Call of Duty for Destiny and $10).
+</div>
+<div id="whatislisting" class="answer-block jumbotron">
+	<h4>What is a listing?</h4>
+	A listing is a user selection of games that the user wants to trade for/away (e.g. Battlefield and Call of Duty for Destiny and $10).
+	Listings are publicly viewable. Other users can search for listings, comment and view the user's profile page.
+</div>
+<div id="profilepage" class="answer-block jumbotron">
+	<h4>What appears on my personal profile page?</h4>
+	Your profile page at http://maph4ck.appspot.com/users/&lt;userid&gt; is public and will contain the following:
+	Your country.
+	Your bio.
+	Your trading locations.
+	Games in your inventory/playlist.
+	Your contact information can only be viewed by a logged in maph4ck user.
+</div>
+<div id="inventoryplaylist" class="answer-block jumbotron">
+	<h4>What is the inventory/playlist? Why should I add games to them?</h4>
+	Your inventory keeps track of games that you have and want to trade away; your playlist keeps track of games that you want to trade for. By adding games to your inventory/playlist, other users can make you trade offers without having to ask you whether you'd be interested in certain games.
+</div>
+<div id="locations" class="answer-block jumbotron">
+	<h4>What are locations for?</h4>
+	Locations represent the places where you are willing to meet other users to trade. They let users determine if it is convenient to trade with you. Your locations will also be made publicly available so that users who are not logged in can determine if it is convenient to trade with you.
+</div>
+<div id="howcontact" class="answer-block jumbotron">
+	<h4>How do I contact you?</h4>
+	For feedback regarding maph4ck, please use the feedback page found at the navigation bar. For other enquiries, feel free to send an email to developer.maph4ck[at]gmail.com!
+</div>
+<script>
+	$('#nav-faq').addClass("active");
+</script>
 {% endblock %}
