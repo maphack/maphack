@@ -1655,6 +1655,7 @@ class ConversationsPage(webapp2.RequestHandler):
 
 			template_values = {
 						'user': user,
+						'logout': users.create_logout_url(self.request.host_url),
 						'conversations': conversations,
 					}
 			template = JINJA_ENVIRONMENT.get_template('conversations.html')

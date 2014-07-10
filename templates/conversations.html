@@ -100,7 +100,6 @@ var userName = '{{ user.name }}';
 	{% for name in names %}
 		if ('{{ name }}' != userName) {
 			nameList.push('{{ name }}');
-			console.log('{{ name }}');
 		}
 	{% endfor %}
 	nameLists.push(nameList);
