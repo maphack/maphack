@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div name="newmessage">
+	<h3>new message</h3>
+	<form id="form" class="form-horizontal" role="form">
+		<div class="form-group">
+			<label for="name" class="col-sm-2 control-label">names</label>
+			<div class="col-sm-10">
+				<div class="input-group">
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-envelope"></span>
+					</span>
+					<!--
+					<select id="friend" class="form-control">
+						{% for friend in friends %}
+						<option value="{{ friend.key.urlsafe() }}">{{ friend.name }}</option>
+						{% endfor %}
+					</select>
+					!-->
+					<input id="names" type="text" class="form-control" placeholder="Type in the names of the people you want to message, with a space in between">
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<label for="message" class="col-sm-2 control-label">message</label>
+			<div class="col-sm-10">	
+				<div class="input-group">
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-italic"></span>
+					</span>
+					<textarea id="message" class="form-control" rows="2" placeholder="Type your message here"></textarea>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button id="submit" type="button" class="btn btn-default">send</button>
+			</div>
+		</div>
+	</form>
+</div>
+<div id="alerts" style="padding-bottom: 40px">
+</div>
+<div name="existing">
+	<h3>existing conversations</h3><br>
+	<div class="panel-group" id="accordion">
+	{% for conversation, messages, names in conversations %}
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h4 class="panel-title">
+				participants: {% for name in names %}{{ name }} {% endfor %}
+					<a class="btn" data-toggle="collapse" data-parent="#accordion" href="#conversation{{ loop.index0 }}">
+						<span class="glyphicon glyphicon glyphicon-eye-open"></span>
+					</a>
+				</h4>
+			</div>
+			<div id="conversation{{ loop.index0 }}" class="panel-collapse collapse">
+				<div class="panel-body">
+					{% for message in messages %}
+						<div class="col-md-1" style="padding-top: 15px">{{ message.owner }}: </div>
+						<div class="col-md-11">
+							<div class="panel panel-default">
+								<div class="panel-body" title="{{ message.date.strftime('%c') }}">{{ message.content }}</div>
+							</div>
+						</div>
+					{% endfor %}
+					<form id="form{{ loop.index0 }}" class="form-horizontal" role="form">
+						<div class="form-group">
+							<label for="message" class="col-sm-2 control-label">message</label>
+							<div class="col-sm-10">	
+								<div class="input-group">
+									<span class="input-group-addon">
+										<span class="glyphicon glyphicon-italic"></span>
+									</span>
+									<textarea id="message{{ loop.index0 }}" class="form-control" rows="2" placeholder="Type your message here"></textarea>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<div class="col-sm-offset-2 col-sm-10">
+								<button id="submit{{ loop.index0 }}"type="button" class="btn btn-default submit" value="{{ names }}">send</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div id="alerts{{ loop.index0 }}" style="margin-bottom: 5px">
+		</div>
+	{% endfor %}
+	</div>
+</div>
+<script>
+// initialize an array that stores the names of the users involved in each conversation
+var nameLists = [];
+var userName = '{{ user.name }}';
+{% for conversation, messages, names in conversations %}
+	var nameList = [];
+	{% for name in names %}
+		if ('{{ name }}' != userName) {
+			nameList.push('{{ name }}');
+			console.log('{{ name }}');
+		}
+	{% endfor %}
+	nameLists.push(nameList);
+{% endfor %}
+
+	$('#submit').click(function(event) {
+		clearAlerts();
+		$('#form :input').prop('disabled', true);
+
+		var namesraw = $('#names').val().trim();
+		var message = $('#message').val().trim();
+		var names = namesraw.split(" ");
+
+		var error;
+		if (!namesraw) {
+			$('#name').val(name);
+			$('#alerts').append(alertBootstrap('danger', 'there must be at least one recipient.'));
+			error = true;
+		} else if (!message) {
+			$('#message').val(message);
+			$('#alerts').append(alertBootstrap('danger', 'message cannot be empty.'));
+			error = true;
+		} else {
+			var message = {
+				person_urls: [],
+				names: names,
+				message: message,
+			};
+
+			$.ajax({
+				type: 'POST',
+				url: '/conversations',
+				data: JSON.stringify(message),
+				contentType: 'application/json',
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'message sent.'));
+					alertTimeout(5000);
+
+					$('#form')[0].reset();
+					$('#form :input').prop('disabled', false);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					$('#form :input').prop('disabled', false);
+
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+
+					var error = jqXHR.responseText;
+					$('#alerts').append(alertBootstrap('danger', error));
+
+				}
+			});
+		}
+
+		if (error) {
+			$('#form :input').prop('disabled', false);
+		}
+	});
+
+	$('.submit').click(function(event) {
+		clearAlerts();		
+		$('.form :input').prop('disabled', true);
+
+		// clear the green alerts	
+		$('.alert-success.alert-dismissible').fadeTo(500, 0).slideUp(500, function() {
+			$(this).remove();
+		});
+
+		// extract the number from the button id
+		var index = this.id.replace( /^\D+/g, '');
+		
+		var message = $('#message' + index).val().trim();
+		var names = nameLists[index];
+		console.log(names);
+		var name = names[0];
+		console.log(name);
+
+		var error;
+		if (!message) {
+			$('#message' + index).val(message);
+			$('#alerts' + index).append(alertBootstrap('danger', 'message cannot be empty.'));
+			error = true;
+		} else {
+			var message = {
+				person_urls: [],
+				names: names,
+				message: message,
+			};
+
+			$.ajax({
+				type: 'POST',
+				url: '/conversations',
+				data: JSON.stringify(message),
+				contentType: 'application/json',
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts' + index).append(alertBootstrap('success', 'message sent.'));
+					setTimeout(function(){
+						$('#alerts' + index).children('.alert-success:first-child').fadeTo(500, 0).slideUp(500, function() {
+							$(this).remove();
+						});
+					}, 5000);
+
+					$('#form' + index)[0].reset();
+					$('#form' + index + ':input').prop('disabled', false);
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts' + index).append(alertBootstrap('danger', errors[i]));
+					}
+				}
+			});
+		}
+
+		if (error) {
+			$('#form :input').prop('disabled', false);
+		}
+	});
+</script>
+<script>
+	$('#nav-conversations').addClass("active");
+</script>
+{% endblock %}

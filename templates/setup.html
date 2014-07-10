@@ -285,13 +285,13 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="contact" class="col-sm-2 control-label">contact information</label>
+		<label for="contact" class="col-sm-2 control-label">contact number</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-phone"></span>
 				</span>
-				<input id="contact" type="text" class="form-control" placeholder="mobile no. or e-mail">
+				<input id="contact" type="text" class="form-control" placeholder="mobile no.">
 			</div>
 		</div>
 	</div>
@@ -344,7 +344,7 @@
 						$('#alerts').append(alertBootstrap('danger', errors[i]));
 					}
 
-					error = true;
+					$('#form :input').prop('disabled', false);
 				}
 			});
 		}
@@ -354,7 +354,7 @@
 		}
 	});
 
-	$('a').click(function(event) {
+	$('a[href$=logout]').click(function(event) {
 		event.preventDefault();
 
 		$('#setup').fadeOut("slow", function(){

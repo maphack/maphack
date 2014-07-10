@@ -79,9 +79,12 @@ class Comment(ndb.Model):
 class Message(ndb.Model):
 	content = ndb.StringProperty(indexed = False)
 	date = ndb.DateTimeProperty(auto_now_add = True)
+	owner = ndb.StringProperty()
 
 class Conversation(ndb.Model):
+	num_pple = ndb.IntegerProperty()
 	person_keys = ndb.KeyProperty(repeated = True)
+	subscriber_keys = ndb.KeyProperty(repeated = True)
 	messages = ndb.StructuredProperty(Message, repeated = True)
 	num_unread = ndb.IntegerProperty(indexed = False, repeated = True)
 	date = ndb.DateTimeProperty()
@@ -161,6 +164,13 @@ def listing_all(listing):
 
 def listing_with_games(listing):
 	return listing, ndb.get_multi(listing.own_keys), ndb.get_multi(listing.seek_keys)
+
+def conversation_with_messages(conversation):
+	people = ndb.get_multi(conversation.person_keys)
+	names = []
+	for person in people:
+		names.append(person.name)
+	return conversation, conversation.messages, names
 
 def haversine(lat1, lon1, lat2, lon2):
     '''
@@ -1460,7 +1470,7 @@ class ListingComment(webapp2.RequestHandler):
 					if subscriber is not user:
 						mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
 										to="%s <%s>" %(subscriber.name, subscriber.email),
-										subject="New comment posted",
+										subject="New comment posted by %s" %user.name,
 										body="""%s has posted a new comment at http://maph4cktest.appspot.com/listing/%s:\n\n%s
 										""" % (user.name, listing.key.urlsafe(), comment.content) )
 
@@ -1640,10 +1650,8 @@ class ConversationsPage(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user and user.setup:
-			conversations = ndb.gql('SELECT * '
-				'FROM Conversation '
-				'WHERE ANCESTOR IS :1 ',
-				user.key)
+			conversations = Conversation.query(Conversation.person_keys == user.key).order(-Conversation.date)
+			conversations = conversations.map(conversation_with_messages)
 
 			template_values = {
 						'user': user,
@@ -1657,50 +1665,71 @@ class ConversationsPage(webapp2.RequestHandler):
 	def post(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
 		if user and user.setup:
-			jdata = json.loads(self.request.body)
-			person_urls = jdata['person_urls']
+			try:
+				jdata = json.loads(self.request.body)
+				names = jdata['names']
+				content = jdata['message']
 
-			qry = Conversation.query(Conversation.person_keys == user.key)
-			person_keys = None
-			for person_url in person_urls:
-				person_keys.append(ndb.Key(urlsafe = person_url))
-				if person_key.kind() != 'Person':
-					raise Exception, 'invalid key.'
-				if person_key == user.key:
-					raise Exception, 'you cannot add yourself to conversation.'
-				if not person_key.get():
-					raise Exception, 'no such person.'
+				qry = Conversation.query(Conversation.person_keys == user.key)
 
-				qry = qry.filter(Conversation.person_keys == person_key)
+				person_keys = []
+				for name in names:
+					person = Person.query(Person.name == name).get()
+					if not person:
+						raise Exception, 'the person %s does not exist.' %name
+					person_key = person.key
+					if person_key.kind() != 'Person':
+						raise Exception, 'invalid key.'
+					if person_key == user.key:
+						raise Exception, 'you cannot message yourself.'
+					person_keys.append(person_key)
 
-			if qry:
-				conversation = qry.fetch(1)
-			else:
-				conversation = Conversation()
-				conversation.person_keys.append(user.key)
-				for person_key in person_keys:
-					conversation.person_keys.append(person_key)
+					qry = qry.filter(Conversation.person_keys == person_key)
 
-				conversation.num_unread = [0] * len(person_keys)
+				qry = qry.filter(Conversation.num_pple == len(person_keys) + 1)
 
-			message = Message()
-			message.content = self.request.get('message').rstrip()
-			if not message.content:
-				raise Exception, 'message cannot be empty.'
-			if len(message) > MAX_STR_LEN:
-				raise Exception, 'message exceeds max length.'
-			conversation.messages.append(message)
+				conversation = qry.get()
+				if conversation is None:
+					conversation = Conversation()
+					conversation.num_pple = len(person_keys) + 1
+					conversation.person_keys.append(user.key)
+					for person_key in person_keys:
+						conversation.person_keys.append(person_key)
+						conversation.subscriber_keys.append(person_key)
 
-			for counter, person_key in enumerate(person_keys):
-				if person_key == user.key:
-					num_unread[counter] = 0
-				else:
-					num_unread[counter] += 1
+					conversation.num_unread = [0] * (len(person_keys) + 1)
 
-			conversation.date = message.date
-			conversation.put()
+				message = Message()
+				message.content = content
+				message.owner = user.name
+				if not message.content:
+					raise Exception, 'message cannot be empty.'
+				if len(content) > MAX_STR_LEN:
+					raise Exception, 'message exceeds max length.'
+				conversation.messages.append(message)
 
-			self.response.out.write('message sent.')
+				for counter, person_key in enumerate(person_keys):
+					if person_key == user.key:
+						conversation.num_unread[counter] = 0
+					else:
+						conversation.num_unread[counter] += 1
+				message.put()
+				conversation.date = message.date
+				conversation.put()
+
+				for key in conversation.subscriber_keys:
+					subscriber = key.get()
+					if subscriber is not user:
+						mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+										to="%s <%s>" %(subscriber.name, subscriber.email),
+										subject="New private message from %s" %user.name,
+										body="""%s has sent you a private message:\n\n%s
+										""" % (user.name, message.content) )
+
+				self.response.out.write('message sent.')
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
 		else:
 			self.redirect('/setup')
 
@@ -1755,6 +1784,11 @@ class FeedbackPage(webapp2.RequestHandler):
 				if len(feedback.content) > 500:
 					raise Exception, 'feedback exceeds 500 characters.'
 				feedback.put()
+				mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+										to="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+										subject="Feedback received from %s (%s)" %(user.name, user.email),
+										body="""%s has sent feedback:\n\n%s
+										""" % (user.name, feedback.content) )
 			except Exception, e:
 				self.error(403)
 				self.response.out.write([e])
