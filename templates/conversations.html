@@ -45,15 +45,16 @@
 <div name="existing">
 	<h3>existing conversations</h3><br>
 	<div class="panel-group" id="accordion">
-	{% for conversation, messages, names in conversations %}
+	{% for conversation, messages, people in conversations %}
 		<div class="panel panel-default">
 			<div class="panel-heading">
-				<h4 class="panel-title">
-					participants: {% for name in names %}{{ name }} {% endfor %}
-					<a class="btn" data-toggle="collapse" data-parent="#accordion" href="#conversation{{ loop.index0 }}">
+				<div class="col-md-11">
+					participants: {% for person in people %}<a class="btn btn-default" href="/user/{{ person.key.urlsafe() }}">{{ person.name }}</a> {% endfor %}
+				</div>
+					<a class="btn" data-toggle="collapse" data-parent="#accordion" href="#conversation{{ loop.index0 }}" style="color: #555555">
 						<span class="glyphicon glyphicon glyphicon-eye-open"></span>
 					</a>
-				</h4>
+					<div style="padding-left: 15px; padding-top: 10px">{{ messages[messages|length - 1].owner }}: {{ messages[messages|length - 1].content }}</div>
 			</div>
 			<div id="conversation{{ loop.index0 }}" class="panel-collapse collapse">
 				<div class="panel-body">
@@ -95,11 +96,11 @@
 // initialize an array that stores the names of the users involved in each conversation
 var nameLists = [];
 var userName = '{{ user.name }}';
-{% for conversation, messages, names in conversations %}
+{% for conversation, messages, people in conversations %}
 	var nameList = [];
-	{% for name in names %}
-		if ('{{ name }}' != userName) {
-			nameList.push('{{ name }}');
+	{% for person in people %}
+		if ('{{ person.name }}' != userName) {
+			nameList.push('{{ person.name }}');
 		}
 	{% endfor %}
 	nameLists.push(nameList);
@@ -218,11 +219,9 @@ var userName = '{{ user.name }}';
 					console.log(jqXHR);
 					console.log(textStatus);
 					console.log(errorThrown);
-					var errors = eval(jqXHR.responseText);
 
-					for (var i = 0; i < errors.length; i++) {
-						$('#alerts' + index).append(alertBootstrap('danger', errors[i]));
-					}
+					var error = jqXHR.responseText;
+					$('#alerts').append(alertBootstrap('danger', error));
 				}
 			});
 		}

@@ -167,10 +167,8 @@ def listing_with_games(listing):
 
 def conversation_with_messages(conversation):
 	people = ndb.get_multi(conversation.person_keys)
-	names = []
-	for person in people:
-		names.append(person.name)
-	return conversation, conversation.messages, names
+
+	return conversation, conversation.messages, people
 
 def haversine(lat1, lon1, lat2, lon2):
     '''
@@ -277,6 +275,8 @@ class Setup(webapp2.RequestHandler):
 					user.name = self.request.get('name').rstrip()
 					if not user.name:
 						raise Exception, 'display name cannot be empty.'
+					if len(user.name) > 20:
+						raise Exception, 'display name cannot exceed 20 characters.'
 					qry = Person.query(Person.name == user.name)
 					if qry.count():
 						raise Exception, 'display name is already taken.'
@@ -387,6 +387,8 @@ class ProfileEdit(webapp2.RequestHandler):
 					user.name = self.request.get('name').rstrip()
 					if not user.name:
 						raise Exception, 'display name cannot be empty.'
+					if len(user.name) > 20:
+						raise Exception, 'display name cannot exceed 20 characters.'
 					qry = Person.query(Person.name == user.name)
 					if qry.count():
 						raise Exception, 'display name is already taken.'
@@ -445,7 +447,7 @@ class FriendsAdd(webapp2.RequestHandler):
 				if person_key.kind() != 'Person':
 					raise Exception, 'invalid key.'
 				if person_key == user.key:
-					raise Exception, 'forever alone.'
+					raise Exception, 'you cannot add yourself as a friend.'
 				if person_key in user.friend_keys:
 					raise Exception, 'person is already a friend.'
 				person = person_key.get()
@@ -454,9 +456,9 @@ class FriendsAdd(webapp2.RequestHandler):
 
 				user.friend_keys.append(person_key)
 				user.put()
-			except:
+			except Exception, e:
 				self.error(403)
-				self.response.out.write([e])
+				self.response.out.write(e)
 		else:
 			self.redirect('/setup')
 
@@ -1497,9 +1499,6 @@ class UserPage(webapp2.RequestHandler):
 			person_key = ndb.Key(urlsafe = person_url)
 			if person_key.kind() != 'Person':
 				raise Exception, 'invalid key.'
-
-			if person_key == user.key:
-				raise Exception, 'same user.'
 
 			person = person_key.get()
 			if person is None:
