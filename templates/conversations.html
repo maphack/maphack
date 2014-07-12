@@ -9,7 +9,7 @@
 			<div class="col-sm-10">
 				<div class="input-group">
 					<span class="input-group-addon">
-						<span class="glyphicon glyphicon-envelope"></span>
+						<span class="glyphicon glyphicon-th-list"></span>
 					</span>
 					<!--
 					<select id="friend" class="form-control">
@@ -43,18 +43,40 @@
 <div id="alerts" style="padding-bottom: 40px">
 </div>
 <div name="existing">
-	<h3>existing conversations</h3><br>
+	<h3>your conversations</h3><br>
 	<div class="panel-group" id="accordion">
 	{% for conversation, messages, people in conversations %}
 		<div class="panel panel-default">
 			<div class="panel-heading">
-				<div class="col-md-11">
+				<div class="col-md-10" style="margin-right: 25px">
 					participants: {% for person in people %}<a class="btn btn-default" href="/user/{{ person.key.urlsafe() }}">{{ person.name }}</a> {% endfor %}
 				</div>
+				<span class="conversation-menu">
 					<a class="btn" data-toggle="collapse" data-parent="#accordion" href="#conversation{{ loop.index0 }}" style="color: #555555">
 						<span class="glyphicon glyphicon glyphicon-eye-open"></span>
 					</a>
-					<div style="padding-left: 15px; padding-top: 10px"><b>{{ messages[messages|length - 1].owner }}</b>: {{ messages[messages|length - 1].content }}</div>
+					{% if user.key in conversation.subscriber_keys %}
+					<span id="sub-div{{ loop.index0 }}" style="display: none">
+					{% else %}
+					<span id="sub-div{{ loop.index0 }}">
+					{% endif %}
+						<button id="sub{{ loop.index0 }}" type="button" class="btn btn-default sub" value="{{ conversation.key.urlsafe() }}">
+							<span class="glyphicon glyphicon-envelope"></span> subscribe
+						</button>
+					</span>
+					{% if user.key not in conversation.subscriber_keys %}
+					<span id="unsub-div{{ loop.index0 }}" style="display: none">
+					{% else %}
+					<span id="unsub-div{{ loop.index0 }}">
+					{% endif %}
+						<button id="unsub{{ loop.index0 }}" type="button" class="btn btn-default unsub" value="{{ conversation.key.urlsafe() }}">
+							<span class="glyphicon glyphicon-remove"></span> unsubscribe
+						</button>
+					</span>
+				</span>
+				<div style="padding-left: 15px; padding-top: 10px">
+					<b>{{ messages[messages|length - 1].owner }}</b>: {{ messages[messages|length - 1].content }}
+				</div>
 			</div>
 			<div id="conversation{{ loop.index0 }}" class="panel-collapse collapse">
 				<div class="panel-body">
@@ -93,19 +115,22 @@
 	</div>
 </div>
 <script>
-// initialize an array that stores the names of the users involved in each conversation
-var nameLists = [];
-var userName = '{{ user.name }}';
-{% for conversation, messages, people in conversations %}
-	var nameList = [];
-	{% for person in people %}
-		if ('{{ person.name }}' != userName) {
-			nameList.push('{{ person.name }}');
-		}
-	{% endfor %}
-	nameLists.push(nameList);
-{% endfor %}
+// scripts that handle the submission of messages
 
+	// initialize an array that stores the names of the users involved in each conversation
+	var nameLists = [];
+	var userName = '{{ user.name }}';
+	{% for conversation, messages, people in conversations %}
+		var nameList = [];
+		{% for person in people %}
+			if ('{{ person.name }}' != userName) {
+				nameList.push('{{ person.name }}');
+			}
+		{% endfor %}
+		nameLists.push(nameList);
+	{% endfor %}
+
+	// script for submitting a new message using the input outside of existing conversations
 	$('#submit').click(function(event) {
 		clearAlerts();
 		$('#form :input').prop('disabled', true);
@@ -165,11 +190,12 @@ var userName = '{{ user.name }}';
 		}
 	});
 
+	// script for submitting a new message within an existing conversation
 	$('.submit').click(function(event) {
-		clearAlerts();		
+		clearAlerts();
 		$('.form :input').prop('disabled', true);
 
-		// clear the green alerts	
+		// clear the green alerts
 		$('.alert-success.alert-dismissible').fadeTo(500, 0).slideUp(500, function() {
 			$(this).remove();
 		});
@@ -229,6 +255,88 @@ var userName = '{{ user.name }}';
 		if (error) {
 			$('#form :input').prop('disabled', false);
 		}
+	});
+</script>
+<script>
+// scripts for handling subbing and unsubbing to the conversations
+	$('.sub').click(function(event) {
+		clearAlerts();
+
+		// clear the green alerts
+		$('.alert-success.alert-dismissible').fadeTo(500, 0).slideUp(500, function() {
+			$(this).remove();
+		});
+
+		// extract the number from the button id
+		var index = this.id.replace( /^\D+/g, '');
+
+		var conversation_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/conversation/subscribe',
+			data: {conversation_url: conversation_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts' + index).append(alertBootstrap('success', 'successfully subscribed to this conversation.'));
+				alertTimeout(5000);
+
+				$('#sub-div' + index).hide();
+				$('#unsub-div' + index).show();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+
+				var error = jqXHR.responseText;
+				$('#alerts' + index).append(alertBootstrap('danger', error));
+			}
+		});
+	});
+
+	$('.unsub').click(function(event) {
+		clearAlerts();
+
+		// clear the green alerts	
+		$('.alert-success.alert-dismissible').fadeTo(500, 0).slideUp(500, function() {
+			$(this).remove();
+		});
+
+		// extract the number from the button id
+		var index = this.id.replace( /^\D+/g, '');
+
+		var conversation_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/conversation/unsubscribe',
+			data: {conversation_url: conversation_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts' + index).append(alertBootstrap('success', 'successfully unsubscribed from this conversation.'));
+				alertTimeout(5000);
+
+				$('#sub-div' + index).show();
+				$('#unsub-div' + index).hide();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts' + index).append(alertBootstrap('danger', errors[i]));
+				}
+			}
+		});
 	});
 </script>
 <script>

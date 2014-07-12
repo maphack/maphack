@@ -11,7 +11,31 @@
 		<div class="col-md-6">
 			<div class="listing-menu">
 				<ul>
-					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}"><span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away</a></li>
+					<li>
+						{% if user.key in listing.subscriber_keys %}
+						<span id="sub-div" style="display: none">
+						{% else %}
+						<span id="sub-div">
+						{% endif %}
+							<button id="sub" type="button" class="btn btn-default" value="{{ listing.key.urlsafe() }}">
+								<span class="glyphicon glyphicon-envelope"></span> subscribe
+							</button>
+						</span>
+						{% if user.key not in listing.subscriber_keys %}
+						<span id="unsub-div" style="display: none">
+						{% else %}
+						<span id="unsub-div">
+						{% endif %}
+							<button id="unsub" type="button" class="btn btn-default" value="{{ listing.key.urlsafe() }}">
+								<span class="glyphicon glyphicon-remove"></span> unsubscribe
+							</button>
+						</span>
+					</li>
+					<li>
+						<a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}">
+							<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away
+						</a>
+					</li>
 					<li><div class="listing-date">posted {{ listing.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
@@ -160,6 +184,7 @@
 	</form>
 </div>
 <script>
+// scripts for handling comments
 	var listing_url = '{{ listing.key.urlsafe() }}';
 
 	$('#submit').click( function(event) {
@@ -206,6 +231,72 @@
 		}
 
 		$('#form :input').prop('disabled', false);
+	});
+</script>
+<script>
+// scripts for handling subbing and unsubbing to the listing
+	$('#sub').click(function(event) {
+		clearAlerts();
+
+		var listing_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/listing/subscribe',
+			data: {listing_url: listing_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts').append(alertBootstrap('success', 'successfully subscribed to this listing.'));
+				alertTimeout(5000);
+
+				$('#sub-div').hide();
+				$('#unsub-div').show();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+
+				var error = jqXHR.responseText;
+				$('#alerts').append(alertBootstrap('danger', error));
+			}
+		});
+	});
+
+	$('#unsub').click(function(event) {
+		clearAlerts();
+
+		var listing_url = $(this).attr('value');
+
+		$.ajax({
+			type: 'POST',
+			url: '/listing/unsubscribe',
+			data: {listing_url: listing_url},
+			success: function(data, textStatus, jqXHR) {
+				console.log(data);
+				console.log(textStatus);
+				console.log(jqXHR);
+
+				$('#alerts').append(alertBootstrap('success', 'successfully unsubscribed from this listing.'));
+				alertTimeout(5000);
+
+				$('#sub-div').show();
+				$('#unsub-div').hide();
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				console.log(jqXHR);
+				console.log(textStatus);
+				console.log(errorThrown);
+				var errors = eval(jqXHR.responseText);
+
+				for (var i = 0; i < errors.length; i ++) {
+					$('#alerts').append(alertBootstrap('danger', errors[i]));
+				}
+			}
+		});
 	});
 </script>
 <script>

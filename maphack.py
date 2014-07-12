@@ -1073,6 +1073,7 @@ class ListingsAdd(webapp2.RequestHandler):
 					listing.seek_games.append(game.title + game.platform)
 
 				listing.description = description
+				listing.subscriber_keys.append(user.key)
 				listing.put()
 
 				for game_key in listing.own_keys:
@@ -1335,82 +1336,6 @@ class ListingsSearchMap(webapp2.RequestHandler):
 		else:
 			self.redirect('/setup')
 
-class ListingPage(webapp2.RequestHandler):
-	def get(self, listing_url):
-		if users.get_current_user():
-			user = ndb.Key('Person', users.get_current_user().user_id()).get()
-			if user and user.setup:
-				try:
-					listing = ndb.Key(urlsafe = listing_url).get()
-					if listing.key.kind() != 'Listing':
-						raise Exception, 'invalid key.'
-					if listing is None:
-						raise Exception, 'no such listing.'
-
-					if listing.owner_key == user.key:
-						person = user
-						distance = 0
-					else:
-						person = listing.owner_key.get()
-
-						my_locations = ndb.gql('SELECT * '
-							'FROM Location '
-							'WHERE ANCESTOR IS :1 ',
-							user.key)
-
-						your_locations = ndb.gql('SELECT * '
-							'FROM Location '
-							'WHERE ANCESTOR IS :1 ',
-							listing.owner_key)
-
-						distance = min_dist(my_locations, your_locations)
-
-					own_games = ndb.get_multi(listing.own_keys)
-					seek_games = ndb.get_multi(listing.seek_keys)
-					comments = ndb.get_multi(listing.comment_keys)
-
-					template_values = {
-						'user': user,
-						'logout': users.create_logout_url(self.request.host_url),
-						'listing': listing,
-						'person': person,
-						'distance': distance,
-						'own_games': own_games,
-						'seek_games': seek_games,
-						'comments': comments,
-					}
-					template = JINJA_ENVIRONMENT.get_template('listing.html')
-					self.response.out.write(template.render(template_values))
-				except Exception, e:
-					self.redirect('/dashboard')
-			else:
-				self.redirect('/setup')
-		else:
-			try:
-				listing = ndb.Key(urlsafe = listing_url).get()
-				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing is None:
-					raise Exception, 'no such listing.'
-
-				person = listing.owner_key.get()
-				own_games = ndb.get_multi(listing.own_keys)
-				seek_games = ndb.get_multi(listing.seek_keys)
-				comments = ndb.get_multi(listing.comment_keys)
-
-				template_values = {
-					'login': users.create_login_url(self.request.uri),
-					'listing': listing,
-					'person': person,
-					'own_games': own_games,
-					'seek_games': seek_games,
-					'comments': comments,
-				}
-				template = JINJA_ENVIRONMENT.get_template('listing_public.html')
-				self.response.out.write(template.render(template_values))
-			except Exception, e:
-				self.redirect('/')
-
 class ListingComment(webapp2.RequestHandler):
 	def get(self):
 		user = ndb.Key('Person', users.get_current_user().user_id()).get()
@@ -1464,6 +1389,126 @@ class ListingComment(webapp2.RequestHandler):
 				self.response.out.write([e])
 		else:
 			self.redirect('/setup')
+
+class ListingSubscribe(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			try:
+				listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
+				listing = listing_key.get()
+				if listing_key.kind() != 'Listing':
+					raise Exception, 'invalid key.'
+				if listing is None:
+					raise Exception, 'no such listing.'
+				if user.key not in listing.subscriber_keys:
+					listing.subscriber_keys.append(user.key)
+				else:
+					raise Exception, 'you are already subscribed to this listing.'
+				listing.put()
+
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+		else:
+			self.redirect('/setup')
+
+class ListingUnsubscribe(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			try:
+				listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
+				listing = listing_key.get()
+				if listing.key.kind() != 'Listing':
+					raise Exception, 'invalid key.'
+				if listing is None:
+					raise Exception, 'no such listing.'
+				if user.key in listing.subscriber_keys:
+					listing.subscriber_keys.remove(user.key)
+				else:
+					raise Exception, 'you are not subscribed to this listing.'
+				listing.put()
+
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+		else:
+			self.redirect('/setup')
+
+class ListingPage(webapp2.RequestHandler):
+	def get(self, listing_url):
+		if users.get_current_user():
+			user = ndb.Key('Person', users.get_current_user().user_id()).get()
+			if user and user.setup:
+				listing = ndb.Key(urlsafe = listing_url).get()
+				if listing.key.kind() != 'Listing':
+					raise Exception, 'invalid key.'
+				if listing is None:
+					raise Exception, 'no such listing.'
+
+				if listing.owner_key == user.key:
+					person = user
+					distance = 0
+				else:
+					person = listing.owner_key.get()
+
+					my_locations = ndb.gql('SELECT * '
+						'FROM Location '
+						'WHERE ANCESTOR IS :1 ',
+						user.key)
+
+					your_locations = ndb.gql('SELECT * '
+						'FROM Location '
+						'WHERE ANCESTOR IS :1 ',
+						listing.owner_key)
+
+					distance = min_dist(my_locations, your_locations)
+
+				own_games = ndb.get_multi(listing.own_keys)
+				seek_games = ndb.get_multi(listing.seek_keys)
+				comments = ndb.get_multi(listing.comment_keys)
+
+				template_values = {
+					'user': user,
+					'logout': users.create_logout_url(self.request.host_url),
+					'listing': listing,
+					'person': person,
+					'distance': distance,
+					'own_games': own_games,
+					'seek_games': seek_games,
+					'comments': comments,
+				}
+				template = JINJA_ENVIRONMENT.get_template('listing.html')
+				self.response.out.write(template.render(template_values))
+
+			else:
+				self.redirect('/setup')
+		else:
+			try:
+				listing = ndb.Key(urlsafe = listing_url).get()
+				if listing.key.kind() != 'Listing':
+					raise Exception, 'invalid key.'
+				if listing is None:
+					raise Exception, 'no such listing.'
+
+				person = listing.owner_key.get()
+				own_games = ndb.get_multi(listing.own_keys)
+				seek_games = ndb.get_multi(listing.seek_keys)
+				comments = ndb.get_multi(listing.comment_keys)
+
+				template_values = {
+					'login': users.create_login_url(self.request.uri),
+					'listing': listing,
+					'person': person,
+					'own_games': own_games,
+					'seek_games': seek_games,
+					'comments': comments,
+				}
+				template = JINJA_ENVIRONMENT.get_template('listing_public.html')
+				self.response.out.write(template.render(template_values))
+			except Exception, e:
+				self.redirect('/')
 
 class UserPage(webapp2.RequestHandler):
 	def get(self, person_url):
@@ -1666,6 +1711,7 @@ class ConversationsPage(webapp2.RequestHandler):
 					conversation = Conversation()
 					conversation.num_pple = len(person_keys) + 1
 					conversation.person_keys.append(user.key)
+					conversation.subscriber_keys.append(user.key)
 					for person_key in person_keys:
 						conversation.person_keys.append(person_key)
 						conversation.subscriber_keys.append(person_key)
@@ -1700,6 +1746,52 @@ class ConversationsPage(webapp2.RequestHandler):
 										""" % (user.name, message.content) )
 
 				self.response.out.write('message sent.')
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+		else:
+			self.redirect('/setup')
+
+class ConversationSubscribe(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			try:
+				conversation_key = ndb.Key(urlsafe = self.request.get('conversation_url'))
+				conversation = conversation_key.get()
+				if conversation_key.kind() != 'Conversation':
+					raise Exception, 'invalid key.'
+				if conversation is None:
+					raise Exception, 'no such conversation.'
+				if user.key not in conversation.subscriber_keys:
+					conversation.subscriber_keys.append(user.key)
+				else:
+					raise Exception, 'you are already subscribed to this conversation.'
+				conversation.put()
+
+			except Exception, e:
+				self.error(403)
+				self.response.out.write(e)
+		else:
+			self.redirect('/setup')
+
+class ConversationUnsubscribe(webapp2.RequestHandler):
+	def post(self):
+		user = ndb.Key('Person', users.get_current_user().user_id()).get()
+		if user and user.setup:
+			try:
+				conversation_key = ndb.Key(urlsafe = self.request.get('conversation_url'))
+				conversation = conversation_key.get()
+				if conversation_key.kind() != 'Conversation':
+					raise Exception, 'invalid key.'
+				if conversation is None:
+					raise Exception, 'no such conversation.'
+				if user.key in conversation.subscriber_keys:
+					conversation.subscriber_keys.remove(user.key)
+				else:
+					raise Exception, 'you are not subscribed to this conversation.'
+				conversation.put()
+
 			except Exception, e:
 				self.error(403)
 				self.response.out.write(e)
@@ -1889,9 +1981,13 @@ application = webapp2.WSGIApplication([
 	('/listings/search', ListingsSearch),
 	('/listings/search/map', ListingsSearchMap),
 	('/listing/comment', ListingComment),
+	('/listing/subscribe', ListingSubscribe),
+	('/listing/unsubscribe', ListingUnsubscribe),
 	('/listing/(.*)', ListingPage),
 	('/user/locations/(.*)', UserLocations),
 	('/user/(.*)', UserPage),
+	('/conversation/subscribe', ConversationSubscribe),
+	('/conversation/unsubscribe', ConversationUnsubscribe),
 	('/conversations', ConversationsPage),
 	('/feedback', FeedbackPage),
 	('/faq', FAQ),
