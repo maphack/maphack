@@ -54,7 +54,7 @@
 					<a class="btn" data-toggle="collapse" data-parent="#accordion" href="#conversation{{ loop.index0 }}" style="color: #555555">
 						<span class="glyphicon glyphicon glyphicon-eye-open"></span>
 					</a>
-					<div style="padding-left: 15px; padding-top: 10px">{{ messages[messages|length - 1].owner }}: {{ messages[messages|length - 1].content }}</div>
+					<div style="padding-left: 15px; padding-top: 10px"><b>{{ messages[messages|length - 1].owner }}</b>: {{ messages[messages|length - 1].content }}</div>
 			</div>
 			<div id="conversation{{ loop.index0 }}" class="panel-collapse collapse">
 				<div class="panel-body">

@@ -380,38 +380,11 @@ class ProfileEdit(webapp2.RequestHandler):
 			except Exception, e:
 				error.append(str(e))
 
-			# validate name
-			try:
-				old_name = user.name
-				if user.name != self.request.get('name').rstrip():
-					user.name = self.request.get('name').rstrip()
-					if not user.name:
-						raise Exception, 'display name cannot be empty.'
-					if len(user.name) > 20:
-						raise Exception, 'display name cannot exceed 20 characters.'
-					qry = Person.query(Person.name == user.name)
-					if qry.count():
-						raise Exception, 'display name is already taken.'
-			except Exception, e:
-				error.append(str(e))
-
 			if error:
 				self.error(403)
 				self.response.out.write(error)
 			else:
 				user.put()
-
-				if user.name != old_name:
-					# change names
-					games = Owner.query(Owner.name == old_name)
-					for game in games:
-						game.name = user.name
-						game.put()
-
-					games = Seeker.query(Seeker.name == old_name)
-					for game in games:
-						game.name = user.name
-						game.put()
 
 				self.response.out.write('profile updated.')
 
