@@ -1030,8 +1030,8 @@ class ListingsAdd(webapp2.RequestHandler):
 					raise Exception, 'offer cannot be empty.'
 				if (len(seek_urls) > 0 or request_amt > 0) and len(own_urls) == 0 and offer_amt == 0:
 					raise Exception, 'request cannot be empty.'
-				if len(description) > 500:
-					raise Exception, 'description exceeds 500 characters.'
+				if len(description) > MAX_STR_LEN:
+					raise Exception, 'description exceeds %d characters.' % MAX_STR_LEN
 
 				listing = Listing(parent = user.key)
 				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
@@ -1359,8 +1359,8 @@ class ListingComment(webapp2.RequestHandler):
 				comment.content = self.request.get('comment').rstrip()
 				if not comment.content:
 					raise Exception, 'comment cannot be empty.'
-				if len(comment.content) > 500:
-					raise Exception, 'comment exceeds 500 characters.'
+				if len(comment.content) > MAX_STR_LEN:
+					raise Exception, 'comment exceeds %d characters.' % MAX_STR_LEN
 				comment.put()
 
 				listing.comment_keys.append(comment.key)
@@ -1724,7 +1724,7 @@ class ConversationsPage(webapp2.RequestHandler):
 				if not message.content:
 					raise Exception, 'message cannot be empty.'
 				if len(content) > MAX_STR_LEN:
-					raise Exception, 'message exceeds max length.'
+					raise Exception, 'message exceeds %d characters.' % MAX_STR_LEN
 				conversation.messages.append(message)
 
 				for counter, person_key in enumerate(person_keys):
@@ -1846,8 +1846,8 @@ class FeedbackPage(webapp2.RequestHandler):
 				feedback.content = self.request.get('feedback').rstrip()
 				if not feedback.content:
 					raise Exception, 'feedback cannot be empty.'
-				if len(feedback.content) > 500:
-					raise Exception, 'feedback exceeds 500 characters.'
+				if len(feedback.content) > MAX_STR_LEN:
+					raise Exception, 'feedback exceeds %d characters.' % MAX_STR_LEN
 				feedback.put()
 				mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
 										to="Admin at Maph4ck <%s>" %ADMIN_MAIL,
