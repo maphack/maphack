@@ -427,7 +427,7 @@ class FriendsAdd(BaseHandler):
 			user.put()
 		except Exception, e:
 			self.error(403)
-			self.response.out.write([e])
+			self.response.out.write(e)
 
 class FriendsDelete(BaseHandler):
 	def get_user(self, user):
@@ -445,7 +445,7 @@ class FriendsDelete(BaseHandler):
 			user.put()
 		except Exception, e:
 			self.error(403)
-			self.response.out.write([e])
+			self.response.out.write(e)
 
 class LocationsPage(BaseHandler):
 	def get_user(self, user):

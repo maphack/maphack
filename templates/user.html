@@ -340,9 +340,8 @@
 				console.log(errorThrown);
 				var errors = eval(jqXHR.responseText);
 
-				for (var i = 0; i < errors.length; i ++) {
-					$('#alerts').append(alertBootstrap('danger', errors[i]));
-				}
+				var error = jqXHR.responseText;
+				$('#alerts').append(alertBootstrap('danger', error));
 			}
 		});
 	});
