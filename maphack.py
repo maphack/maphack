@@ -24,6 +24,8 @@ ADMIN_MAIL = 'developer.maph4ck@gmail.com'
 
 MAX_STR_LEN = 500
 
+PAGE_SIZE = 10
+
 # Datastore definitions
 class Person(ndb.Model):
 	# Key: person id
@@ -145,9 +147,9 @@ def user_with_distance(result):
 		'WHERE ANCESTOR IS :1 ',
 		ndb.Key('Person', result.key.id()))
 
-	nearest_distance = min_dist(my_locations, your_locations)
+	distance = min_dist(my_locations, your_locations)
 
-	return result, nearest_distance
+	return result, distance
 
 def listing_all(listing):
 	my_locations = ndb.gql('SELECT * '
@@ -189,26 +191,46 @@ def haversine(lat1, lon1, lat2, lon2):
     return km
 
 def min_dist(locs1, locs2):
-	min_dist = float('inf')
+	distance = float('inf')
 	for loc1 in locs1:
 		for loc2 in locs2:
 			dist = haversine(loc1.geopt.lat, loc1.geopt.lon, loc2.geopt.lat, loc2.geopt.lon)
-			if dist < min_dist:
-				min_dist = dist
-	return min_dist
+			if dist < distance:
+				distance = dist
+	return distance
 
 def jsonify(query):
-	if type(query) is not ndb.Query:
-		raise Exception, 'input is not of type ndb.Query'
 	return json.dumps([ndb.Model.to_dict(result) for result in query], cls = NdbEncoder)
 
-class MainPage(webapp2.RequestHandler):
-	def get(self):
+# Base handler that checks if user is logged in.
+class BaseHandler(webapp2.RequestHandler):
+	def get(self, **kwargs):
 		if users.get_current_user():
-			self.redirect('/dashboard')
+			user = ndb.Key('Person', users.get_current_user().user_id()).get()
+			if user and user.setup:
+				self.get_user(user, **kwargs)
+			else:
+				self.redirect('/setup')
 		else:
-			template = JINJA_ENVIRONMENT.get_template('front.html')
-			self.response.out.write(template.render())
+			self.get_public(**kwargs)
+
+	def post(self, **kwargs):
+		if users.get_current_user():
+			user = ndb.Key('Person', users.get_current_user().user_id()).get()
+			if user and user.setup:
+				self.post_user(user, **kwargs)
+			else:
+				self.redirect('/setup')
+		else:
+			self.post_public(**kwargs)
+
+class MainPage(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/dashboard')
+
+	def get_public(self):
+		template = JINJA_ENVIRONMENT.get_template('front.html')
+		self.response.out.write(template.render())
 
 class Setup(webapp2.RequestHandler):
 	def get(self):
@@ -246,7 +268,7 @@ class Setup(webapp2.RequestHandler):
 
 				# validate contact
 				try:
-					user.contact = self.request.get('contact').rstrip()
+					user.contact = self.request.get('contact').strip()
 					if not user.contact:
 						raise Exception, 'contact information cannot be empty.'
 				except Exception, e:
@@ -262,7 +284,7 @@ class Setup(webapp2.RequestHandler):
 
 				# validate pic
 				try:
-					user.pic = self.request.get('pic').rstrip()
+					user.pic = self.request.get('pic').strip()
 					if not user.pic:
 						user.pic = DISPLAY_PIC
 					elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
@@ -272,7 +294,7 @@ class Setup(webapp2.RequestHandler):
 
 				# validate name
 				try:
-					user.name = self.request.get('name').rstrip()
+					user.name = self.request.get('name').strip()
 					if not user.name:
 						raise Exception, 'display name cannot be empty.'
 					if len(user.name) > 20:
@@ -298,1222 +320,1074 @@ class Setup(webapp2.RequestHandler):
 		else:
 			self.redirect('/setup')
 
-class Dashboard(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
+class Dashboard(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('dashboard.html')
+		self.response.out.write(template.render(template_values))
+
+class Profile(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('profile.html')
+		self.response.out.write(template.render(template_values))
+
+class ProfileEdit(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('profile_edit.html')
+		self.response.out.write(template.render(template_values))
+
+	def post_user(self, user):
+		error = []
+
+		# validate contact
+		try:
+			if user.contact != self.request.get('contact').strip():
+				user.contact = self.request.get('contact').strip()
+				if not user.contact:
+					raise Exception, 'contact information cannot be empty.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate bio
+		try:
+			if user.bio != self.request.get('bio').strip():
+				user.bio = self.request.get('bio').strip()
+		except Exception, e:
+			error.append(str(e))
+
+		# validate country
+		try:
+			if user.country != self.request.get('country'):
+				user.country = self.request.get('country')
+				if user.country not in COUNTRY_CODES:
+					raise Exception, 'invalid country.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate pic
+		try:
+			if user.pic != self.request.get('pic').strip() and not (user.pic == DISPLAY_PIC and not self.request.get('pic').strip()):
+				user.pic = self.request.get('pic').strip()
+				if not user.pic:
+					user.pic = DISPLAY_PIC
+				elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
+					raise Exception, 'image link must be http or https.'
+		except Exception, e:
+			error.append(str(e))
+
+		if error:
+			self.error(403)
+			self.response.out.write(error)
+		else:
+			user.put()
+
+			self.response.out.write('profile updated.')
+
+class FriendsPage(BaseHandler):
+	def get_user(self, user):
+		friends = ndb.get_multi(user.friend_keys)
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'friends': friends,
+		}
+		template = JINJA_ENVIRONMENT.get_template('friends.html')
+		self.response.out.write(template.render(template_values))
+
+class FriendsAdd(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/friends')
+
+	def post_user(self, user):
+		try:
+			person_key = ndb.Key(urlsafe = self.request.get('person_url'))
+			if person_key.kind() != 'Person':
+				raise Exception, 'invalid key.'
+			if person_key == user.key:
+				raise Exception, 'you cannot add yourself as a friend.'
+			if person_key in user.friend_keys:
+				raise Exception, 'person is already a friend.'
+			person = person_key.get()
+			if person is None:
+				raise Exception, 'no such person.'
+
+			user.friend_keys.append(person_key)
+			user.put()
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class FriendsDelete(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/friends')
+
+	def post_user(self, user):
+		try:
+			person_key = ndb.Key(urlsafe = self.request.get('person_url'))
+			if person_key.kind() != 'Person':
+				raise Exception, 'invalid key.'
+			if person_key not in user.friend_keys:
+				raise Exception, 'person is not a friend.'
+
+			user.friend_keys.remove(person_key)
+			user.put()
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class LocationsPage(BaseHandler):
+	def get_user(self, user):
+		locations = ndb.gql('SELECT * '
+			'FROM Location '
+			'WHERE ANCESTOR IS :1 ',
+			user.key)
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'locations': locations,
+		}
+		template = JINJA_ENVIRONMENT.get_template('locations.html')
+		self.response.out.write(template.render(template_values))
+
+class LocationsAdd(BaseHandler):
+	def get_user(self, user):
+		locations = ndb.gql('SELECT * '
+			'FROM Location '
+			'WHERE ANCESTOR IS :1 ',
+			user.key)
+
+		template_values = {
+			'user': user,
+			'locations': jsonify(locations),
+		}
+		template = JINJA_ENVIRONMENT.get_template('locations_add.html')
+		self.response.out.write(template.render(template_values))
+
+	def post_user(self, user):
+		error = []
+
+		location = Location(parent = user.key)
+
+		# validate name
+		try:
+			location.name = self.request.get('name').strip()
+			if not location.name:
+				raise Exception, 'location name cannot be empty.'
+		except Exception, e:
+			error.append(str(e))
+
+		try:
+			location.address = self.request.get('address').strip()
+		except Exception, e:
+			error.append(str(e))
+
+		try:
+			location.geopt = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
+		except Exception, e:
+			error.append(str(e))
+
+		if error:
+			self.error(403)
+			self.response.out.write(error)	
+		else:
+			location.put()
+
+			self.response.out.write('location added.')
+
+class LocationsDelete(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/locations')
+
+	def post_user(self, user):
+		try:
+			location_key = ndb.Key(urlsafe = self.request.get('location_url'))
+			if location_key.kind() != 'Location':
+				raise Exception, 'invalid key.'
+			if location_key.parent() != user.key:
+				raise Exception, 'access denied.'
+
+			location_key.delete()
+
+			self.response.out.write('location deleted.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class LocationsEdit(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/locations')
+
+	def post_user(self, user):
+		try:
+			location_key = ndb.Key(urlsafe = self.request.get('location_url'))
+			if location_key.kind() != 'Location':
+				raise Exception, 'invalid key.'
+			if location_key.parent() != user.key:
+				raise Exception, 'access denied.'
+
+			location = location_key.get()
+			if location is None:
+				raise Exception, 'no such location.'
+			if location.name == self.request.get('name').strip():
+				raise Exception, 'no changes were made.'
+
+			location.name = self.request.get('name').strip()
+			if not location.name:
+				raise Exception, 'location name cannot be empty.'
+
+			location.put()
+
+			self.response.out.write('location name changed.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class LocationsView(BaseHandler):
+	def get_user(self, user, **kwargs):
+		try:
+			location_url = kwargs['location_url']
+
+			location_key = ndb.Key(urlsafe = location_url)
+			if location_key.kind() != 'Location':
+				raise Exception, 'invalid key.'
+			if location_key.parent() != user.key:
+				raise Exception, 'access denied.'
+
+			location = location_key.get()
+			if location is None:
+				raise Exception, 'no such location.'
+
 			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
+				'location': location,
 			}
-			template = JINJA_ENVIRONMENT.get_template('dashboard.html')
+			template = JINJA_ENVIRONMENT.get_template('locations_view.html')
 			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-class Profile(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-			}
-			template = JINJA_ENVIRONMENT.get_template('profile.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-class ProfileEdit(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-			}
-			template = JINJA_ENVIRONMENT.get_template('profile_edit.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user is None or user.setup == False:
-			self.redirect('/dashboard')
-		else:
-			error = []
-
-			# validate contact
-			try:
-				if user.contact != self.request.get('contact').rstrip():
-					user.contact = self.request.get('contact').rstrip()
-					if not user.contact:
-						raise Exception, 'contact information cannot be empty.'
-			except Exception, e:
-				error.append(str(e))
-
-			# validate bio
-			try:
-				if user.bio != self.request.get('bio').rstrip():
-					user.bio = self.request.get('bio').rstrip()
-			except Exception, e:
-				error.append(str(e))
-
-			# validate country
-			try:
-				if user.country != self.request.get('country'):
-					user.country = self.request.get('country')
-					if user.country not in COUNTRY_CODES:
-						raise Exception, 'invalid country.'
-			except Exception, e:
-				error.append(str(e))
-
-			# validate pic
-			try:
-				if user.pic != self.request.get('pic').rstrip() and not (user.pic == DISPLAY_PIC and not self.request.get('pic').rstrip()):
-					user.pic = self.request.get('pic').rstrip()
-					if not user.pic:
-						user.pic = DISPLAY_PIC
-					elif (urlparse(user.pic).scheme != 'http') and (urlparse(user.pic).scheme != 'https'):
-						raise Exception, 'image link must be http or https.'
-			except Exception, e:
-				error.append(str(e))
-
-			if error:
-				self.error(403)
-				self.response.out.write(error)
-			else:
-				user.put()
-
-				self.response.out.write('profile updated.')
-
-class FriendsPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			friends = ndb.get_multi(user.friend_keys)
-
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-				'friends': friends,
-			}
-			template = JINJA_ENVIRONMENT.get_template('friends.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-class FriendsAdd(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/friends')
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				person_key = ndb.Key(urlsafe = self.request.get('person_url'))
-				if person_key.kind() != 'Person':
-					raise Exception, 'invalid key.'
-				if person_key == user.key:
-					raise Exception, 'you cannot add yourself as a friend.'
-				if person_key in user.friend_keys:
-					raise Exception, 'person is already a friend.'
-				person = person_key.get()
-				if person is None:
-					raise Exception, 'no such person.'
-
-				user.friend_keys.append(person_key)
-				user.put()
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
-		else:
-			self.redirect('/setup')
-
-class FriendsDelete(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/friends')
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				person_key = ndb.Key(urlsafe = self.request.get('person_url'))
-				if person_key.kind() != 'Person':
-					raise Exception, 'invalid key.'
-				if person_key not in user.friend_keys:
-					raise Exception, 'person is not a friend.'
-
-				user.friend_keys.remove(person_key)
-				user.put()
-			except:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
-
-class LocationsPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			locations = ndb.gql('SELECT * '
-				'FROM Location '
-				'WHERE ANCESTOR IS :1 ',
-				user.key)
-
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-				'locations': locations,
-			}
-			template = JINJA_ENVIRONMENT.get_template('locations.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-class LocationsAdd(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			locations = ndb.gql('SELECT * '
-				'FROM Location '
-				'WHERE ANCESTOR IS :1 ',
-				user.key)
-
-			template_values = {
-				'user': user,
-				'locations': jsonify(locations),
-			}
-			template = JINJA_ENVIRONMENT.get_template('locations_add.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			error = []
-			location = Location(parent = user.key)
-
-			# validate name
-			try:
-				location.name = self.request.get('name').rstrip()
-				if not location.name:
-					raise Exception, 'location name cannot be empty.'
-			except Exception, e:
-				error.append(str(e))
-
-			try:
-				location.address = self.request.get('address').rstrip()
-			except Exception, e:
-				error.append(str(e))
-
-			try:
-				location.geopt = ndb.GeoPt(self.request.get('latitude'), self.request.get('longitude'))
-			except Exception, e:
-				error.append(str(e))
-
-			if error:
-				self.error(403)
-				self.response.out.write(error)	
-			else:
-				location.put()
-
-				self.response.out.write('location added.')
-		else:
-			self.redirect('/setup')
-
-class LocationsDelete(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
+		except:
 			self.redirect('/locations')
+
+class InventoryPage(BaseHandler):
+	def get_user(self, user):
+		inventory = ndb.gql('SELECT * '
+			'FROM Game '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Inventory', users.get_current_user().user_id()))
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'inventory': inventory,
+		}
+		template = JINJA_ENVIRONMENT.get_template('inventory.html')
+		self.response.out.write(template.render(template_values))
+
+class InventoryAdd(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('inventory_add.html')
+		self.response.out.write(template.render(template_values))
+
+	def post_user(self, user):
+		error = []
+
+		inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+		game = Game(parent = inventory_key)
+
+		# validate title
+		try:
+			game.title = self.request.get('title').strip()
+			if not game.title:
+				raise Exception, 'title cannot be empty.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate platform
+		try:
+			game.platform = self.request.get('platform').strip()
+			if not game.platform:
+				raise Exception, 'platform cannot be empty.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate pic
+		try:
+			game.pic = self.request.get('pic').strip()
+			if game.pic:
+				if (urlparse(game.pic).scheme != 'http') and (urlparse(game.pic).scheme != 'https'):
+					raise Exception, 'image link must be http or https.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate description
+		try:
+			game.description = self.request.get('description').strip()
+		except Exception, e:
+			error.append(str(e))
+
+		if error:
+			self.error(403)
+			self.response.out.write(error)
 		else:
-			self.redirect('/setup')
+			game.put()
 
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				location_key = ndb.Key(urlsafe = self.request.get('location_url'))
-				if location_key.kind() != 'Location':
-					raise Exception, 'invalid key.'
-				if location_key.parent() != user.key:
-					raise Exception, 'access denied.'
+			inventory = inventory_key.get()
+			inventory.count += 1
+			inventory.put()
 
-				location_key.delete()
+			owners_key = ndb.Key('Owners', game.title,
+				parent = ndb.Key('Platform', game.platform))
+			owners = owners_key.get()
+			if owners is None:
+				owners = Owners(parent = ndb.Key('Platform', game.platform),
+					id = game.title)
+			owners.count += 1
+			owners.put()
 
-				self.response.out.write('location deleted.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
+			owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+				parent = owners_key)
+			owner = owner_key.get()
+			if owner is None:
+				owner = Owner(parent = owners_key,
+					id = users.get_current_user().user_id())
+			owner.name = user.name
+			owner.game_keys.append(game.key)
+			owner.put()
 
-class LocationsEdit(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/locations')
-		else:
-			self.redirect('/setup')
+			self.response.out.write('game added to inventory.')
 
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				location_key = ndb.Key(urlsafe = self.request.get('location_url'))
-				if location_key.kind() != 'Location':
-					raise Exception, 'invalid key.'
-				if location_key.parent() != user.key:
-					raise Exception, 'access denied.'
+class InventoryDelete(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/inventory')
 
-				location = location_key.get()
-				if location is None:
-					raise Exception, 'no such location.'
-				if location.name == self.request.get('name').rstrip():
-					raise Exception, 'no changes were made.'
-
-				location.name = self.request.get('name').rstrip()
-				if not location.name:
-					raise Exception, 'location name cannot be empty.'
-
-				location.put()
-
-				self.response.out.write('name changed.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
-
-class LocationsView(webapp2.RequestHandler):
-	def get(self, location_url):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				location_key = ndb.Key(urlsafe = location_url)
-				if location_key.kind() != 'Location':
-					raise Exception, 'invalid key.'
-				if location_key.parent() != user.key:
-					raise Exception, 'access denied.'
-
-				location = location_key.get()
-				if location is None:
-					raise Exception, 'no such location.'
-
-				template_values = {
-					'location': location,
-				}
-				template = JINJA_ENVIRONMENT.get_template('locations_view.html')
-				self.response.out.write(template.render(template_values))
-			except:
-				self.redirect('/locations')
-		else:
-			self.redirect('/setup')
-
-class InventoryPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			inventory = ndb.gql('SELECT * '
-				'FROM Game '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Inventory', users.get_current_user().user_id()))
-
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-				'inventory': inventory,
-			}
-			template = JINJA_ENVIRONMENT.get_template('inventory.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-class InventoryAdd(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-			}
-			template = JINJA_ENVIRONMENT.get_template('inventory_add.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			error = []
-
+	def post_user(self, user):
+		try:
 			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-			game = Game(parent = inventory_key)
+			game_to_delete_key = ndb.Key(urlsafe = self.request.get('game_url'))
+			if game_to_delete_key.kind() != 'Game':
+				raise Exception, 'invalid key.'
+			if game_to_delete_key.parent() != inventory_key:
+				raise Exception, 'access denied.'
 
-			# validate title
-			try:
-				game.title = self.request.get('title').rstrip()
-				if not game.title:
-					raise Exception, 'title cannot be empty.'
-			except Exception, e:
-				error.append(str(e))
+			game_to_delete = game_to_delete_key.get()
+			if game_to_delete is None:
+				raise Exception, 'no such game.'
 
-			# validate platform
-			try:
-				game.platform = self.request.get('platform').rstrip()
-				if not game.platform:
-					raise Exception, 'platform cannot be empty.'
-			except Exception, e:
-				error.append(str(e))
+			for listing_key in game_to_delete.listing_keys:
+				listing = listing_key.get()
+				listing_key.delete()
 
-			# validate pic
-			try:
-				game.pic = self.request.get('pic').rstrip()
-				if game.pic:
-					if (urlparse(game.pic).scheme != 'http') and (urlparse(game.pic).scheme != 'https'):
-						raise Exception, 'image link must be http or https.'
-			except Exception, e:
-				error.append(str(e))
+				for game_key in listing.own_keys:
+					game = game_key.get()
+					game.listing_keys.remove(listing_key)
+					game.put()
 
-			# validate description
-			try:
-				game.description = self.request.get('description').rstrip()
-			except Exception, e:
-				error.append(str(e))
+				for game_key in listing.seek_keys:
+					game = game_key.get()
+					game.listing_keys.remove(listing_key)
+					game.put()
 
-			if error:
-				self.error(403)
-				self.response.out.write(error)
-			else:
-				game.put()
+			game_to_delete_key.delete()
 
-				inventory = inventory_key.get()
-				inventory.count += 1
-				inventory.put()
+			inventory = inventory_key.get()
+			inventory.count -= 1
+			inventory.put()
 
-				owners_key = ndb.Key('Owners', game.title,
-					parent = ndb.Key('Platform', game.platform))
-				owners = owners_key.get()
-				if owners is None:
-					owners = Owners(parent = ndb.Key('Platform', game.platform),
-						id = game.title)
-				owners.count += 1
-				owners.put()
+			owners_key = ndb.Key('Owners', game_to_delete.title,
+				parent = ndb.Key('Platform', game_to_delete.platform))
+			owners = owners_key.get()
+			owners.count -= 1
+			owners.put()
 
-				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
-					parent = owners_key)
-				owner = owner_key.get()
-				if owner is None:
-					owner = Owner(parent = owners_key,
-						id = users.get_current_user().user_id())
-				owner.name = user.name
-				owner.game_keys.append(game.key)
+			owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
+				parent = owners_key)
+			owner = owner_key.get()
+			owner.game_keys.remove(game_to_delete.key)
+		
+			if owner.game_keys:
 				owner.put()
+			else:
+				owner_key.delete()
 
-				self.response.out.write('game added.')
+			self.response.out.write('game removed from playlist.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class PlaylistPage(BaseHandler):
+	def get_user(self, user):
+		playlist = ndb.gql('SELECT * '
+			'FROM Game '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Playlist', users.get_current_user().user_id()))
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'playlist': playlist,
+		}
+		template = JINJA_ENVIRONMENT.get_template('playlist.html')
+		self.response.out.write(template.render(template_values))
+
+class PlaylistAdd(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('playlist_add.html')
+		self.response.out.write(template.render(template_values))
+
+	def post_user(self, user):
+		error = []
+
+		playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+		game = Game(parent = playlist_key)
+
+		# validate title
+		try:
+			game.title = self.request.get('title').strip()
+			if not game.title:
+				raise Exception, 'title cannot be empty.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate platform
+		try:
+			game.platform = self.request.get('platform').strip()
+			if not game.platform:
+				raise Exception, 'platform cannot be empty.'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate pic
+		try:
+			game.pic = self.request.get('pic').strip()
+			if game.pic:
+				if (urlparse(game.pic).scheme != 'http') and (urlparse(game.pic).scheme != 'https'):
+					raise Exception, 'image link must be http or https'
+		except Exception, e:
+			error.append(str(e))
+
+		# validate description
+		try:
+			game.description = self.request.get('description').strip()
+		except Exception, e:
+			error.append(str(e))
+
+		if error:
+			self.error(403)
+			self.response.out.write(error)
 		else:
-			self.redirect('/setup')
+			game.put()
 
-class InventoryDelete(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/inventory')
-		else:
-			self.redirect('/setup')
+			playlist = playlist_key.get()
+			playlist.count += 1
+			playlist.put()
 
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				game_to_delete_key = ndb.Key(urlsafe = self.request.get('game_url'))
-				if game_to_delete_key.kind() != 'Game':
+			seekers_key = ndb.Key('Seekers', game.title,
+				parent = ndb.Key('Platform', game.platform))
+			seekers = seekers_key.get()
+			if seekers is None:
+				seekers = Seekers(parent = ndb.Key('Platform', game.platform),
+					id = game.title)
+			seekers.count += 1
+			seekers.put()
+
+			seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+				parent = seekers_key)
+			seeker = seeker_key.get()
+			if seeker is None:
+				seeker = Seeker(parent = seekers_key,
+					id = users.get_current_user().user_id())
+			seeker.name = user.name
+			seeker.game_keys.append(game.key)
+			seeker.put()
+
+			self.response.out.write('game added to playlist.')
+
+class PlaylistDelete(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/playlist')
+
+	def post_user(self, user):
+		try:
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+			game_to_delete_key = ndb.Key(urlsafe = self.request.get('game_url'))
+			if game_to_delete_key.kind() != 'Game':
+				raise Exception, 'invalid key.'
+			if game_to_delete_key.parent() != playlist_key:
+				raise Exception, 'access denied.'
+
+			game_to_delete = game_to_delete_key.get()
+			if game_to_delete is None:
+				raise Exception, 'no such game.'
+
+			for listing_key in game_to_delete.listing_keys:
+				listing = listing_key.get()
+				listing_key.delete()
+
+				for game_key in listing.own_keys:
+					game = game_key.get()
+					game.listing_keys.remove(listing_key)
+					game.put()
+
+				for game_key in listing.seek_keys:
+					game = game_key.get()
+					game.listing_keys.remove(listing_key)
+					game.put()
+
+			game_to_delete_key.delete()
+
+			playlist = playlist_key.get()
+			playlist.count -= 1
+			playlist.put()
+
+			seekers_key = ndb.Key('Seekers', game_to_delete.title,
+				parent = ndb.Key('Platform', game_to_delete.platform))
+			seekers = seekers_key.get()
+			seekers.count -= 1
+			seekers.put()
+
+			seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
+				parent = seekers_key)
+			seeker = seeker_key.get()
+			seeker.game_keys.remove(game_to_delete.key)
+		
+			if seeker.game_keys:
+				seeker.put()
+			else:
+				seeker_key.delete()
+
+			self.response.out.write('game removed from playlist.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class ListingsPage(BaseHandler):
+	def get_user(self, user):
+		listings = ndb.gql('SELECT * '
+			'FROM Listing '
+			'WHERE ANCESTOR IS :1 '
+			'ORDER BY date DESC',
+			user.key)
+		listings = listings.map(listing_with_games)
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'listings': listings,
+		}
+		template = JINJA_ENVIRONMENT.get_template('listings.html')
+		self.response.out.write(template.render(template_values))
+
+class ListingsAdd(BaseHandler):
+	def get_user(self, user):
+		inventory = ndb.gql('SELECT * '
+			'FROM Game '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Inventory', users.get_current_user().user_id()))
+
+		playlist = ndb.gql('SELECT * '
+			'FROM Game '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Playlist', users.get_current_user().user_id()))
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'inventory': inventory,
+			'playlist': playlist,
+		}
+		template = JINJA_ENVIRONMENT.get_template('listings_add.html')
+		self.response.out.write(template.render(template_values))
+
+	def post_user(self, user):
+		try:
+			jdata = json.loads(self.request.body)
+			own_urls = jdata['own_urls']
+			seek_urls = jdata['seek_urls']
+			offer_amt = int(jdata['offer_amt'])
+			request_amt = int(jdata['request_amt'])
+			description = jdata['description']
+
+			if offer_amt is None or request_amt is None:
+				raise Exception, 'topup amounts cannot be empty.'
+			if offer_amt < 0 or request_amt < 0:
+				raise Exception, 'topup amounts cannot be negative.'
+			if offer_amt > 0 and request_amt > 0:
+				raise Exception, 'topup amounts cannot be positive at the same time.'
+			if len(own_urls) == 0 and len(seek_urls) == 0:
+				raise Exception, 'listing cannot be empty.'
+			if (len(own_urls) > 0 or offer_amt > 0) and len(seek_urls) == 0 and request_amt == 0:
+				raise Exception, 'offer cannot be empty.'
+			if (len(seek_urls) > 0 or request_amt > 0) and len(own_urls) == 0 and offer_amt == 0:
+				raise Exception, 'request cannot be empty.'
+			if len(description) > MAX_STR_LEN:
+				raise Exception, 'description exceeds %d characters.' % MAX_STR_LEN
+
+			listing = Listing(parent = user.key)
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+
+			listing.owner_key = user.key
+
+			if offer_amt > 0:
+				listing.topup = offer_amt
+			else:
+				listing.topup = -request_amt
+
+			for game_url in own_urls:
+				game_key = ndb.Key(urlsafe = game_url)
+				if game_key.kind() != 'Game':
 					raise Exception, 'invalid key.'
-				if game_to_delete_key.parent() != inventory_key:
+				if game_key.parent() != inventory_key:
 					raise Exception, 'access denied.'
 
-				game_to_delete = game_to_delete_key.get()
-				if game_to_delete is None:
-					raise Exception, 'no such game.'
+				game = game_key.get()
+				if game is None:
+					raise Exception, 'no such game in inventory.'
 
-				for listing_key in game_to_delete.listing_keys:
-					listing = listing_key.get()
-					listing_key.delete()
+				listing.own_keys.append(game_key)
+				listing.own_games.append(game.title + game.platform)
 
-					for game_key in listing.own_keys:
-						game = game_key.get()
-						game.listing_keys.remove(listing_key)
-						game.put()
+			for game_url in seek_urls:
+				game_key = ndb.Key(urlsafe = game_url)
+				if game_key.kind() != 'Game':
+					raise Exception, 'invalid key.'
+				if game_key.parent() != playlist_key:
+					raise Exception, 'access denied.'
 
-					for game_key in listing.seek_keys:
-						game = game_key.get()
-						game.listing_keys.remove(listing_key)
-						game.put()
+				game = game_key.get()
+				if game is None:
+					raise Exception, 'no such game in playlist.'
 
-				game_to_delete_key.delete()
+				listing.seek_keys.append(game_key)
+				listing.seek_games.append(game.title + game.platform)
 
-				inventory = inventory_key.get()
-				inventory.count -= 1
-				inventory.put()
+			listing.description = description
+			listing.subscriber_keys.append(user.key)
+			listing.put()
 
-				owners_key = ndb.Key('Owners', game_to_delete.title,
-					parent = ndb.Key('Platform', game_to_delete.platform))
-				owners = owners_key.get()
-				owners.count -= 1
-				owners.put()
-
-				owner_key = ndb.Key('Owner', users.get_current_user().user_id(),
-					parent = owners_key)
-				owner = owner_key.get()
-				owner.game_keys.remove(game_to_delete.key)
-			
-				if owner.game_keys:
-					owner.put()
-				else:
-					owner_key.delete()
-
-				self.response.out.write('game deleted.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
-
-class PlaylistPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			playlist = ndb.gql('SELECT * '
-				'FROM Game '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Playlist', users.get_current_user().user_id()))
-
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-				'playlist': playlist,
-			}
-			template = JINJA_ENVIRONMENT.get_template('playlist.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-class PlaylistAdd(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-			}
-			template = JINJA_ENVIRONMENT.get_template('playlist_add.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			error = []
-
-			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-			game = Game(parent = playlist_key)
-
-			# validate title
-			try:
-				game.title = self.request.get('title').rstrip()
-				if not game.title:
-					raise Exception, 'title cannot be empty.'
-			except Exception, e:
-				error.append(str(e))
-
-			# validate platform
-			try:
-				game.platform = self.request.get('platform').rstrip()
-				if not game.platform:
-					raise Exception, 'platform cannot be empty.'
-			except Exception, e:
-				error.append(str(e))
-
-			# validate pic
-			try:
-				game.pic = self.request.get('pic').rstrip()
-				if game.pic:
-					if (urlparse(game.pic).scheme != 'http') and (urlparse(game.pic).scheme != 'https'):
-						raise Exception, 'image link must be http or https'
-			except Exception, e:
-				error.append(str(e))
-
-			# validate description
-			try:
-				game.description = self.request.get('description').rstrip()
-			except Exception, e:
-				error.append(str(e))
-
-			if error:
-				self.error(403)
-				self.response.out.write(error)
-			else:
+			for game_key in listing.own_keys:
+				game = game_key.get()
+				game.listing_keys.append(listing.key)
 				game.put()
 
-				playlist = playlist_key.get()
-				playlist.count += 1
-				playlist.put()
+			for game_key in listing.seek_keys:
+				game = game_key.get()
+				game.listing_keys.append(listing.key)
+				game.put()
 
-				seekers_key = ndb.Key('Seekers', game.title,
-					parent = ndb.Key('Platform', game.platform))
-				seekers = seekers_key.get()
-				if seekers is None:
-					seekers = Seekers(parent = ndb.Key('Platform', game.platform),
-						id = game.title)
-				seekers.count += 1
-				seekers.put()
+			self.response.out.write('listing added.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
 
-				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
-					parent = seekers_key)
-				seeker = seeker_key.get()
-				if seeker is None:
-					seeker = Seeker(parent = seekers_key,
-						id = users.get_current_user().user_id())
-				seeker.name = user.name
-				seeker.game_keys.append(game.key)
-				seeker.put()
+class ListingsDelete(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/listings')
 
-				self.response.out.write('game added.')
-		else:
-			self.redirect('/setup')
-
-class PlaylistDelete(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/playlist')
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-				game_to_delete_key = ndb.Key(urlsafe = self.request.get('game_url'))
-				if game_to_delete_key.kind() != 'Game':
-					raise Exception, 'invalid key.'
-				if game_to_delete_key.parent() != playlist_key:
-					raise Exception, 'access denied.'
-
-				game_to_delete = game_to_delete_key.get()
-				if game_to_delete is None:
-					raise Exception, 'no such game.'
-
-				for listing_key in game_to_delete.listing_keys:
-					listing = listing_key.get()
-					listing_key.delete()
-
-					for game_key in listing.own_keys:
-						game = game_key.get()
-						game.listing_keys.remove(listing_key)
-						game.put()
-
-					for game_key in listing.seek_keys:
-						game = game_key.get()
-						game.listing_keys.remove(listing_key)
-						game.put()
-
-				game_to_delete_key.delete()
-
-				playlist = playlist_key.get()
-				playlist.count -= 1
-				playlist.put()
-
-				seekers_key = ndb.Key('Seekers', game_to_delete.title,
-					parent = ndb.Key('Platform', game_to_delete.platform))
-				seekers = seekers_key.get()
-				seekers.count -= 1
-				seekers.put()
-
-				seeker_key = ndb.Key('Seeker', users.get_current_user().user_id(),
-					parent = seekers_key)
-				seeker = seeker_key.get()
-				seeker.game_keys.remove(game_to_delete.key)
+	def post_user(self, user):
+		try:
+			listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
+			if listing_key.kind() != 'Listing':
+				raise Exception, 'invalid key.'
+			if listing_key.parent() != user.key:
+				raise Exception, 'access denied.'
 			
-				if seeker.game_keys:
-					seeker.put()
-				else:
-					seeker_key.delete()
+			listing = listing_key.get()
+			if listing is None:
+				raise Exception, 'no such listing.'
+			listing_key.delete()
 
-				self.response.out.write('game deleted.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
+			for game_key in listing.own_keys:
+				game = game_key.get()
+				game.listing_keys.remove(listing.key)
+				game.put()
 
-class ListingsPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			listings = ndb.gql('SELECT * '
-				'FROM Listing '
-				'WHERE ANCESTOR IS :1 '
-				'ORDER BY date DESC',
+			for game_key in listing.seek_keys:
+				game = game_key.get()
+				game.listing_keys.remove(listing.key)
+				game.put()
+
+			for comment_key in listing.comment_keys:
+				comment_key.delete()
+
+			self.response.out.write('listing deleted.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class ListingsRecent(BaseHandler):
+	def get_user(self, user, **kwargs):
+		try:
+			page = kwargs.get('page', 1)
+
+			qry = Listing.query().order(-Listing.date)
+			pager = ndbpager.Pager(query = qry, page = page)
+			listings, cursor, more = pager.paginate(page_size = PAGE_SIZE)
+
+			my_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
 				user.key)
-			listings = listings.map(listing_with_games)
+
+			listings = [(listing,
+				ndb.get_multi(listing.own_keys),
+				ndb.get_multi(listing.seek_keys),
+				listing.owner_key.get(),
+				min_dist(my_locations, ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					listing.owner_key))) for listing in listings]
 
 			template_values = {
 				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
 				'listings': listings,
+				'pager': pager,
 			}
-			template = JINJA_ENVIRONMENT.get_template('listings.html')
+			template = JINJA_ENVIRONMENT.get_template('listings_recent.html')
 			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+		except:
+			self.redirect('/dashboard')
 
-class ListingsAdd(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			inventory = ndb.gql('SELECT * '
-				'FROM Game '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Inventory', users.get_current_user().user_id()))
+	def get_public(self, **kwargs):
+		try:
+			page = kwargs.get('page', 1)
 
-			playlist = ndb.gql('SELECT * '
-				'FROM Game '
-				'WHERE ANCESTOR IS :1 ',
-				ndb.Key('Playlist', users.get_current_user().user_id()))
+			qry = Listing.query().order(-Listing.date)
+			pager = ndbpager.Pager(query = qry, page = page)
+			listings, cursor, more = pager.paginate(page_size = PAGE_SIZE)
+
+			listings = [(listing,
+				ndb.get_multi(listing.own_keys),
+				ndb.get_multi(listing.seek_keys),
+				listing.owner_key.get()) for listing in listings]
+
+			template_values = {
+				'login': users.create_login_url(self.request.uri),
+				'listings': listings,
+				'pager': pager,
+			}
+			template = JINJA_ENVIRONMENT.get_template('listings_recent_public.html')
+			self.response.out.write(template.render(template_values))
+		except:
+			self.redirect('/')
+
+class ListingsSearch(BaseHandler):
+	def get_user(self, user, **kwargs):
+		inventory = ndb.gql('SELECT * '
+			'FROM Game '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Inventory', users.get_current_user().user_id()))
+
+		playlist = ndb.gql('SELECT * '
+			'FROM Game '
+			'WHERE ANCESTOR IS :1 ',
+			ndb.Key('Playlist', users.get_current_user().user_id()))
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+			'inventory': inventory,
+			'playlist': playlist,
+			'own_url': self.request.get('own_url'),
+			'seek_url': self.request.get('seek_url'),
+		}
+		template = JINJA_ENVIRONMENT.get_template('listings_search.html')
+		self.response.out.write(template.render(template_values))
+
+	def get_public(self, **kwargs):
+		try:
+			query_type = kwargs['query_type']
+			title = kwargs['title']
+			platform = kwargs['platform']
+			page = kwargs.get('page', 1)
+
+			if query_type == 'own':
+				qry = Listing.query(Listing.seek_games == title + platform).order(-Listing.date)
+			elif query_type == 'seek':
+				qry = Listing.query(Listing.own_games == title + platform).order(-Listing.date)
+			else:
+				raise Exception, 'invalid query.'
+
+			pager = ndbpager.Pager(query = qry, page = page)
+			listings, cursor, more = pager.paginate(page_size = PAGE_SIZE)
+
+			listings = [(listing,
+				ndb.get_multi(listing.own_keys),
+				ndb.get_multi(listing.seek_keys),
+				listing.owner_key.get()) for listing in listings]
+
+			template_values = {
+				'login': users.create_login_url('/listings/search'),
+				'listings': listings,
+				'pager': pager,
+				'query_type': query_type,
+				'title': title,
+				'platform': platform,
+			}
+			template = JINJA_ENVIRONMENT.get_template('listings_search_public.html')
+			self.response.out.write(template.render(template_values))
+		except:
+			self.redirect('/')
+
+	def post_user(self, user):
+		try:
+			jdata = json.loads(self.request.body)
+			own_urls = jdata['own_urls']
+			seek_urls = jdata['seek_urls']
+
+			if len(own_urls) == 0 and len(seek_urls) == 0:
+				raise Exception, 'listing cannot be empty.'
+
+			inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
+			playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+
+			qry = None
+
+			for game_url in own_urls:
+				game_key = ndb.Key(urlsafe = game_url)
+				if game_key.kind() != 'Game':
+					raise Exception, 'invalid key.'
+				if game_key.parent() != inventory_key:
+					raise Exception, 'access denied.'
+
+				game = game_key.get()
+				if game is None:
+					raise Exception, 'no such game in inventory.'
+
+				if qry is None:
+					qry = Listing.query(Listing.seek_games == game.title + game.platform)
+				else:
+					qry = qry.filter(Listing.seek_games == game.title + game.platform)
+
+			for game_url in seek_urls:
+				game_key = ndb.Key(urlsafe = game_url)
+				if game_key.kind() != 'Game':
+					raise Exception, 'invalid key.'
+				if game_key.parent() != playlist_key:
+					raise Exception, 'access denied.'
+
+				game = game_key.get()
+				if game is None:
+					raise Exception, 'no such game in playlist.'
+
+				if qry is None:
+					qry = Listing.query(Listing.own_games == game.title + game.platform)
+				else:
+					qry = qry.filter(Listing.own_games == game.title + game.platform)
+
+			listings = qry.map(listing_all)
+
+			template_values = {
+				'listings': listings,
+			}
+			template = JINJA_ENVIRONMENT.get_template('listings_search_results.html')
+			self.response.out.write(template.render(template_values))
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class ListingsSearchMap(BaseHandler):
+	def get_user(self, user):
+		locations = ndb.gql('SELECT * '
+			'FROM Location '
+			'WHERE ANCESTOR IS :1 ',
+			user.key)
+
+		template_values = {
+			'user': user,
+			'locations': jsonify(locations),
+		}
+		template = JINJA_ENVIRONMENT.get_template('listings_search_view.html')
+		self.response.out.write(template.render(template_values))
+
+class ListingPage(BaseHandler):
+	def get_user(self, user, **kwargs):
+		try:
+			listing_url = kwargs['listing_url']
+
+			listing = ndb.Key(urlsafe = listing_url).get()
+			if listing.key.kind() != 'Listing':
+				raise Exception, 'invalid key.'
+			if listing is None:
+				raise Exception, 'no such listing.'
+
+			if listing.owner_key == user.key:
+				person = user
+				distance = 0
+			else:
+				person = listing.owner_key.get()
+
+				my_locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					user.key)
+
+				your_locations = ndb.gql('SELECT * '
+					'FROM Location '
+					'WHERE ANCESTOR IS :1 ',
+					listing.owner_key)
+
+				distance = min_dist(my_locations, your_locations)
+
+			own_games = ndb.get_multi(listing.own_keys)
+			seek_games = ndb.get_multi(listing.seek_keys)
+			comments = ndb.get_multi(listing.comment_keys)
 
 			template_values = {
 				'user': user,
 				'logout': users.create_logout_url(self.request.host_url),
-				'inventory': inventory,
-				'playlist': playlist,
+				'listing': listing,
+				'person': person,
+				'distance': distance,
+				'own_games': own_games,
+				'seek_games': seek_games,
+				'comments': comments,
 			}
-			template = JINJA_ENVIRONMENT.get_template('listings_add.html')
+			template = JINJA_ENVIRONMENT.get_template('listing.html')
 			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+		except:
+			self.redirect('/dashboard')
 
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				jdata = json.loads(self.request.body)
-				own_urls = jdata['own_urls']
-				seek_urls = jdata['seek_urls']
-				offer_amt = int(jdata['offer_amt'])
-				request_amt = int(jdata['request_amt'])
-				description = jdata['description']
+	def get_public(self, **kwargs):
+		try:
+			listing_url = kwargs['listing_url']
 
-				if offer_amt is None or request_amt is None:
-					raise Exception, 'topup amounts cannot be empty.'
-				if offer_amt < 0 or request_amt < 0:
-					raise Exception, 'topup amounts cannot be negative.'
-				if offer_amt > 0 and request_amt > 0:
-					raise Exception, 'topup amounts cannot be positive at the same time.'
-				if len(own_urls) == 0 and len(seek_urls) == 0:
-					raise Exception, 'listing cannot be empty.'
-				if (len(own_urls) > 0 or offer_amt > 0) and len(seek_urls) == 0 and request_amt == 0:
-					raise Exception, 'offer cannot be empty.'
-				if (len(seek_urls) > 0 or request_amt > 0) and len(own_urls) == 0 and offer_amt == 0:
-					raise Exception, 'request cannot be empty.'
-				if len(description) > MAX_STR_LEN:
-					raise Exception, 'description exceeds %d characters.' % MAX_STR_LEN
+			listing = ndb.Key(urlsafe = listing_url).get()
+			if listing.key.kind() != 'Listing':
+				raise Exception, 'invalid key.'
+			if listing is None:
+				raise Exception, 'no such listing.'
 
-				listing = Listing(parent = user.key)
-				inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-				playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
+			person = listing.owner_key.get()
+			own_games = ndb.get_multi(listing.own_keys)
+			seek_games = ndb.get_multi(listing.seek_keys)
+			comments = ndb.get_multi(listing.comment_keys)
 
-				listing.owner_key = user.key
-
-				if offer_amt > 0:
-					listing.topup = offer_amt
-				else:
-					listing.topup = -request_amt
-
-				for game_url in own_urls:
-					game_key = ndb.Key(urlsafe = game_url)
-					if game_key.kind() != 'Game':
-						raise Exception, 'invalid key.'
-					if game_key.parent() != inventory_key:
-						raise Exception, 'access denied.'
-
-					game = game_key.get()
-					if game is None:
-						raise Exception, 'no such game in inventory.'
-
-					listing.own_keys.append(game_key)
-					listing.own_games.append(game.title + game.platform)
-
-				for game_url in seek_urls:
-					game_key = ndb.Key(urlsafe = game_url)
-					if game_key.kind() != 'Game':
-						raise Exception, 'invalid key.'
-					if game_key.parent() != playlist_key:
-						raise Exception, 'access denied.'
-
-					game = game_key.get()
-					if game is None:
-						raise Exception, 'no such game in playlist.'
-
-					listing.seek_keys.append(game_key)
-					listing.seek_games.append(game.title + game.platform)
-
-				listing.description = description
-				listing.subscriber_keys.append(user.key)
-				listing.put()
-
-				for game_key in listing.own_keys:
-					game = game_key.get()
-					game.listing_keys.append(listing.key)
-					game.put()
-
-				for game_key in listing.seek_keys:
-					game = game_key.get()
-					game.listing_keys.append(listing.key)
-					game.put()
-
-				self.response.out.write('listing added.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
-
-class ListingsDelete(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/listings')
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
-				if listing_key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing_key.parent() != user.key:
-					raise Exception, 'access denied.'
-				
-				listing = listing_key.get()
-				if listing is None:
-					raise Exception, 'no such listing.'
-				listing_key.delete()
-
-				for game_key in listing.own_keys:
-					game = game_key.get()
-					game.listing_keys.remove(listing.key)
-					game.put()
-
-				for game_key in listing.seek_keys:
-					game = game_key.get()
-					game.listing_keys.remove(listing.key)
-					game.put()
-
-				for comment_key in listing.comment_keys:
-					comment_key.delete()
-
-				self.response.out.write('listing deleted.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
-
-class ListingsRecent(webapp2.RequestHandler):
-	def get(self):
-		if users.get_current_user():
-			user = ndb.Key('Person', users.get_current_user().user_id()).get()
-			if user and user.setup:
-				try:
-					qry = Listing.query().order(-Listing.date)
-					pager = ndbpager.Pager(query = qry, page = self.request.get('page', default_value = 1))
-					listings, cursor, more = pager.paginate(page_size = 10)
-
-					my_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						user.key)
-
-					listings = [(listing,
-						ndb.get_multi(listing.own_keys),
-						ndb.get_multi(listing.seek_keys),
-						listing.owner_key.get(),
-						min_dist(my_locations, ndb.gql('SELECT * '
-							'FROM Location '
-							'WHERE ANCESTOR IS :1 ',
-							listing.owner_key))) for listing in listings]
-
-					template_values = {
-						'user': user,
-						'logout': users.create_logout_url(self.request.host_url),
-						'listings': listings,
-						'pager': pager,
-					}
-					template = JINJA_ENVIRONMENT.get_template('listings_recent.html')
-					self.response.out.write(template.render(template_values))
-				except:
-					self.redirect('/dashboard')
-			else:
-				self.redirect('/setup')
-		else:
-			try:
-				qry = Listing.query().order(-Listing.date)
-				pager = ndbpager.Pager(query = qry, page = self.request.get('page', default_value = 1))
-				listings, cursor, more = pager.paginate(page_size = 10)
-
-				listings = [(listing,
-					ndb.get_multi(listing.own_keys),
-					ndb.get_multi(listing.seek_keys),
-					listing.owner_key.get()) for listing in listings]
-
-				template_values = {
-					'login': users.create_login_url(self.request.uri),
-					'listings': listings,
-					'pager': pager,
-				}
-				template = JINJA_ENVIRONMENT.get_template('listings_recent_public.html')
-				self.response.out.write(template.render(template_values))
-			except:
-				self.redirect('/')
-
-class ListingsSearch(webapp2.RequestHandler):
-	def get(self):
-		if users.get_current_user():
-			user = ndb.Key('Person', users.get_current_user().user_id()).get()
-			if user and user.setup:
-				inventory = ndb.gql('SELECT * '
-					'FROM Game '
-					'WHERE ANCESTOR IS :1 ',
-					ndb.Key('Inventory', users.get_current_user().user_id()))
-
-				playlist = ndb.gql('SELECT * '
-					'FROM Game '
-					'WHERE ANCESTOR IS :1 ',
-					ndb.Key('Playlist', users.get_current_user().user_id()))
-
-				template_values = {
-					'user': user,
-					'logout': users.create_logout_url(self.request.host_url),
-					'inventory': inventory,
-					'playlist': playlist,
-					'own_url': self.request.get('own_url'),
-					'seek_url': self.request.get('seek_url'),
-				}
-				template = JINJA_ENVIRONMENT.get_template('listings_search.html')
-				self.response.out.write(template.render(template_values))
-			else:
-				self.redirect('/dashboard')
-		else:
-			try:
-				query_type = self.request.get('query_type')
-				title = self.request.get('title')
-				platform = self.request.get('platform')
-
-				if query_type == 'own':
-					qry = Listing.query(Listing.seek_games == title + platform).order(-Listing.date)
-				elif query_type == 'seek':
-					qry = Listing.query(Listing.own_games == title + platform).order(-Listing.date)
-				else:
-					raise Exception, 'invalid query.'
-
-				pager = ndbpager.Pager(query = qry, page = self.request.get('page', default_value = 1))
-				listings, cursor, more = pager.paginate(page_size = 10)
-
-				listings = [(listing,
-					ndb.get_multi(listing.own_keys),
-					ndb.get_multi(listing.seek_keys),
-					listing.owner_key.get()) for listing in listings]
-
-				template_values = {
-					'login': users.create_login_url(self.request.uri),
-					'listings': listings,
-					'pager': pager,
-					'query_type': query_type,
-					'title': title,
-					'platform': platform,
-				}
-				template = JINJA_ENVIRONMENT.get_template('listings_search_public.html')
-				self.response.out.write(template.render(template_values))
-			except:
-				self.redirect('/')
-
-	def post(self):
-		if users.get_current_user():
-			user = ndb.Key('Person', users.get_current_user().user_id()).get()
-			if user and user.setup:
-				try:
-					jdata = json.loads(self.request.body)
-					own_urls = jdata['own_urls']
-					seek_urls = jdata['seek_urls']
-
-					if len(own_urls) == 0 and len(seek_urls) == 0:
-						raise Exception, 'listing cannot be empty.'
-
-					inventory_key = ndb.Key('Inventory', users.get_current_user().user_id())
-					playlist_key = ndb.Key('Playlist', users.get_current_user().user_id())
-
-					qry = None
-
-					for game_url in own_urls:
-						game_key = ndb.Key(urlsafe = game_url)
-						if game_key.kind() != 'Game':
-							raise Exception, 'invalid key.'
-						if game_key.parent() != inventory_key:
-							raise Exception, 'access denied.'
-
-						game = game_key.get()
-						if game is None:
-							raise Exception, 'no such game in inventory.'
-
-						if qry is None:
-							qry = Listing.query(Listing.seek_games == game.title + game.platform)
-						else:
-							qry = qry.filter(Listing.seek_games == game.title + game.platform)
-
-					for game_url in seek_urls:
-						game_key = ndb.Key(urlsafe = game_url)
-						if game_key.kind() != 'Game':
-							raise Exception, 'invalid key.'
-						if game_key.parent() != playlist_key:
-							raise Exception, 'access denied.'
-
-						game = game_key.get()
-						if game is None:
-							raise Exception, 'no such game in playlist.'
-
-						if qry is None:
-							qry = Listing.query(Listing.own_games == game.title + game.platform)
-						else:
-							qry = qry.filter(Listing.own_games == game.title + game.platform)
-
-					listings = qry.map(listing_all)
-	 
-					template_values = {
-						'listings': listings,
-					}
-					template = JINJA_ENVIRONMENT.get_template('listings_search_results.html')
-					self.response.out.write(template.render(template_values))
-				except Exception, e:
-					self.error(403)
-					self.response.out.write([e])
-			else:
-				self.redirect('/setup')
-		else:
+			template_values = {
+				'login': users.create_login_url(self.request.uri),
+				'listing': listing,
+				'person': person,
+				'own_games': own_games,
+				'seek_games': seek_games,
+				'comments': comments,
+			}
+			template = JINJA_ENVIRONMENT.get_template('listing_public.html')
+			self.response.out.write(template.render(template_values))
+		except:
 			self.redirect('/')
 
-class ListingsSearchMap(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			locations = ndb.gql('SELECT * '
-				'FROM Location '
-				'WHERE ANCESTOR IS :1 ',
-				user.key)
+class ListingComment(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/listings')
+
+	def post_user(self, user):
+		try:
+			listing = ndb.Key(urlsafe = self.request.get('listing_url')).get()
+			if listing.key.kind() != 'Listing':
+				raise Exception, 'invalid key.'
+			if listing is None:
+				raise Exception, 'no such listing.'
+
+			comment = Comment(parent = user.key)
+			comment.owner_key = user.key
+			comment.content = self.request.get('comment').strip()
+			if not comment.content:
+				raise Exception, 'comment cannot be empty.'
+			if len(comment.content) > MAX_STR_LEN:
+				raise Exception, 'comment exceeds %d characters.' % MAX_STR_LEN
+			comment.put()
+
+			listing.comment_keys.append(comment.key)
+
+			for key in listing.subscriber_keys:
+				subscriber = key.get()
+				if subscriber is not user:
+					mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+									to="%s <%s>" %(subscriber.name, subscriber.email),
+									subject="New comment posted by %s" %user.name,
+									body="""%s has posted a new comment at http://maph4cktest.appspot.com/listing/%s:\n\n%s
+									""" % (user.name, listing.key.urlsafe(), comment.content) )
+
+			if user.key not in listing.subscriber_keys:
+				listing.subscriber_keys.append(user.key)
+			listing.put()
 
 			template_values = {
 				'user': user,
-				'locations': jsonify(locations),
+				'comment': comment,
 			}
-			template = JINJA_ENVIRONMENT.get_template('listings_search_view.html')
+			template = JINJA_ENVIRONMENT.get_template('comment.html')
 			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
 
-class ListingComment(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/dashboard')
-		else:
-			self.redirect('/setup')
+class ListingSubscribe(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/listings')
 
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				listing = ndb.Key(urlsafe = self.request.get('listing_url')).get()
-				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing is None:
-					raise Exception, 'no such listing.'
-
-				comment = Comment(parent = user.key)
-				comment.owner_key = user.key
-				comment.content = self.request.get('comment').rstrip()
-				if not comment.content:
-					raise Exception, 'comment cannot be empty.'
-				if len(comment.content) > MAX_STR_LEN:
-					raise Exception, 'comment exceeds %d characters.' % MAX_STR_LEN
-				comment.put()
-
-				listing.comment_keys.append(comment.key)
-
-				for key in listing.subscriber_keys:
-					subscriber = key.get()
-					if subscriber is not user:
-						mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
-										to="%s <%s>" %(subscriber.name, subscriber.email),
-										subject="New comment posted by %s" %user.name,
-										body="""%s has posted a new comment at http://maph4cktest.appspot.com/listing/%s:\n\n%s
-										""" % (user.name, listing.key.urlsafe(), comment.content) )
-
-				if user.key not in listing.subscriber_keys:
-					listing.subscriber_keys.append(user.key)
-				listing.put()
-
-				template_values = {
-					'user': user,
-					'comment': comment,
-				}
-				template = JINJA_ENVIRONMENT.get_template('comment.html')
-				self.response.out.write(template.render(template_values))
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
-
-class ListingSubscribe(webapp2.RequestHandler):
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
-				listing = listing_key.get()
-				if listing_key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing is None:
-					raise Exception, 'no such listing.'
-				if user.key not in listing.subscriber_keys:
-					listing.subscriber_keys.append(user.key)
-				else:
-					raise Exception, 'you are already subscribed to this listing.'
-				listing.put()
-
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
-		else:
-			self.redirect('/setup')
-
-class ListingUnsubscribe(webapp2.RequestHandler):
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
-				listing = listing_key.get()
-				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing is None:
-					raise Exception, 'no such listing.'
-				if user.key in listing.subscriber_keys:
-					listing.subscriber_keys.remove(user.key)
-				else:
-					raise Exception, 'you are not subscribed to this listing.'
-				listing.put()
-
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
-		else:
-			self.redirect('/setup')
-
-class ListingPage(webapp2.RequestHandler):
-	def get(self, listing_url):
-		if users.get_current_user():
-			user = ndb.Key('Person', users.get_current_user().user_id()).get()
-			if user and user.setup:
-				listing = ndb.Key(urlsafe = listing_url).get()
-				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing is None:
-					raise Exception, 'no such listing.'
-
-				if listing.owner_key == user.key:
-					person = user
-					distance = 0
-				else:
-					person = listing.owner_key.get()
-
-					my_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						user.key)
-
-					your_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						listing.owner_key)
-
-					distance = min_dist(my_locations, your_locations)
-
-				own_games = ndb.get_multi(listing.own_keys)
-				seek_games = ndb.get_multi(listing.seek_keys)
-				comments = ndb.get_multi(listing.comment_keys)
-
-				template_values = {
-					'user': user,
-					'logout': users.create_logout_url(self.request.host_url),
-					'listing': listing,
-					'person': person,
-					'distance': distance,
-					'own_games': own_games,
-					'seek_games': seek_games,
-					'comments': comments,
-				}
-				template = JINJA_ENVIRONMENT.get_template('listing.html')
-				self.response.out.write(template.render(template_values))
-
+	def post_user(self, user):
+		try:
+			listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
+			listing = listing_key.get()
+			if listing_key.kind() != 'Listing':
+				raise Exception, 'invalid key.'
+			if listing is None:
+				raise Exception, 'no such listing.'
+			if user.key not in listing.subscriber_keys:
+				listing.subscriber_keys.append(user.key)
 			else:
-				self.redirect('/setup')
-		else:
-			try:
-				listing = ndb.Key(urlsafe = listing_url).get()
-				if listing.key.kind() != 'Listing':
-					raise Exception, 'invalid key.'
-				if listing is None:
-					raise Exception, 'no such listing.'
+				raise Exception, 'you are already subscribed to this listing.'
+			listing.put()
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
 
-				person = listing.owner_key.get()
-				own_games = ndb.get_multi(listing.own_keys)
-				seek_games = ndb.get_multi(listing.seek_keys)
-				comments = ndb.get_multi(listing.comment_keys)
+class ListingUnsubscribe(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/listings')
 
-				template_values = {
-					'login': users.create_login_url(self.request.uri),
-					'listing': listing,
-					'person': person,
-					'own_games': own_games,
-					'seek_games': seek_games,
-					'comments': comments,
-				}
-				template = JINJA_ENVIRONMENT.get_template('listing_public.html')
-				self.response.out.write(template.render(template_values))
-			except Exception, e:
-				self.redirect('/')
+	def post_user(self, user):
+		try:
+			listing_key = ndb.Key(urlsafe = self.request.get('listing_url'))
+			listing = listing_key.get()
+			if listing.key.kind() != 'Listing':
+				raise Exception, 'invalid key.'
+			if listing is None:
+				raise Exception, 'no such listing.'
+			if user.key in listing.subscriber_keys:
+				listing.subscriber_keys.remove(user.key)
+			else:
+				raise Exception, 'you are not subscribed to this listing.'
+			listing.put()
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
 
-class UserPage(webapp2.RequestHandler):
-	def get(self, person_url):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
+class UserPage(BaseHandler):
+	def get_user(self, user, **kwargs):
+		try:
+			person_url = kwargs['person_url']
+
 			person_key = ndb.Key(urlsafe = person_url)
 			if person_key.kind() != 'Person':
 				raise Exception, 'invalid key.'
@@ -1585,7 +1459,7 @@ class UserPage(webapp2.RequestHandler):
 				if not found:
 					your_diff.append(you_own)
 
-			nearest_distance = min_dist(my_locations, your_locations)
+			distance = min_dist(my_locations, your_locations)
 
 			template_values = {
 				'user': user,
@@ -1595,364 +1469,263 @@ class UserPage(webapp2.RequestHandler):
 				'my_match': my_match,
 				'your_match': your_match,
 				'your_diff': your_diff,
-				'nearest_distance': nearest_distance,
+				'distance': distance,
 				'listings': listings,
 				}
 			template = JINJA_ENVIRONMENT.get_template('user.html')
 			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+		except:
+			self.redirect('/dashboard')
 
-class UserLocations(webapp2.RequestHandler):
-	def get(self, person_url):
-		if users.get_current_user():
-			user = ndb.Key('Person', users.get_current_user().user_id()).get()
-			if user and user.setup:
-				try:
-					person_key = ndb.Key(urlsafe = person_url)
-					if person_key.kind() != 'Person':
-						raise Exception, 'invalid key.'
-					if person_key == user.key:
-						raise Exception, 'same user.'
-					person = person_key.get()
-					if person is None:
-						raise Exception, 'no such person.'
+	# TODO: finish coding public/personal version
+	def get_public(self, **kwargs):
+		try:
+			person_url = kwargs['person_url']
+			self.response.out.write('incomplete')
+		except:
+			self.redirect('/')
 
-					my_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						user.key)
+class UserLocations(BaseHandler):
+	def get_user(self, user, **kwargs):
+		try:
+			person_url = kwargs['person_url']
 
-					your_locations = ndb.gql('SELECT * '
-						'FROM Location '
-						'WHERE ANCESTOR IS :1 ',
-						person_key)
-
-					template_values = {
-						'user': user,
-						'person': person,
-						'my_locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in my_locations], cls = NdbEncoder),
-						'your_locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in your_locations], cls = NdbEncoder),
-					}
-					template = JINJA_ENVIRONMENT.get_template('user_locations.html')
-					self.response.out.write(template.render(template_values))
-				except:
-					self.redirect('/dashboard')
-			else:
-				self.redirect('/setup')
-		else:
-			try:
-				person_key = ndb.Key(urlsafe = person_url)
-				if person_key.kind() != 'Person':
-					raise Exception, 'invalid key.'
-				person = person_key.get()
-				if person is None:
-					raise Exception, 'no such person.'
-
-				locations = ndb.gql('SELECT * '
-					'FROM Location '
-					'WHERE ANCESTOR IS :1 ',
-					person_key)
-
-				template_values = {
-					'person': person,
-					'locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in locations], cls = NdbEncoder),
-				}
-				template = JINJA_ENVIRONMENT.get_template('user_locations_public.html')
-				self.response.out.write(template.render(template_values))
-			except:
-				self.redirect('/')
-
-class ConversationsPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			conversations = Conversation.query(Conversation.person_keys == user.key).order(-Conversation.date)
-			conversations = conversations.map(conversation_with_messages)
-
-			template_values = {
-						'user': user,
-						'logout': users.create_logout_url(self.request.host_url),
-						'conversations': conversations,
-					}
-			template = JINJA_ENVIRONMENT.get_template('conversations.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
-
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				jdata = json.loads(self.request.body)
-				names = jdata['names']
-				content = jdata['message']
-
-				qry = Conversation.query(Conversation.person_keys == user.key)
-
-				person_keys = []
-				for name in names:
-					person = Person.query(Person.name == name).get()
-					if not person:
-						raise Exception, 'the person %s does not exist.' %name
-					person_key = person.key
-					if person_key.kind() != 'Person':
-						raise Exception, 'invalid key.'
-					if person_key == user.key:
-						raise Exception, 'you cannot message yourself.'
-					person_keys.append(person_key)
-
-					qry = qry.filter(Conversation.person_keys == person_key)
-
-				qry = qry.filter(Conversation.num_pple == len(person_keys) + 1)
-
-				conversation = qry.get()
-				if conversation is None:
-					conversation = Conversation()
-					conversation.num_pple = len(person_keys) + 1
-					conversation.person_keys.append(user.key)
-					conversation.subscriber_keys.append(user.key)
-					for person_key in person_keys:
-						conversation.person_keys.append(person_key)
-						conversation.subscriber_keys.append(person_key)
-
-					conversation.num_unread = [0] * (len(person_keys) + 1)
-
-				message = Message()
-				message.content = content
-				message.owner = user.name
-				if not message.content:
-					raise Exception, 'message cannot be empty.'
-				if len(content) > MAX_STR_LEN:
-					raise Exception, 'message exceeds %d characters.' % MAX_STR_LEN
-				conversation.messages.append(message)
-
-				for counter, person_key in enumerate(person_keys):
-					if person_key == user.key:
-						conversation.num_unread[counter] = 0
-					else:
-						conversation.num_unread[counter] += 1
-				message.put()
-				conversation.date = message.date
-				conversation.put()
-
-				for key in conversation.subscriber_keys:
-					subscriber = key.get()
-					if subscriber is not user:
-						mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
-										to="%s <%s>" %(subscriber.name, subscriber.email),
-										subject="New private message from %s" %user.name,
-										body="""%s has sent you a private message:\n\n%s
-										""" % (user.name, message.content) )
-
-				self.response.out.write('message sent.')
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
-		else:
-			self.redirect('/setup')
-
-class ConversationSubscribe(webapp2.RequestHandler):
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				conversation_key = ndb.Key(urlsafe = self.request.get('conversation_url'))
-				conversation = conversation_key.get()
-				if conversation_key.kind() != 'Conversation':
-					raise Exception, 'invalid key.'
-				if conversation is None:
-					raise Exception, 'no such conversation.'
-				if user.key not in conversation.subscriber_keys:
-					conversation.subscriber_keys.append(user.key)
-				else:
-					raise Exception, 'you are already subscribed to this conversation.'
-				conversation.put()
-
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
-		else:
-			self.redirect('/setup')
-
-class ConversationUnsubscribe(webapp2.RequestHandler):
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				conversation_key = ndb.Key(urlsafe = self.request.get('conversation_url'))
-				conversation = conversation_key.get()
-				if conversation_key.kind() != 'Conversation':
-					raise Exception, 'invalid key.'
-				if conversation is None:
-					raise Exception, 'no such conversation.'
-				if user.key in conversation.subscriber_keys:
-					conversation.subscriber_keys.remove(user.key)
-				else:
-					raise Exception, 'you are not subscribed to this conversation.'
-				conversation.put()
-
-			except Exception, e:
-				self.error(403)
-				self.response.out.write(e)
-		else:
-			self.redirect('/setup')
-
-class MarkAsRead(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			self.redirect('/conversations')
-		else:
-			self.redirect('/setup')
-	def post(self, conversation_url):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			conversation_key = ndb.Key(urlsafe = conversation_url)
-			if conversation_key.kind() != 'Conversation':
+			person_key = ndb.Key(urlsafe = person_url)
+			if person_key.kind() != 'Person':
 				raise Exception, 'invalid key.'
-			conversation = conversation_key.get()
-			if conversation is None:
-				raise Exception, 'no such conversation.'
-			if user.key not in conversation.person_keys:
-				raise Exception, 'access denied.'
-			
-			conversation.num_unread[conversation.person_keys.index(user.key)] = 0
-			conversation.put()
+			if person_key == user.key:
+				raise Exception, 'same user.'
+			person = person_key.get()
+			if person is None:
+				raise Exception, 'no such person.'
 
-			self.response.out.write('conversation read.')
-		else:
-			self.redirect('/setup')
+			my_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
+				user.key)
 
-class FeedbackPage(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
+			your_locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
+				person_key)
+
 			template_values = {
 				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
+				'person': person,
+				'my_locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in my_locations], cls = NdbEncoder),
+				'your_locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in your_locations], cls = NdbEncoder),
 			}
-			template = JINJA_ENVIRONMENT.get_template('feedback.html')
+			template = JINJA_ENVIRONMENT.get_template('user_locations.html')
 			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+		except:
+			self.redirect('/dashboard')
 
-	def post(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			try:
-				feedback = Feedback(parent = user.key)
-				feedback.owner_key = user.key
-				feedback.content = self.request.get('feedback').rstrip()
-				if not feedback.content:
-					raise Exception, 'feedback cannot be empty.'
-				if len(feedback.content) > MAX_STR_LEN:
-					raise Exception, 'feedback exceeds %d characters.' % MAX_STR_LEN
-				feedback.put()
-				mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
-										to="Admin at Maph4ck <%s>" %ADMIN_MAIL,
-										subject="Feedback received from %s (%s)" %(user.name, user.email),
-										body="""%s has sent feedback:\n\n%s
-										""" % (user.name, feedback.content) )
-			except Exception, e:
-				self.error(403)
-				self.response.out.write([e])
-		else:
-			self.redirect('/setup')
+	def get_public(self, **kwargs):
+		try:
+			person_url = kwargs['person_url']
 
-# Unused handlers
-class GetListing(webapp2.RequestHandler):
-	def get(self):
-		qry = Listing.query().order(-Listing.date).fetch(1)
-		listing = qry[0]
-		person = listing.owner_key.get()
-		own_games = ndb.get_multi(listing.own_keys)
-		seek_games = ndb.get_multi(listing.seek_keys)
+			person_key = ndb.Key(urlsafe = person_url)
+			if person_key.kind() != 'Person':
+				raise Exception, 'invalid key.'
+			person = person_key.get()
+			if person is None:
+				raise Exception, 'no such person.'
+
+			locations = ndb.gql('SELECT * '
+				'FROM Location '
+				'WHERE ANCESTOR IS :1 ',
+				person_key)
+
+			template_values = {
+				'person': person,
+				'locations': json.dumps([ndb.Model.to_dict(location, include = ['geopt']) for location in locations], cls = NdbEncoder),
+			}
+			template = JINJA_ENVIRONMENT.get_template('user_locations_public.html')
+			self.response.out.write(template.render(template_values))
+		except:
+			self.redirect('/')
+
+class ConversationsPage(BaseHandler):
+	def get_user(self, user):
+		conversations = Conversation.query(Conversation.person_keys == user.key).order(-Conversation.date)
+		conversations = conversations.map(conversation_with_messages)
 
 		template_values = {
-			'listing': listing,
-			'person': person,
-			'own_games': own_games,
-			'seek_games': seek_games,
-		}
-		template = JINJA_ENVIRONMENT.get_template('latest_listing.html')
+					'user': user,
+					'logout': users.create_logout_url(self.request.host_url),
+					'conversations': conversations,
+				}
+		template = JINJA_ENVIRONMENT.get_template('conversations.html')
 		self.response.out.write(template.render(template_values))
 
-class SearchResults(webapp2.RequestHandler):
-	def show(self, query_type = '', title = '', platform = '', results = '', distances = '', error = ''):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			template_values = {
-				'pic': user.pic,
-				'name': user.name,
-				'logout': users.create_logout_url(self.request.host_url),
-				'query_type': query_type,
-				'title': title,
-				'platform': platform,
-				'results': results,
-				'error': error,
-				}
-			template = JINJA_ENVIRONMENT.get_template('search_results.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+	def post_user(self, user):
+		try:
+			jdata = json.loads(self.request.body)
+			names = jdata['names']
+			content = jdata['message']
 
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			query_type = self.request.get('query_type')
-			if query_type == 'have':
-				title = self.request.get('title')
-				platform = self.request.get('platform')
+			qry = Conversation.query(Conversation.person_keys == user.key)
 
-				owners_key = ndb.Key('Owners', title,
-					parent = ndb.Key('Platform', platform))
+			person_keys = []
+			for name in names:
+				person = Person.query(Person.name == name).get()
+				if not person:
+					raise Exception, 'the person %s does not exist.' %name
+				person_key = person.key
+				if person_key.kind() != 'Person':
+					raise Exception, 'invalid key.'
+				if person_key == user.key:
+					raise Exception, 'you cannot message yourself.'
+				person_keys.append(person_key)
 
-				owners = ndb.gql('SELECT * '
-					'FROM Owner '
-					'WHERE ANCESTOR IS :1 ',
-					owners_key)
+				qry = qry.filter(Conversation.person_keys == person_key)
 
-				results = owners.map(user_with_distance)
-				results = sorted(results, key = itemgetter(1))
-				
-				self.show(query_type, title, platform, results)
+			qry = qry.filter(Conversation.num_pple == len(person_keys) + 1)
 
-			elif query_type == 'want':
-				title = self.request.get('title')
-				platform = self.request.get('platform')
+			conversation = qry.get()
+			if conversation is None:
+				conversation = Conversation()
+				conversation.num_pple = len(person_keys) + 1
+				conversation.person_keys.append(user.key)
+				conversation.subscriber_keys.append(user.key)
+				for person_key in person_keys:
+					conversation.person_keys.append(person_key)
+					conversation.subscriber_keys.append(person_key)
 
-				seekers_key = ndb.Key('Seekers', title,
-					parent = ndb.Key('Platform', platform))
+				conversation.num_unread = [0] * (len(person_keys) + 1)
 
-				seekers = ndb.gql('SELECT * '
-					'FROM Seeker '
-					'WHERE ANCESTOR IS :1 ',
-					seekers_key)
+			message = Message()
+			message.content = content
+			message.owner = user.name
+			if not message.content:
+				raise Exception, 'message cannot be empty.'
+			if len(content) > MAX_STR_LEN:
+				raise Exception, 'message exceeds %d characters.' % MAX_STR_LEN
+			conversation.messages.append(message)
 
-				results = seekers.map(user_with_distance)
-				results = sorted(results, key = itemgetter(1))
+			for counter, person_key in enumerate(person_keys):
+				if person_key == user.key:
+					conversation.num_unread[counter] = 0
+				else:
+					conversation.num_unread[counter] += 1
+			message.put()
+			conversation.date = message.date
+			conversation.put()
 
-				self.show(query_type, title, platform, results)
+			for key in conversation.subscriber_keys:
+				subscriber = key.get()
+				if subscriber is not user:
+					mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+									to="%s <%s>" %(subscriber.name, subscriber.email),
+									subject="New private message from %s" %user.name,
+									body="""%s has sent you a private message:\n\n%s
+									""" % (user.name, message.content) )
 
+			self.response.out.write('message sent.')
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+class ConversationSubscribe(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/conversations')
+
+	def post_user(self, user):
+		try:
+			conversation_key = ndb.Key(urlsafe = self.request.get('conversation_url'))
+			conversation = conversation_key.get()
+			if conversation_key.kind() != 'Conversation':
+				raise Exception, 'invalid key.'
+			if conversation is None:
+				raise Exception, 'no such conversation.'
+			if user.key not in conversation.subscriber_keys:
+				conversation.subscriber_keys.append(user.key)
 			else:
-				error = 'invalid query.'
-				self.show(error = error)
-		else:
-			self.redirect('/setup')
+				raise Exception, 'you are already subscribed to this conversation.'
+			conversation.put()
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
 
-class FAQ(webapp2.RequestHandler):
-	def get(self):
-		user = ndb.Key('Person', users.get_current_user().user_id()).get()
-		if user and user.setup:
-			template_values = {
-				'user': user,
-				'logout': users.create_logout_url(self.request.host_url),
-			}
-			template = JINJA_ENVIRONMENT.get_template('faq.html')
-			self.response.out.write(template.render(template_values))
-		else:
-			self.redirect('/setup')
+class ConversationUnsubscribe(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/conversations')
+
+	def post_user(self, user):
+		try:
+			conversation_key = ndb.Key(urlsafe = self.request.get('conversation_url'))
+			conversation = conversation_key.get()
+			if conversation_key.kind() != 'Conversation':
+				raise Exception, 'invalid key.'
+			if conversation is None:
+				raise Exception, 'no such conversation.'
+			if user.key in conversation.subscriber_keys:
+				conversation.subscriber_keys.remove(user.key)
+			else:
+				raise Exception, 'you are not subscribed to this conversation.'
+			conversation.put()
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+# TODO: unimplemented
+class MarkAsRead(BaseHandler):
+	def get_user(self, user):
+		self.redirect('/conversations')
+
+	def post_user(self, user, conversation_url):
+		conversation_key = ndb.Key(urlsafe = conversation_url)
+		if conversation_key.kind() != 'Conversation':
+			raise Exception, 'invalid key.'
+		conversation = conversation_key.get()
+		if conversation is None:
+			raise Exception, 'no such conversation.'
+		if user.key not in conversation.person_keys:
+			raise Exception, 'access denied.'
+		
+		conversation.num_unread[conversation.person_keys.index(user.key)] = 0
+		conversation.put()
+
+		self.response.out.write('conversation read.')
+
+# TODO: add public version
+class FeedbackPage(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('feedback.html')
+		self.response.out.write(template.render(template_values))
+
+	def post_user(self, user):
+		try:
+			feedback = Feedback(parent = user.key)
+			feedback.owner_key = user.key
+			feedback.content = self.request.get('feedback').strip()
+			if not feedback.content:
+				raise Exception, 'feedback cannot be empty.'
+			if len(feedback.content) > MAX_STR_LEN:
+				raise Exception, 'feedback exceeds %d characters.' % MAX_STR_LEN
+			feedback.put()
+			mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+									to="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+									subject="Feedback received from %s (%s)" %(user.name, user.email),
+									body="""%s has sent feedback:\n\n%s
+									""" % (user.name, feedback.content) )
+		except Exception, e:
+			self.error(403)
+			self.response.out.write([e])
+
+# TODO: add public version
+class FAQ(BaseHandler):
+	def get_user(self, user):
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.host_url),
+		}
+		template = JINJA_ENVIRONMENT.get_template('faq.html')
+		self.response.out.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
 	('/', MainPage),
@@ -1967,7 +1740,7 @@ application = webapp2.WSGIApplication([
 	('/locations/add', LocationsAdd),
 	('/locations/delete', LocationsDelete),
 	('/locations/edit', LocationsEdit),
-	('/locations/view/(.*)', LocationsView),
+	webapp2.Route('/locations/view/<location_url>', LocationsView),
 	('/inventory', InventoryPage),
 	('/inventory/add', InventoryAdd),
 	('/inventory/delete', InventoryDelete),
@@ -1978,21 +1751,20 @@ application = webapp2.WSGIApplication([
 	('/listings/add', ListingsAdd),
 	('/listings/delete', ListingsDelete),
 	('/listings/recent', ListingsRecent),
+	webapp2.Route('/listings/recent/<page>', ListingsRecent),
 	('/listings/search', ListingsSearch),
+	webapp2.Route('/listings/search/<query_type>/<title>/<platform>', ListingsSearch),
+	webapp2.Route('/listings/search/<query_type>/<title>/<platform>/<page>', ListingsSearch),
 	('/listings/search/map', ListingsSearchMap),
 	('/listing/comment', ListingComment),
 	('/listing/subscribe', ListingSubscribe),
 	('/listing/unsubscribe', ListingUnsubscribe),
-	('/listing/(.*)', ListingPage),
-	('/user/locations/(.*)', UserLocations),
-	('/user/(.*)', UserPage),
+	webapp2.Route('/listing/<listing_url>', ListingPage),
+	webapp2.Route('/user/locations/<person_url>', UserLocations),
+	webapp2.Route('/user/<person_url>', UserPage),
+	('/conversations', ConversationsPage),
 	('/conversation/subscribe', ConversationSubscribe),
 	('/conversation/unsubscribe', ConversationUnsubscribe),
-	('/conversations', ConversationsPage),
 	('/feedback', FeedbackPage),
 	('/faq', FAQ),
-
-	('/get/listing', GetListing),
-	('/search/results', SearchResults),
-	('/*', Dashboard),
 	], debug=True)

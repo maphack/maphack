@@ -6,12 +6,12 @@
 {% if pager %}
 <ul class="pager">
 	{% if pager.has_prev %}
-	<li class="previous"><a href="/listings/search?query_type={{ query_type }}&amp;title={{ title }}&amp;platform={{ platform }}&amp;page={{ pager.prev_page }}">&larr; newer</a></li>
+	<li class="previous"><a href="/listings/search/{{ query_type }}/{{ title }}/{{ platform }}/{{ pager.prev_page }}">&larr; newer</a></li>
 	{% else %}
 	<li class="previous disabled"><a>&larr; newer</a></li>
 	{% endif %}
 	{% if pager.has_next %}
-	<li class="next"><a href="/listings/search?query_type={{ query_type }}&amp;title={{ title }}&amp;platform={{ platform }}&amp;page={{ pager.next_page }}">older &rarr;</a></li>
+	<li class="next"><a href="/listings/search/{{ query_type }}/{{ title }}/{{ platform }}/{{ pager.next_page }}">older &rarr;</a></li>
 	{% else %}
 	<li class="next disabled"><a>older &rarr;</a></li>
 	{% endif %}
@@ -142,12 +142,12 @@
 {% if pager %}
 <ul class="pager">
 	{% if pager.has_prev %}
-	<li class="previous"><a href="/listings/search?query_type={{ query_type }}&amp;title={{ title }}&amp;platform={{ platform }}&amp;page={{ pager.prev_page }}">&larr; newer</a></li>
+	<li class="previous"><a href="/listings/search/{{ query_type }}/{{ title }}/{{ platform }}/{{ pager.prev_page }}">&larr; newer</a></li>
 	{% else %}
 	<li class="previous disabled"><a>&larr; newer</a></li>
 	{% endif %}
 	{% if pager.has_next %}
-	<li class="next"><a href="/listings/search?query_type={{ query_type }}&amp;title={{ title }}&amp;platform={{ platform }}&amp;page={{ pager.next_page }}">older &rarr;</a></li>
+	<li class="next"><a href="/listings/search/{{ query_type }}/{{ title }}/{{ platform }}/{{ pager.next_page }}">older &rarr;</a></li>
 	{% else %}
 	<li class="next disabled"><a>older &rarr;</a></li>
 	{% endif %}

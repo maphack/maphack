@@ -35,19 +35,25 @@ handlers:
   script: maphack.application
 
 # Handler for public pages
-- url: /get/listing
-  script: maphack.application
-
 - url: /listings/recent
   script: maphack.application
 
+- url: /listings/recent/.*
+  script: maphack.application
+
 - url: /listings/search
+  script: maphack.application
+
+- url: /listings/search.*
   script: maphack.application
 
 - url: /listing/.*
   script: maphack.application
 
 - url: /user/locations/.*
+  script: maphack.application
+
+- url: /user/.*
   script: maphack.application
 
 # All other pages require login
