@@ -35,13 +35,7 @@ handlers:
   script: maphack.application
 
 # Handler for public pages
-- url: /listings/recent
-  script: maphack.application
-
-- url: /listings/recent/.*
-  script: maphack.application
-
-- url: /listings/search
+- url: /listings/recent.*
   script: maphack.application
 
 - url: /listings/search.*

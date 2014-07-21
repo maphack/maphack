@@ -427,7 +427,7 @@ class FriendsAdd(BaseHandler):
 			user.put()
 		except Exception, e:
 			self.error(403)
-			self.response.out.write(e)
+			self.response.out.write(str(e))
 
 class FriendsDelete(BaseHandler):
 	def get_user(self, user):
@@ -445,7 +445,7 @@ class FriendsDelete(BaseHandler):
 			user.put()
 		except Exception, e:
 			self.error(403)
-			self.response.out.write(e)
+			self.response.out.write(str(e))
 
 class LocationsPage(BaseHandler):
 	def get_user(self, user):
@@ -723,7 +723,7 @@ class InventoryDelete(BaseHandler):
 			else:
 				owner_key.delete()
 
-			self.response.out.write('game removed from playlist.')
+			self.response.out.write('game removed from inventory.')
 		except Exception, e:
 			self.error(403)
 			self.response.out.write([e])
@@ -1299,6 +1299,9 @@ class ListingComment(BaseHandler):
 	def get_user(self, user):
 		self.redirect('/listings')
 
+	def get_public(self):
+		self.redirect('/')
+
 	def post_user(self, user):
 		try:
 			listing = ndb.Key(urlsafe = self.request.get('listing_url')).get()
@@ -1321,10 +1324,10 @@ class ListingComment(BaseHandler):
 			for key in listing.subscriber_keys:
 				subscriber = key.get()
 				if subscriber is not user:
-					mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+					mail.send_mail(sender="Admin at Maph4ck <%s>" % ADMIN_MAIL,
 									to="%s <%s>" %(subscriber.name, subscriber.email),
-									subject="New comment posted by %s" %user.name,
-									body="""%s has posted a new comment at http://maph4cktest.appspot.com/listing/%s:\n\n%s
+									subject="New comment posted by %s" % user.name,
+									body="""%s has posted a new comment at http://maph4ck.appspot.com/listing/%s:\n\n%s
 									""" % (user.name, listing.key.urlsafe(), comment.content) )
 
 			if user.key not in listing.subscriber_keys:
@@ -1344,6 +1347,9 @@ class ListingComment(BaseHandler):
 class ListingSubscribe(BaseHandler):
 	def get_user(self, user):
 		self.redirect('/listings')
+
+	def get_public(self):
+		self.redirect('/')
 
 	def post_user(self, user):
 		try:
@@ -1365,6 +1371,9 @@ class ListingSubscribe(BaseHandler):
 class ListingUnsubscribe(BaseHandler):
 	def get_user(self, user):
 		self.redirect('/listings')
+
+	def get_public(self):
+		self.redirect('/')
 
 	def post_user(self, user):
 		try:

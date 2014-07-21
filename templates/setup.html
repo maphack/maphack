@@ -13,7 +13,7 @@
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-user"></span>
 				</span>
-				<input id="name" type="text" class="form-control" placeholder="display name (max 20 chars)" maxlength="20">
+				<input id="name" type="text" maxlength="20" class="form-control" placeholder="display name (max 20 chars)">
 			</div>
 		</div>
 	</div>
@@ -316,7 +316,7 @@
 			$('#alerts').append(alertBootstrap('danger', 'display name cannot be empty.'));
 			error = true;
 		} else if (name.length > 20) {
-			$('#alerts').append(alertBootstrap('danger', 'display name cannot exceed 20 characters.'));
+			$('#alerts').append(alertBootstrap('danger', 'display name exceeds 20 characters.'));
 			error = true;
 		} else if (!contact) {
 			$('#alerts').append(alertBootstrap('danger', 'contact information cannot be empty.'));
