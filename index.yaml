@@ -14,45 +14,9 @@ indexes:
   properties:
   - name: person_keys
   - name: date
-
-- kind: Conversation
-  properties:
-  - name: person_keys
-  - name: date
     direction: desc
 
-- kind: Game
-  ancestor: yes
-  properties:
-  - name: date
-    direction: desc
-
-- kind: Listing
-  properties:
-  - name: own_games
-  - name: date
-    direction: desc
-
-- kind: Listing
-  properties:
-  - name: own_games
-  - name: seek_games
-  - name: date
-    direction: desc
-
-- kind: Listing
-  properties:
-  - name: own_games
-  - name: seek_games
-  - name: topup
-
-- kind: Listing
-  properties:
-  - name: seek_games
-  - name: date
-    direction: desc
-
-- kind: Listing
+- kind: Trade
   ancestor: yes
   properties:
   - name: date

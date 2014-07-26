@@ -1,31 +1,16 @@
+.display-pic-nav {
+	max-height: 18px;
+	width: auto;
+}
+
 .display-pic {
-	max-height: 14px;
+	max-height: 18px;
 	width: auto;
 }
 
 .display-pic-lg {
-	max-height: 33px;
+	max-height: 36px;
 	width: auto;
-}
-
-/* user agent stylesheet is giving this a padding-left of 40px */
-.main-search > ul {
-	padding-left: 0 !important;
-}
-
-.main-search > ul > li {
-	list-style: none;
-	float: left;
-	padding-left: 10px;
-	margin-bottom: 10px;
-}
-
-.main-search > ul > li:first-child {
-	padding-left: 0;
-}
-
-.main-search > ul > li.main-search-text {
-	margin-top: 9px;
 }
 
 .table > thead > tr > th,
@@ -39,46 +24,39 @@
 	width: auto;
 }
 
-.listing-block {
-	border-bottom: 1px solid #eeeeee;
-}
-
-.listing-date {
-	padding-top: 9px;
-}
-
-.listing-menu > ul > li {
+.trade-menu > ul > li {
 	list-style: none;
 	float: right;
 	padding-right: 10px;
 	margin-bottom: 10px;
 }
 
-.listing-menu > ul > li:first-child {
+.trade-menu > ul > li:first-child {
 	padding-right: 0;
 }
 
-/* single alert when inventory/playlist is empty */
-.panel > .panel-body > .alert {
+.trade-user,
+.trade-date {
+	padding-top: 9px;
+}
+
+.trade-alert {
 	margin-bottom: 0;
 }
 
-/* panel footer topup input group */
-.listing-topup {
+.trade-body,
+.trade-topup {
 	padding: 0;
 }
 
-.comments {
+.games-block,
+.trade-block,
+.comment-block {
 	border-bottom: 1px solid #eeeeee;
 }
 
 .top-pad-ten {
 	margin-top: 10px;
-}
-
-.answer-block {
-	padding-top: 20px;
-	padding-bottom: 30px;
 }
 
 .conversation-menu {

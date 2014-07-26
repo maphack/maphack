@@ -1,0 +1,192 @@
+{% extends 'user/base.html' %}
+{% block content %}
+<div id="search-div">
+	<div class="page-header">
+		<h1>
+			search listings
+			<a class="btn btn-default" href="/listings/add">
+				<span class="glyphicon glyphicon-plus"></span>
+			</a>
+		</h1>
+	</div>
+	<div id="alerts">
+		{% if not inventory.count() and not playlist.count() %}
+		<div class="alert alert-info">
+			no games in your inventory and playlist! add games to your inventory/playlist to add them to the search.
+		</div>
+		{% endif %}
+	</div>
+	{% if inventory.count() or playlist.count() %}
+	<form id="search" class="form-horizontal" role="form">
+		<div class="row">
+			<div class="col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">inventory</h3>
+					</div>
+					{% if inventory.count() %}
+					<div class="table-responsive">
+						<table id="inventory" class="sortable table table-bordered table-striped">
+							<thead>
+								<tr>
+									<th class="sorttable_nosort" width="5%"></th>
+									<th width="50%">title</th>
+									<th width="15%">platform</th>
+									<th class="sorttable_nosort" width="15%">picture</th>
+									<th width="15%">new</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for game in inventory %}
+								{% set game_id = game.key.urlsafe() %}
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+									<td width="5"><input type="checkbox" class="own" value="{{ game_id }}"></td>
+									<td width="50%">{{ game.title }}</td>
+									<td width="15%">{{ game.platform }}</td>
+									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% else %}
+					<div class="panel-body trade-body">
+						<div class="alert alert-info trade-alert">
+							no games in your inventory!
+							<a class="btn btn-default btn-sm" href="/inventory/add">
+								<span class="glyphicon glyphicon-plus"></span>
+							</a>
+						</div>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">playlist</h3>
+					</div>
+					{% if playlist.count() %}
+					<div class="table-responsive">
+						<table class="sortable table table-bordered table-striped">
+							<thead>
+								<tr>
+									<th class="sorttable_nosort" width="5%"></th>
+									<th width="50%">title</th>
+									<th width="15%">platform</th>
+									<th class="sorttable_nosort" width="15%" >picture</th>
+									<th width="15%">new</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for game in playlist %}
+								{% set game_id = game.key.urlsafe() %}
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+									<td width="5%"><input type="checkbox" class="seek" value="{{ game_id }}"></td>
+									<td width="50%">{{ game.title }}</td>
+									<td width="15%">{{ game.platform }}</td>
+									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% else %}
+					<div class="panel-body trade-body">
+						<div class="alert alert-info trade-alert">
+							no games in your playlist!
+							<a class="btn btn-default btn-sm" href="/playlist/add">
+								<span class="glyphicon glyphicon-plus"></span>
+							</a>
+						</div>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button type="submit" class="btn btn-default pull-right">
+					<span class="glyphicon glyphicon-search"></span>
+				</button>
+			</div>
+		</div>
+	</form>
+	{% endif %}
+</div>
+<div id="search-results"></div>
+<script>
+	window.onload = function() {
+		$('#search').submit(function(e) {
+			e.preventDefault();
+			clearAlerts();
+			$(':input').prop('disabled', true);
+
+			var trade = {
+				own_urls: [],
+				seek_urls: [],
+			};
+
+			$('.own').each(function() {
+				if (this.checked) {
+					trade.own_urls.push(this.value);
+				}
+			});
+
+			$('.seek').each(function() {
+				if (this.checked) {
+					trade.seek_urls.push(this.value);
+				}
+			});
+
+			if (!trade.own_urls.length && !trade.seek_urls.length) {
+				$('#alerts').append(alertBootstrap('danger', 'trade cannot be empty.'));
+			} else {
+				$.ajax({
+					type: 'POST',
+					url: '/trades/search',
+					data: JSON.stringify(trade),
+					contentType: 'application/json',
+					success: function(data, textStatus, jqXHR) {
+						console.log(data);
+						console.log(textStatus);
+						console.log(jqXHR);
+
+						$('#alerts').append(alertBootstrap('success', 'trade added.'));
+						alertTimeout(5000);
+
+						$('#search-div').fadeTo(500, 0).slideUp(500, function() {
+							$(this).remove();
+						});
+						$('#search-results').append(data);
+					},
+					error: function(jqXHR, textStatus, errorThrown) {
+						console.log(jqXHR);
+						console.log(textStatus);
+						console.log(errorThrown);
+						var errors = eval(jqXHR.responseText);
+
+						for (var i = 0; i < errors.length; i++) {
+							$('#alerts').append(alertBootstrap('danger', errors[i]));
+						}
+					},
+				});
+			}
+
+			$(':input').prop('disabled', false);
+		});
+
+		{% if own_url or seek_url %}
+		$('#' + '{{ own_url }}').find(':checkbox').prop('checked', true);
+		$('#' + '{{ seek_url }}').find(':checkbox').prop('checked', true);
+		$('#search').submit();
+		{% endif %}
+
+		$.getScript('/scripts/sorttable.js');
+		$('#nav-trades').addClass('active');
+		$('#nav-trades-search').addClass('active');
+	}
+</script>
+{% endblock %}

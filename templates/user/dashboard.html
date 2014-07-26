@@ -1,0 +1,14 @@
+{% extends '/user/base.html' %}
+{% block content %}
+<div class="text-center">
+	<img src="/images/map_cat.png">
+	<br>
+	<br>
+	<p>welcome back, <em><strong>{{ user.name }}</strong></em></p>
+</div>
+<script>
+	window.onload = function() {
+		$('#nav-dashboard').addClass('active');
+	}
+</script>
+{% endblock %}

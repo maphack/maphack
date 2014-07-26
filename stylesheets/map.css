@@ -1,20 +1,20 @@
 html, body, #map-canvas {
-  height: 100%;
-  margin: 0px;
-  padding: 0px
+	height: 100%;
+	margin: 0px;
+	padding: 0px;
 }
 
 #panel {
-  position: absolute;
-  z-index: 5;
-  max-width: 480px;
-  right: 16px;
-  bottom: 16px;
-  padding: 5px;
-  border: 1px solid #999;
+	position: absolute;
+	z-index: 5;
+	max-width: 271px;
+	right: 16px;
+	bottom: 16px;
+	padding: 5px;
+	border: 1px solid #999;
 }
 
 .display-pic {
-  max-height: 14px;
-  width: auto;
+	max-height: 18px;
+	width: auto;
 }

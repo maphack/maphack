@@ -1,0 +1,217 @@
+<div class="page-header">
+	<h1>search results
+		<a class="btn btn-default" href="/trades/search">back</a>
+		{% if trades|length %}
+			<a class="btn btn-default" href="#" onclick="javascript:maphack();"><b>maphack!</b></a>
+		{% endif %}
+	</h1>
+</div>
+<div>
+	{% if trades %}
+	<div class="alert alert-success alert-dismissable">
+		{{ trades|length }} search result(s)!
+	</div>
+	{% else %}
+	<div class="alert alert-info">
+		no search results!
+	</div>
+	{% endif %}
+</div>
+{% if trades|length %}
+{% for trade, own_games, seek_games, person, locations, distance in trades %}
+<div id="{{ trade.key.urlsafe() }}" class="trade-block">
+	<div class="row">
+		<div class="col-md-6" style="padding-top: 9px">
+			<h4><a href="/user/{{ person.key.urlsafe() }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a></h4>
+		</div>
+		<div class="col-md-6">
+			<div class="trade-menu">
+				<ul>
+					<li><a class="btn btn-default" href="/trade/{{ trade.key.urlsafe() }}"><span class="glyphicon glyphicon-link"></span></a></li>
+					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}" target="_blank">
+						<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away</a></li>
+					<li><div class="trade-date">{{ trade.date.strftime('%c') }}</div></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">offering</h1>
+				</div>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="70%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+								<th width="10%">picture</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
+								<td width="80%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+								<td width="10%">
+									{% if game.pic %}
+									<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+										<span class="glyphicon glyphicon-picture"></span>
+									</a>
+									{% else %}
+									n/a
+									{% endif %}
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup > 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">requesting</h1>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="70%" style="text-align: left">title</th>
+								<th width="20%">platform</th>
+								<th width="10%">picture</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
+								<td width="70%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+								<td width="10%">
+									{% if game.pic %}
+									<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+										<span class="glyphicon glyphicon-picture"></span>
+									</a>
+									{% else %}
+									n/a
+									{% endif %}
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup < 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<h4>description</h4>
+			<p>{{ trade.description or 'none' }}</p>
+		</div>
+	</div>
+</div>
+{% endfor %}
+{% endif %}
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+var locations = [];
+var people = [];
+var trades = [];
+	function maphack() {
+		// reset the global variables
+		locations.length = 0;
+		people.length = 0;
+		trades.length = 0;
+		{% for trade, own_games, seek_games, person, locations, distance in trades %}
+			// if the person the trade belongs to hasn't appeared before
+			if ($.inArray("{{ person.name }}", people) == -1) {
+				// record his appearance
+				people.push("{{ person.name }}");
+
+				// add the new person's locations to the list
+				{% for location in locations %}
+					var location = {
+						name: "{{ location.name }}",
+						lon: {{ location.location.lon }},
+						lat: {{ location.location.lat }},
+						owner: "{{ person.name }}",
+						ownerPic: "{{ person.pic }}",
+						ownerUrlsafe: "{{ person.key.urlsafe() }}",
+					};
+					locations.push(location);
+				{% endfor %}
+			}
+		{% endfor %}
+		for (var i = 0; i < people.length; i++) {
+			trades.push([]);
+		}
+		{% for trade, own_games, seek_games, person, locations, distance in trades %}
+			var trade = {
+				own_games: [],
+				seek_games: [],
+				topup: {{ trade.topup }},
+				date: "{{ trade.date.strftime('%c') }}",
+				urlsafe: "{{ trade.key.urlsafe() }}",
+			};
+			{% for game in own_games %}
+				var game = {
+					title: "{{ game.title }}",
+					platform: "{{ game.platform }}",
+				}
+				trade.own_games.push(game);
+			{% endfor %}
+			{% for game in seek_games %}
+				var game = {
+					title: "{{ game.title }}",
+					platform: "{{ game.platform }}",
+				}
+				trade.seek_games.push(game);
+			{% endfor %}
+			trades[$.inArray("{{ person.name }}", people)].push(trade);
+		{% endfor %}
+
+		window.open("/trades/search/map");
+	}
+</script>
+<script>
+	$.getScript('/scripts/sorttable.js');
+	$('.game').popover({
+		html: true,
+		trigger: 'hover',
+		placement: 'right',
+	});
+</script>

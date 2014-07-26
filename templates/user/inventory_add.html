@@ -1,0 +1,138 @@
+{% extends 'user/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>
+		add to inventory
+		<a class="btn btn-default" href="/inventory">back</a>
+	</h1>
+</div>
+<div id="alerts"></div>
+<form id="add" class="form-horizontal" role="form">
+	<div class="form-group">
+		<label for="title" class="col-sm-2 control-label">title</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-book"></span>
+				</span>
+				<input id="title" type="text" class="form-control" placeholder="title">
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="platform" class="col-sm-2 control-label">platform</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-hdd"></span>
+				</span>
+				<select id="platform" class="form-control">
+					<option>PS4</option>
+					<option>Xbox One</option>
+					<option>Wii U</option>
+					<option>PS3</option>
+					<option>Xbox 360</option>
+					<option>Wii</option>
+					<option>PS Vita</option>
+					<option>3DS</option>
+					<option>PSP</option>
+					<option>DS</option>
+					<option>PC</option>
+					<option>Mac</option>
+					<option>Other</option>
+				</select>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="pic" class="col-sm-2 control-label">picture</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-picture"></span>
+				</span>
+				<input id="pic" type="url" class="form-control" placeholder="optional image link">
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label for="description" class="col-sm-2 control-label">description</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-list"></span>
+				</span>
+				<textarea id="description" class="form-control" maxlength="500" rows="5" placeholder="special edition, DLC, condition, etc."></textarea>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<div class="checkbox">
+				<label>
+					<input id="wrapped" type="checkbox"> brand new?
+					<span class="help-block">select this option only if your game is still shrink-wrapped.</span>
+				</label>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<button type="submit" class="btn btn-default">add</button>
+		</div>
+	</div>
+</form>
+<script>
+	window.onload = function() {
+		$("#add").submit(function(e) {
+			e.preventDefault();
+			clearAlerts();
+			$(':input').prop('disabled', true);
+
+			var title = $('#title').val().trim();
+			var platform = $('#platform').val().trim();
+			var pic = $('#pic').val().trim();
+			var description = $('#description').val().trim();
+			if ($('#wrapped').prop('checked')) {
+				var wrapped = true;
+			} else {
+				var wrapped = false;
+			}
+
+			if (!title) {
+				$('#alerts').append(alertBootstrap('danger', 'title cannot be empty.'));
+			} else {
+				$.ajax({
+					type: 'POST',
+					url: '/inventory/add',
+					data: {title: title, platform: platform, pic: pic, description: description, wrapped: wrapped},
+					success: function(data, textStatus, jqXHR) {
+						console.log(data);
+						console.log(textStatus);
+						console.log(jqXHR);
+						
+						$('#alerts').append(alertBootstrap('success', title + ' added to inventory.'));
+						alertTimeout(5000);
+
+						$('#add')[0].reset();
+					},
+					error: function(jqXHR, textStatus, errorThrown) {
+						console.log(jqXHR);
+						console.log(textStatus);
+						console.log(errorThrown);
+						var errors = eval(jqXHR.responseText);
+
+						for (var i = 0; i < errors.length; i++) {
+							$('#alerts').append(alertBootstrap('danger', errors[i]));
+						}
+					},
+				});
+			}
+
+			$(':input').prop('disabled', false);
+		});
+
+		$('#nav-inventory').addClass('active');
+	}
+</script>
+{% endblock %}

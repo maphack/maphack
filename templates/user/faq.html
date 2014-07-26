@@ -1,0 +1,111 @@
+{% extends '/user/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>FAQ</h1>
+</div>
+<div class="panel-group" id="accordion">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+					What is maph4ck?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse1" class="panel-collapse collapse">
+			<div class="panel-body">
+				maph4ck is an online social networking service where users can trade games with each other in person. After signing in with a Google Account, users can add trading locations, add games to their inventory/playlist, add other users as friends, exchange messages, and create and search trades.
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+					What are my locations?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse2" class="panel-collapse collapse">
+			<div class="panel-body">
+				Locations are places where you want to trade games with other users. Your locations are shared with other users so they know if it is convenient to trade with you.
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse3">
+					What is my inventory/playlist?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse3" class="panel-collapse collapse">
+			<div class="panel-body">
+				Your inventory keeps track of games that you have and want to trade away; your playlist keeps track of games that you want to trade for. By adding games to your inventory/playlist, you can create several trades without having to re-enter information e.g. game condition for each trade. Also, other users can make you trade offers after looking at your personal profile.
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse4">
+					What is a trade?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse4" class="panel-collapse collapse">
+			<div class="panel-body">
+				When you create a trade, you have to add games from your inventory/playlist and/or a cash amount that you want to trade away/for, and an optional trade description. Other users can search for trades, comment on your trade, and view your profile page.
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse5">
+					What is my profile?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse5" class="panel-collapse collapse">
+			<div class="panel-body">
+				Your profile is public and contains information about your locations, inventory/playlist and trades. Your contact information can only be viewed by other maph4ck users.
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse6">
+					Why should I provide my contact information?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse6" class="panel-collapse collapse">
+			<div class="panel-body">
+				Providing your contact information allows other users to communicate with you directly, when accepting/conducting trades.
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapse7">
+					How do I contact you?
+				</a>
+			</h4>
+		</div>
+		<div id="collapse7" class="panel-collapse collapse">
+			<div class="panel-body">
+				For feedback regarding maph4ck, click <a href="/feedback">here</a>. You can also send an e-mail to developer.maph4ck[at]gmail.com.
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	window.onload = function() {
+		$('#nav-faq').addClass('active');
+	}
+</script>
+{% endblock %}

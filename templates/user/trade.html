@@ -1,0 +1,294 @@
+{% extends 'user/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>trade</h1>
+</div>
+{% set trade_id = trade.key.urlsafe() %}
+{% set person_id = person.key.urlsafe() %}
+<div class="trade-block">
+	<div class="row">
+		<div class="col-md-6 trade-user">
+			<h4><a href="/user/{{ person_id }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a></h4>
+		</div>
+		<div class="col-md-6">
+			<div class="trade-menu">
+				<ul>
+					<li>
+						{% if user.key in trade.subscriber_keys %}
+						<span id="sub-div" style="display: none">
+						{% else %}
+						<span id="sub-div">
+						{% endif %}
+							<button id="sub" type="button" class="btn btn-default" value="{{ trade_id }}">
+								<span class="glyphicon glyphicon-envelope"></span> subscribe
+							</button>
+						</span>
+						{% if user.key not in trade.subscriber_keys %}
+						<span id="unsub-div" style="display: none">
+						{% else %}
+						<span id="unsub-div">
+						{% endif %}
+							<button id="unsub" type="button" class="btn btn-default" value="{{ trade_id }}">
+								<span class="glyphicon glyphicon-remove"></span> unsubscribe
+							</button>
+						</span>
+					</li>
+					<li>
+						<a class="btn btn-default" href="/user/locations/{{ person_id }}">
+							<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away
+						</a>
+					</li>
+					<li><div class="trade-date">posted {{ trade.date.strftime('%c') }}</div></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">offering</h3>
+				</div>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="55%">title</th>
+								<th width="15%">platform</th>
+								<th class="sorttable_nosort" width="15%">picture</th>
+								<th width="15%">new</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							{% set game_id = game.key.urlsafe() %}
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<td width="55%">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body trade-body">
+					<div class="alert alert-info trade-alert">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup > 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">requesting</h3>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="55%">title</th>
+								<th width="15%">platform</th>
+								<th class="sorttable_nosort" width="15%">picture</th>
+								<th width="15%">new</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							{% set game_id = game.key.urlsafe() %}
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<td width="55%">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body trade-body">
+					<div class="alert alert-info trade-alert">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup < 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	<h4>description</h4>
+	<p>{{ trade.description or 'none' }}</p>
+</div>
+<div id="comments" class="comment-block">
+	<h4>comments</h4>
+	{% for comment in comments %}
+	{% set owner = comment.key.parent().get() %}
+	<div class="comment">
+		<a href="/user/{{ owner.key.urlsafe() }}"><img class="display-pic" src="{{ owner.pic }}"> {{ owner.name }}</a> commented {{ comment.date.strftime('%c') }}
+		<p>{{ comment.content }}</p>
+	</div>
+	{% else %}
+	<div id="no-comments" class="alert alert-info">
+		no comments!
+	</div>
+	{% endfor %}
+</div>
+<div class="top-pad-ten">
+	<div id="alerts"></div>
+	<form id="form" class="form-horizontal" role="form">
+		<div class="form-group">
+			<label for="comment" class="col-sm-2 control-label">comment</label>
+			<div class="col-sm-10">
+				<div class="input-group">
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-list"></span>
+					</span>
+					<textarea id="comment" class="form-control" maxlength="500" rows="5" placeholder="leave a comment"></textarea>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-offset-2 col-sm-10">
+				<button class="btn btn-default pull-right">post</button>
+			</div>
+		</div>
+	</form>
+</div>
+<script>
+	window.onload = function() {
+		var trade_url = '{{ trade_id }}';
+
+		$('#form').submit(function(e) {
+			e.preventDefault();
+			clearAlerts();
+			$(':input').prop('disabled', true);
+
+			var comment = $('#comment').val().trim();
+
+			if (!comment) {
+				$('#alerts').append(alertBootstrap('danger', 'comment cannot be empty.'));
+			} else {
+				$.ajax({
+					type: 'POST',
+					url: '/trade/comment',
+					data: {trade_url: trade_url, comment: comment},
+					success: function(data, textStatus, jqXHR) {
+						console.log(data);
+						console.log(textStatus);
+						console.log(jqXHR);
+
+						$('#alerts').append(alertBootstrap('success', 'comment posted.'));
+						alertTimeout(5000);
+
+						$('#no-comments').fadeTo(500, 0).slideUp(500, function() {
+							$(this).remove();
+						});
+						$('#comments').append(data);
+
+						$('#form')[0].reset();
+
+						$('#sub-div').hide();
+						$('#unsub-div').show();
+					},
+					error: function(jqXHR, textStatus, errorThrown) {
+						console.log(jqXHR);
+						console.log(textStatus);
+						console.log(errorThrown);
+						var errors = eval(jqXHR.responseText);
+
+						for (var i = 0; i < errors.length; i++) {
+							$('#alerts').append(alertBootstrap('danger', errors[i]));
+						}
+					},
+				});
+			}
+
+			$(':input').prop('disabled', false);
+		});
+
+		$('#sub').click(function(event) {
+			clearAlerts();
+
+			$.ajax({
+				type: 'POST',
+				url: '/trade/subscribe',
+				data: {trade_url: trade_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'subscribed to this listing.'));
+					alertTimeout(5000);
+
+					$('#sub-div').hide();
+					$('#unsub-div').show();
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var error = jqXHR.responseText;
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$('#unsub').click(function(event) {
+			clearAlerts();
+
+			$.ajax({
+				type: 'POST',
+				url: '/trade/unsubscribe',
+				data: {trade_url: trade_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'unsubscribed from this listing.'));
+					alertTimeout(5000);
+
+					$('#sub-div').show();
+					$('#unsub-div').hide();
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i ++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$.getScript('/scripts/sorttable.js');
+		$('#nav-trades').addClass('active');
+	}
+</script>
+{% endblock %}

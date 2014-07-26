@@ -1,0 +1,355 @@
+{% extends 'user/base.html' %}
+{% block content %}
+{% set person_id = person.key.urlsafe() %}
+<div class="page-header">
+	<h1>
+		<img class="display-pic-lg" src="{{ person.pic }}">{{ person.name }}
+		<a class="btn btn-default" href="/user/locations/{{ person_id }}">
+			<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away
+		</a>
+		{% if person.key in user.friend_keys %}
+		<span id="friend-div" style="display: none">
+		{% else %}
+		<span id="friend-div">
+		{% endif %}
+			<button id="friend" type="button" class="btn btn-default" value="{{ person_id }}">
+				<span class="glyphicon glyphicon-heart"></span> friend
+			</button>
+		</span>
+		{% if person.key not in user.friend_keys %}
+		<span id="unfriend-div" style="display: none">
+		{% else %}
+		<span id="unfriend-div">
+		{% endif %}
+			<button id="unfriend" type="button" class="btn btn-default" value="{{ person.key.urlsafe() }}">
+				<span class="glyphicon glyphicon-remove"></span> unfriend
+			</button>
+		</span>
+	</h1>
+</div>
+<div class="well">
+	<p>country: {{ person.country }}</p>
+	<p>contact: {{ person.contact }}</p>
+	<p>bio: {{ person.bio or 'none' }}</p>
+</div>
+<div id="alerts"></div>
+<div class="games-block">
+	<ul class="nav nav-tabs nav-justified" role="tablist">
+		<li class="active"><a href="#my-diff" role="tab" data-toggle="tab">your other games</a></li>
+		<li><a href="#my-match" role="tab" data-toggle="tab">your games that <img class="display-pic" src="{{ person.pic }}"> {{ person.name }} wants</a></li>
+		<li><a href="#your-match" role="tab" data-toggle="tab"><img class="display-pic" src="{{ person.pic }}"> {{ person.name }}'s games that you want</a></li>
+		<li><a href="#your-diff" role="tab" data-toggle="tab"><img class="display-pic" src="{{ person.pic }}"> {{ person.name }}'s other games</a></li>
+	</ul>
+	<div class="tab-content">
+		<div id="my-diff" class="tab-pane fade in active top-pad-ten">
+			{% if my_diff %}
+			<div class="table-responsive">
+				<table class="sortable table table-bordered table-striped">
+					<thead>
+						<th width="40%">title</th>
+						<th width="10%">platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
+						<th class="sorttable_nosort" width="20%">picture</th>
+						<th width="10%">new</th>
+					</thead>
+					<tbody>
+						{% for game in my_diff %}
+						{% set game_id = game.key.urlsafe() %}
+						<tr id="{{ game_id }}">
+							<td width="40%">{{ game.title }}</td>
+							<td width="10%">{{ game.platform }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="alert alert-info">
+				you have no other games!
+			</div>
+			{% endif %}
+		</div>
+		<div id="my-match" class="tab-pane fade top-pad-ten">
+			{% if my_match %}
+			<div class="table-responsive">
+				<table class="sortable table table-bordered table-striped">
+					<thead>
+						<th width="40%">title</th>
+						<th width="10%">platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
+						<th class="sorttable_nosort" width="20%">picture</th>
+						<th width="10%">new</th>
+					</thead>
+					<tbody>
+						{% for game in my_match %}
+						{% set game_id = game.key.urlsafe() %}
+						<tr id="{{ game_id }}">
+							<td width="40%">{{ game.title }}</td>
+							<td width="10%">{{ game.platform }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="alert alert-info">
+				you have no games that <img class="display-pic" src="{{ person.pic }}"> {{ person.name }} wants!
+			</div>
+			{% endif %}
+		</div>
+		<div id="your-match" class="tab-pane fade top-pad-ten">
+			{% if your_match %}
+			<div class="table-responsive">
+				<table class="sortable table table-bordered table-striped">
+					<thead>
+						<th width="40%">title</th>
+						<th width="10%">platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
+						<th class="sorttable_nosort" width="20%">picture</th>
+						<th width="10%">new</th>
+					</thead>
+					<tbody>
+						{% for game in your_match %}
+						{% set game_id = game.key.urlsafe() %}
+						<tr id="{{ game_id }}">
+							<td width="40%">{{ game.title }}</td>
+							<td width="10%">{{ game.platform }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="alert alert-info">
+				<img class="display-pic" src="{{ person.pic }}"> {{ person.name }} has no games that you want!
+			</div>
+			{% endif %}
+		</div>
+		<div id="your-diff" class="tab-pane fade top-pad-ten">
+			{% if your_diff %}
+			<div class="table-responsive">
+				<table class="sortable table table-bordered table-striped">
+					<thead>
+						<th width="40%">title</th>
+						<th width="10%">platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
+						<th class="sorttable_nosort" width="20%">picture</th>
+						<th width="10%">new</th>
+					</thead>
+					<tbody>
+						{% for game in your_diff %}
+						{% set game_id = game.key.urlsafe() %}
+						<tr id="{{ game_id }}">
+							<td width="40%">{{ game.title }}</td>
+							<td width="10%">{{ game.platform }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="alert alert-info">
+				<img class="display-pic" src="{{ person.pic }}"> {{ person.name }} has no other games!
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+<div class="trades">
+	<h3>trades</h3>
+	{% for trade, own_games, seek_games in trades %}
+	{% set trade_id = trade.key.urlsafe() %}
+	<div class="trade-block">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="trade-menu">
+					<ul>
+						<li><a class="btn btn-default" href="/trade/{{ trade_id }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
+						<li><div class="trade-date">posted {{ trade.date.strftime('%c') }}</div></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">offering</h3>
+					</div>
+					{% if own_games|length %}
+					<div class="table-responsive">
+						<table class="sortable table table-bordered table-striped">
+							<thead>
+								<tr>
+									<th width="55%">title</th>
+									<th width="15%">platform</th>
+									<th class="sorttable_nosort" width="15%">picture</th>
+									<th width="15%">new</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for game in own_games %}
+								{% set game_id = game.key.urlsafe() %}
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+									<td width="55%">{{ game.title }}</td>
+									<td width="15%">{{ game.platform }}</td>
+									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% else %}
+					<div class="panel-body trade-body">
+						<div class="alert alert-info trade-alert">
+							no games here!
+						</div>
+					</div>
+					{% endif %}
+					{% if trade.topup > 0 %}
+					<div class="panel-footer trade-topup">
+						<div class="input-group">
+							<span class="input-group-addon">topup ${{ trade.topup }}</span>
+						</div>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">requesting</h3>
+					</div>
+					{% if seek_games|length %}
+					<div class="table-responsive">
+						<table class="sortable table table-bordered table-striped">
+							<thead>
+								<tr>
+									<th width="55%">title</th>
+									<th width="15%">platform</th>
+									<th class="sorttable_nosort" width="15%">picture</th>
+									<th width="15%">new</th>
+								</tr>
+							</thead>
+							<tbody>
+								{% for game in seek_games %}
+								{% set game_id = game.key.urlsafe() %}
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+									<td width="55%">{{ game.title }}</td>
+									<td width="15%">{{ game.platform }}</td>
+									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								</tr>
+								{% endfor %}
+							</tbody>
+						</table>
+					</div>
+					{% else %}
+					<div class="panel-body trade-body">
+						<div class="alert alert-info trade-alert">
+							no games here!
+						</div>
+					</div>
+					{% endif %}
+					{% if trade.topup < 0 %}
+					<div class="panel-footer trade-topup">
+						<div class="input-group">
+							<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+						</div>
+					</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		<h4>description</h4>
+		<p>{{ trade.description or 'none' }}</p>
+	</div>
+	{% else %}
+	<div class="alert alert-info">
+		<img class="display-pic" src="{{ person.pic }}"> {{ person.name}} has no active trades!
+	</div>
+	{% endfor %}
+</div>
+<script>
+	window.onload = function() {
+		var person_url = '{{ person_id }}'
+
+		$('#friend').click(function(e) {
+			clearAlerts();
+
+			$.ajax({
+				type: 'POST',
+				url: '/friends/add',
+				data: {person_url: person_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'friend added.'));
+					alertTimeout(5000);
+
+					$('#friend-div').hide();
+					$('#unfriend-div').show();
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$('#unfriend').click(function(e) {
+			clearAlerts();
+
+			$.ajax({
+				type: 'POST',
+				url: '/friends/delete',
+				data: {person_url: person_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'friend removed.'));
+					alertTimeout(5000);
+
+					$('#friend-div').show();
+					$('#unfriend-div').hide();
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$.getScript('/scripts/sorttable.js');
+	}
+</script>
+{% endblock %}

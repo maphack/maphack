@@ -5,18 +5,15 @@ api_version: 1
 threadsafe: true
 
 handlers:
-- url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
-
+# Static files
 - url: /stylesheets
   static_dir: stylesheets
 
-- url: /images
-  static_dir: images
-
 - url: /scripts
   static_dir: scripts
+
+- url: /images
+  static_dir: images
 
 # Twitter Bootstrap
 - url: /bootstrap
@@ -30,29 +27,28 @@ handlers:
 - url: /bootstrap-social
   static_dir: bootstrap-social
 
-# Handler for front page
+# Public pages
 - url: /
-  script: maphack.application
+  script: maph4ck.application
 
-# Handler for public pages
-- url: /listings/recent.*
-  script: maphack.application
+- url: /trades/recent.*
+  script: maph4ck.application
 
-- url: /listings/search.*
-  script: maphack.application
-
-- url: /listing/.*
-  script: maphack.application
-
-- url: /user/locations/.*
-  script: maphack.application
+- url: /trade/.*
+  script: maph4ck.application
 
 - url: /user/.*
-  script: maphack.application
+  script: maph4ck.application
 
-# All other pages require login
+- url: /feedback
+  script: maph4ck.application
+
+- url: /faq
+  script: maph4ck.application
+
+# User pages
 - url: /.*
-  script: maphack.application
+  script: maph4ck.application
   login: required
 
 libraries:

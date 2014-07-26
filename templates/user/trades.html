@@ -1,0 +1,170 @@
+{% extends 'user/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>
+		trades
+		<a class="btn btn-default" href="/trades/add">
+			<span class="glyphicon glyphicon-plus"></span>
+		</a>
+		<a class="btn btn-default" href="/trades/search">
+			<span class="glyphicon glyphicon-search"></span>
+		</a>
+	</h1>
+</div>
+<div id="alerts">
+	{% if not trades|length %}
+	<div class="alert alert-info">
+		no trades! click the + button to add the trades you want to make.
+	</div>
+	{% endif %}
+</div>
+{% for trade, own_games, seek_games in trades %}
+{% set trade_id = trade.key.urlsafe() %}
+<div id="{{ trade_id }}" class="trade-block">
+	<div class="row">
+		<div class="col-md-12">
+			<div class="trade-menu">
+				<ul>
+					<li><a class="btn btn-default" href="/trade/{{ trade_id }}"><span class="glyphicon glyphicon glyphicon-link"></span></a></li>
+					<li><button type="button" class="btn btn-default delete" value="{{ trade_id }}"><span class="glyphicon glyphicon glyphicon-remove"></span></button></li>
+					<li><div class="trade-date"> posted {{ trade.date.strftime('%c')}}</div></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">offering</h3>
+				</div>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="55%">title</th>
+								<th width="15%">platform</th>
+								<th class="sorttable_nosort" width="15%">picture</th>
+								<th width="15%">new</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							{% set game_id = game.key.urlsafe() %}
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<td width="55%">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body trade-body">
+					<div class="alert alert-info trade-alert">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup > 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">requesting</h3>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="55%">title</th>
+								<th width="15%">platform</th>
+								<th class="sorttable_nosort" width="15%">picture</th>
+								<th width="15%">new</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							{% set game_id = game.key.urlsafe() %}
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<td width="55%">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body trade-body">
+					<div class="alert alert-info trade-alert">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup < 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	<h4>description</h4>
+	<p>{{ trade.description or 'none' }}</p>
+</div>
+{% endfor %}
+<script>
+	window.onload = function() {
+		$('.delete').click(function(e) {
+			clearAlerts();
+
+			var trade_url = $(this).val();
+
+			$.ajax({
+				type: 'POST',
+				url: '/trades/delete',
+				data: {trade_url: trade_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'trade deleted.'));
+					alertTimeout(5000);
+
+					$('#' + trade_url).remove();
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$.getScript('/scripts/sorttable.js');
+		$('#nav-trades').addClass('active');
+		$('#nav-trades-my').addClass('active');
+	}
+</script>
+{% endblock %}

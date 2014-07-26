@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>maphack | search. trade. play.</title>
+  <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/stylesheets/map.css" rel="stylesheet">
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script src="/bootstrap/js/bootstrap.min.js"></script>
+  <script src="/scripts/alerts.js"></script>
+</head>
+<body>
+  <div id="panel" class="panel panel-primary" style="width: 250px;">
+    <div class="panel-heading">
+      <h1 class="panel-title">locations</h1>
+    </div>
+    <div class="panel-body">
+      <form id="form" role="form">
+        <div id="alerts"></div>
+        <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
+        <button id="hide" type="button" class="btn btn-default">hide my locations</button>
+        <a class="btn btn-default" href="#" onclick="javascript:closeWindow();">close</a>
+      </form>
+    </div>
+  </div>
+  <div id="map-canvas"></div>
+<script>
+  var country = '{{ user.country }}';
+  var my_locations = {{ locations|safe }};
+  var locations = window.opener.locations;
+  var trades = window.opener.trades;
+  var people = window.opener.people;
+
+	var map;
+	var location_markers = [];
+  var my_markers = [];
+  var marker;
+  var bounds = new google.maps.LatLngBounds();
+
+  function initialize() {
+    map = new google.maps.Map(document.getElementById('map-canvas'));
+    geocoder = new google.maps.Geocoder();
+    var contentString;
+
+    if (my_locations.length) {
+      for (var h = 0; h < my_locations.length; h++) {
+        var latlng = new google.maps.LatLng(my_locations[h].location.lat, my_locations[h].location.lon);
+        bounds.extend(latlng);
+
+        var location_marker = new google.maps.Marker({
+          position: latlng,
+          map: map,
+          icon: 'http://maps.google.com/mapfiles/ms/micons/red.png',
+          title: my_locations[h].name,
+        });
+        my_markers.push(location_marker);
+      }
+
+      map.fitBounds(bounds);
+      map.panToBounds(bounds);
+    }
+
+    if (locations.length) {
+
+      for (var i = 0; i < locations.length; i++) {
+        var latlng = new google.maps.LatLng(locations[i].lat, locations[i].lon);
+        bounds.extend(latlng);
+
+        var relevanttrades = trades[$.inArray((""+locations[i].owner), people)];
+        contentString = '<h4><a href="/user/' + locations[i].ownerUrlsafe + '"><img class="display-pic" src=' + locations[i].ownerPic + ' style="max-height: 16px; width: auto; padding-left: 5px;">' + locations[i].owner + '</a></h4>';
+
+        // create table for each trade
+        for (var j = 0; j < relevanttrades.length; j++) {
+          contentString += '<div class="trade-menu"><ul><li style="list-style: none; float: right"><a class="btn btn-default" href="/trade/' +
+          relevanttrades[j].urlsafe + '" target="_blank"><span class="glyphicon glyphicon-link"></span></a></li>' +
+           '<li style="list-style: none; float: right; padding-right: 10px; padding-top: 10px;"><div class="trade-date">posted ' + relevanttrades[j].date + 
+           '</div></li></ul></div>';
+          contentString += '<div class="row"><div style="padding-left: 20px;"><h5>trade ' + (j+1) + '</h5></div>';
+
+          // add the games offered
+          contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">offering ';
+          if (relevanttrades[j].topup > 0) {
+            contentString += '$' + relevanttrades[j].topup;
+          }
+          contentString += '</h4></div><table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">title</th>' +
+            '<th width="20%">platform</th></tr></thead><tbody>';
+          for (var k = 0; k < relevanttrades[j].own_games.length; k++) {
+            contentString += '<tr><td width="80%" style="text-align: left">' + relevanttrades[j].own_games[k].title + '</td>' +
+              '<td width="20%">' + relevanttrades[j].own_games[k].platform + '</td></tr>'
+          }
+          contentString += '</tbody></table>';
+          contentString += '</div></div>';
+
+          // add the games requested
+          contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">requesting ';
+          if (relevanttrades[j].topup < 0) {
+            contentString += '$' + (-relevanttrades[j].topup);
+          }
+          contentString += '</h4></div><table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">title</th>' +
+            '<th width="20%">platform</th></tr></thead><tbody>';
+          for (var l = 0; l < relevanttrades[j].seek_games.length; l++) {
+            contentString += '<tr><td width="80%" style="text-align: left">' + relevanttrades[j].own_games[l].title + '</td>' +
+              '<td width="20%">' + relevanttrades[j].own_games[l].platform + '</td></tr>'
+          }
+          contentString += '</tbody></table>';
+          contentString += '</div></div></div></div>';
+
+          function createMarker() {
+            var marker = new google.maps.Marker({
+              position: latlng,
+              map: map,
+              icon: 'http://maps.google.com/mapfiles/ms/micons/blue.png',
+              title: locations[i].name,
+            });
+            var infowindow = new google.maps.InfoWindow({
+              content: contentString,
+            });
+            google.maps.event.addListener(marker, 'click', function() {
+                                infowindow.open(map, this);
+                            });
+            return marker;
+          }
+
+          var location_marker = createMarker();
+          location_markers.push(location_marker);
+        }
+      }
+
+      map.fitBounds(bounds);
+      map.panToBounds(bounds);
+    } else {
+      geocoder.geocode({'componentRestrictions': {country: country}}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          map.setCenter(results[0].geometry.location);
+          map.fitBounds(results[0].geometry.viewport);
+        } else {
+          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+        }
+      });
+    }
+  }
+
+  function setAllMap(map) {
+    for (var m = 0; m < my_markers.length; m++) {
+      my_markers[m].setMap(map);
+    }
+  }
+
+  $('#show').click(function(event) {
+    setAllMap(map);
+    $('#show').hide();
+    $('#hide').show();
+  });
+
+  $('#hide').click(function(event) {
+    setAllMap(null);
+    $('#show').show();
+    $('#hide').hide();
+  });
+
+  function closeWindow() {
+    window.close();
+  }
+
+  google.maps.event.addDomListener(window, 'load', initialize);
+  $.getScript('/scripts/sorttable.js');
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+{% extends 'user/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>
+		inventory
+		<a class="btn btn-default" href="/inventory/add">
+			<span class="glyphicon glyphicon-plus"></span>
+		</a>
+	</h1>
+</div>
+<div id="alerts">
+	{% if not inventory.count() %}
+	<div class="alert alert-info">
+		no games in your inventory! click the + button to add the games you want to trade away.
+	</div>
+	{% endif %}
+</div>
+{% if inventory.count() %}
+<div id="inventory" class="table-responsive">
+	<table class="sortable table table-bordered table-striped">
+		<thead>
+			<th width="20%">title</th>
+			<th width="10%">platform</th>
+			<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
+			<th class="sorttable_nosort" width="20%">picture</th>
+			<th width="10%">new</th>
+			<th class="sorttable_nosort" width="10%">search trades</th>
+			<th class="sorttable_nosort" width="10%">delete</th>
+		</thead>
+		<tbody>
+			{% for game in inventory %}
+			{% set game_id = game.key.urlsafe() %}
+			<tr id="{{ game_id }}">
+				<td width="20%">{{ game.title }}</td>
+				<td width="10%">{{ game.platform }}</td>
+				<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+				<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+				<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+				<td width="10%">
+					<a class="btn btn-default" href="/trades/search?own={{ game_id }}">
+						<span class="glyphicon glyphicon-search"></span>
+					</a>
+				</td>
+				<td width="10%">
+					<button type="button" class="btn btn-default delete" value="{{ game_id }}">
+						<span class="glyphicon glyphicon-remove"></span>
+					</button>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+<script>
+	window.onload = function() {
+		$('.delete').click(function(e) {
+			clearAlerts();
+
+			var game_url = $(this).val();
+
+			$.ajax({
+				type: 'POST',
+				url: '/inventory/delete',
+				data: {game_url: game_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'game deleted from inventory.'));
+					alertTimeout(5000);
+
+					$('#' + game_url).remove();
+
+					if ($('#inventory tr').length == 1) {
+						$('#inventory').fadeTo(500, 0).slideUp(500, function() {
+							$(this).remove();
+						});
+						$('#alerts').append(alertBootstrap('info', 'no games in your inventory! click the + button to add the games you want to trade away.'));
+					}
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$.getScript('/scripts/sorttable.js');
+		$('#nav-inventory').addClass('active');
+	}
+</script>
+{% endblock %}

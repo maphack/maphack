@@ -1,0 +1,68 @@
+{% extends 'public/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>feedback</h1>
+</div>
+<div id="alerts"></div>
+<form id="form" class="form-horizontal" role="form">
+	<div class="form-group">
+		<label for="feedback" class="col-sm-2 control-label">feedback</label>
+		<div class="col-sm-10">
+			<div class="input-group">
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-list"></span>
+				</span>
+				<textarea id="feedback" class="form-control" maxlength="500" rows="5" placeholder="we would love to hear from you!"></textarea>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+			<button class="btn btn-default">post</button>
+		</div>
+	</div>
+</form>
+<script>
+	window.onload = function() {
+		$('#form').submit(function(e) {
+			e.preventDefault();
+			clearAlerts();
+			$(':input').prop('disabled', true);
+
+			var feedback = $('#feedback').val().trim();
+
+			if (!feedback) {
+				$('#alerts').append(alertBootstrap('danger', 'feedback cannot be empty.'));
+			} else {
+				$.ajax({
+					type: 'POST',
+					url: '/feedback',
+					data: {feedback: feedback},
+					success: function(data, textStatus, jqXHR) {
+						console.log(data);
+						console.log(textStatus);
+						console.log(jqXHR);
+
+						$('#alerts').append(alertBootstrap('success', 'feedback sent. thank you for helping to improve the maphack experience!'));
+						alertTimeout(5000);
+
+						$('#form')[0].reset();
+					},
+					error: function(jqXHR, textStatus, errorThrown) {
+						console.log(jqXHR);
+						console.log(textStatus);
+						console.log(errorThrown);
+						var errors = eval(jqXHR.responseText);
+
+						for (var i = 0; i < errors.length; i++) {
+							$('#alerts').append(alertBootstrap('danger', errors[i]));
+						}
+					},
+				});
+			}
+
+			$(':input').prop('disabled', false);
+		});
+	}
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>maph4ck | search. trade. play.</title>
+	<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+	<link href="/bootstrap-social/css/bootstrap-social.css" rel="stylesheet">
+	<link href="/stylesheets/main.css" rel="stylesheet">
+	<link href="/stylesheets/user.css" rel="stylesheet">
+</head>
+<body>
+	<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="/dashboard">maph4ck</a>
+			</div>
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav">
+					<li id="nav-dashboard" class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">dashboard <span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+							<li id="nav-profile"><a href="/profile">profile</a></li>
+							<li id="nav-friends"><a href="/friends">friends</a></li>
+							<li id="nav-conversations"><a href="/conversations">conversations</a></li>
+							<li id="nav-locations"><a href="/locations">locations</a></li>
+						</ul>
+					</li>
+					<li id="nav-inventory"><a href="/inventory">inventory</a></li>
+					<li id="nav-playlist"><a href="/playlist">playlist</a></li>
+					<li id="nav-trades" class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">trades <span class="caret"></span></a>
+						<ul class="dropdown-menu" role="menu">
+							<li id="nav-trades-my"><a href="/trades">my trades</a></li>
+							<li id="nav-trades-add"><a href="/trades/add">add trade</a></li>
+							<li class="divider"></li>
+							<li id="nav-trades-recent"><a href="/trades/recent">recent trades</a></li>
+							<li id="nav-trades-search"><a href="/trades/search">search trades</a></li>
+						</ul>
+					</li>
+					<li id="nav-feedback"><a href="/feedback">feedback</a></li>
+					<li id="nav-faq"><a href="/faq">faq</a></li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="/profile"><img class="display-pic-nav" src="{{ user.pic }}"> {{ user.name or 'user' }}</a></li>
+					<li><a href="{{ logout }}"><span class="glyphicon glyphicon-off"></span></a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		{% block content %}{% endblock %}
+	</div>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/scripts/alerts.js"></script>
+	<script src="/scripts/games.js"></script>
+</body>
+</html>

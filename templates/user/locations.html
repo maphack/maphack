@@ -1,0 +1,93 @@
+{% extends 'user/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>
+		locations
+		<a class="btn btn-default" href="/locations/add">
+			<span class="glyphicon glyphicon-plus"></span>
+		</a>
+	</h1>
+</div>
+<div id="alerts">
+	{% if not locations.count() %}
+	<div class="alert alert-info">
+		no locations added! click the + button to add the locations you want to trade at.
+	</div>
+	{% endif %}
+</div>
+{% if locations.count() %}
+<div id="locations" class="table-responsive">
+	<table class="sortable table table-bordered table-striped">
+		<thead>
+			<tr>
+				<th width="30%">name</th>
+				<th width="30%" style="text-align: left">address</th>
+				<th width="30%" style="text-align: left">geocells</th>
+				<th class="sorttable_nosort" width="10%">delete</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for location in locations %}
+			{% set location_id = location.key.urlsafe() %}
+			<tr id = "{{ location_id }}">
+				<td width="30%"><a href="/locations/view/{{ location_id }}">{{ location.name }}</a></td>
+				<td width="30%" style="text-align: left">{{ location.address }}</td>
+				<td width="30%" style="text-align: left">{{ location.location_geocells }}</td>
+				<td width="10%">
+					<button type="button" class="btn btn-default delete" value="{{ location_id }}">
+						<span class="glyphicon glyphicon-remove"></span>
+					</button>
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endif %}
+<script>
+	window.onload = function() {
+		$('.delete').click(function(e) {
+			clearAlerts();
+
+			var location_url = $(this).val();
+
+			$.ajax({
+				type: 'POST',
+				url: '/locations/delete',
+				data: {location_url: location_url},
+				success: function(data, textStatus, jqXHR) {
+					console.log(data);
+					console.log(textStatus);
+					console.log(jqXHR);
+
+					$('#alerts').append(alertBootstrap('success', 'location deleted.'));
+					alertTimeout(5000);
+
+					$('#' + location_url).remove();
+
+					if ($('#locations tr').length == 1) {
+						$('#locations').fadeTo(500, 0).slideUp(500, function() {
+							$(this).remove();
+						});
+						$('#alerts').append(alertBootstrap('info', 'no locations added! click the + button to add the locations you want to trade at.'));
+					}
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(jqXHR);
+					console.log(textStatus);
+					console.log(errorThrown);
+					var errors = eval(jqXHR.responseText);
+
+					for (var i = 0; i < errors.length; i++) {
+						$('#alerts').append(alertBootstrap('danger', errors[i]));
+					}
+				},
+			});
+		});
+
+		$.getScript('/scripts/sorttable.js');
+		$('#nav-dashboard').addClass('active');
+		$('#nav-locations').addClass('active');
+	}
+</script>
+{% endblock %}

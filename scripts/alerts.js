@@ -10,13 +10,13 @@ function clearAlerts() {
 
 function alertBootstrap(type, message) {
 	return '<div class="alert alert-' +
-		type + 
+		type +
 		' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">close</span></button>' +
 		message +
 		'</div>'
 }
 
-function alertTimeout(wait){
+function alertTimeout(wait) {
 	setTimeout(function(){
 		$('#alerts').children('.alert-success:first-child').fadeTo(500, 0).slideUp(500, function() {
 			$(this).remove();
