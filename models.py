@@ -46,6 +46,8 @@ class Trade(ndb.Model):
 	seek_keys = ndb.KeyProperty(repeated = True)
 	own_games = ndb.StringProperty(repeated = True)
 	seek_games = ndb.StringProperty(repeated = True)
+	own_titles = ndb.StringProperty(repeated = True)
+	seek_titles = ndb.StringProperty(repeated = True)
 	topup = ndb.IntegerProperty(default = 0)
 	description = ndb.StringProperty()
 	comment_keys = ndb.KeyProperty(repeated = True)

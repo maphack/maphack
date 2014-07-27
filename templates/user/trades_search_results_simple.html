@@ -1,8 +1,10 @@
+{% extends '/user/base.html' %}
+{% block content %}
 <div class="page-header">
 	<h1>search results
 		<a class="btn btn-default" href="/trades/search">back</a>
 		{% if trades|length %}
-			<a class="btn btn-default" href="#" onclick="javascript:maphack();"><b>MAPHACK!</b></a>
+			<a class="btn btn-default" href="#" onclick="javascript:maphack();"><b>maphack!</b></a>
 		{% endif %}
 	</h1>
 </div>
@@ -57,7 +59,13 @@
 								<td width="80%" style="text-align: left">{{ game.title }}</td>
 								<td width="20%">{{ game.platform }}</td>
 								<td width="10%">
-									{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}
+									{% if game.pic %}
+									<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+										<span class="glyphicon glyphicon-picture"></span>
+									</a>
+									{% else %}
+									n/a
+									{% endif %}
 								</td>
 							</tr>
 							{% endfor %}
@@ -101,7 +109,13 @@
 								<td width="70%" style="text-align: left">{{ game.title }}</td>
 								<td width="20%">{{ game.platform }}</td>
 								<td width="10%">
-									{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}
+									{% if game.pic %}
+									<a class="btn btn-default" href="{{ game.pic }}" target="_blank">
+										<span class="glyphicon glyphicon-picture"></span>
+									</a>
+									{% else %}
+									n/a
+									{% endif %}
 								</td>
 							</tr>
 							{% endfor %}
@@ -203,3 +217,4 @@ var trades = [];
 		placement: 'right',
 	});
 </script>
+{% endblock %}

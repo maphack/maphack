@@ -119,7 +119,17 @@ class Setup(webapp2.RequestHandler):
 
 class Dashboard(BaseHandler):
 	def get_user(self, user, **kwargs):
+		qry = models.Trade.query().order(-models.Trade.date).fetch(1)
+		trade = qry[0]
+		person = trade.key.parent().get()
+		own_games = ndb.get_multi(trade.own_keys)
+		seek_games = ndb.get_multi(trade.seek_keys)
+
 		template_values = {
+			'trade': trade,
+			'person': person,
+			'own_games': own_games,
+			'seek_games': seek_games,
 			'user': user,
 			'logout': users.create_logout_url(self.request.host_url),
 		}
@@ -622,6 +632,7 @@ class TradesAdd(BaseHandler):
 
 				trade.own_keys.append(game_key)
 				trade.own_games.append(game.title + game.platform)
+				trade.own_titles.append(game.title)
 
 			for game_url in seek_urls:
 				game_key = ndb.Key(urlsafe = game_url)
@@ -636,6 +647,7 @@ class TradesAdd(BaseHandler):
 
 				trade.seek_keys.append(game_key)
 				trade.seek_games.append(game.title + game.platform)
+				trade.seek_titles.append(game.title)
 
 			if offer_amt > 0:
 				trade.topup = offer_amt
@@ -807,6 +819,23 @@ class TradesSearch(BaseHandler):
 		template = JINJA_ENVIRONMENT.get_template('user/trades_search_results.html')
 		self.response.write(template.render(template_values))
 
+class TradesSearchSimple(BaseHandler):
+	def post_user(self, user):
+		game_title = self.request.get("name")
+		trades = models.Trade.query()
+		trades = trades.filter(ndb.OR(models.Trade.seek_titles == game_title,
+									  models.Trade.own_titles == game_title))
+		trades.order(-models.Trade.date)
+		trades = trades.map(utils.trade_all)
+
+		template_values = {
+			'user': user,
+			'logout': users.create_logout_url(self.request.uri),
+			'trades': trades,
+		}
+		template = JINJA_ENVIRONMENT.get_template('user/trades_search_results_simple.html')
+		self.response.write(template.render(template_values))
+
 class TradesSearchMap(BaseHandler):
 	def get_user(self, user, **kwargs):
 		locations = models.Location.query(ancestor = user.key)
@@ -889,6 +918,23 @@ class Trade(BaseHandler):
 			self.response.write(template.render(template_values))
 		except:
 			self.redirect('/')
+
+class TradeLatest(BaseHandler):
+	def get_user(self, user):
+		qry = models.Trade.query().order(-models.Trade.date).fetch(1)
+		trade = qry[0]
+		person = trade.key.parent().get()
+		own_games = ndb.get_multi(trade.own_keys)
+		seek_games = ndb.get_multi(trade.seek_keys)
+
+		template_values = {
+			'trade': trade,
+			'person': person,
+			'own_games': own_games,
+			'seek_games': seek_games,
+		}
+		template = JINJA_ENVIRONMENT.get_template('user/latest_trade.html')
+		self.response.out.write(template.render(template_values))
 
 class TradeComment(BaseHandler):
 	def get_user(self, user, **kwargs):
@@ -1352,10 +1398,12 @@ application = webapp2.WSGIApplication([
 	('/trades/recent', TradesRecent),
 	webapp2.Route('/trades/recent/<page>', TradesRecent),
 	('/trades/search/map', TradesSearchMap),
+	('/trades/search/simple', TradesSearchSimple),
 	('/trades/search.*', TradesSearch),
 	('/trade/comment', TradeComment),
 	('/trade/subscribe', TradeSubscribe),
 	('/trade/unsubscribe', TradeUnsubscribe),
+	('/trade/latest', TradeLatest),
 	webapp2.Route('/trade/<trade_url>', Trade),
 	webapp2.Route('/user/locations/<person_url>', UserLocations),
 	webapp2.Route('/user/<person_url>', User),
