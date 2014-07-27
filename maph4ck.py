@@ -1141,7 +1141,6 @@ class ConversationsPage(BaseHandler):
 	def get_user(self, user):
 		conversations = models.Conversation.query(models.Conversation.person_keys == user.key).order(-models.Conversation.date)
 		conversations = conversations.map(utils.conversation_with_messages)
-
 		template_values = {
 			'user': user,
 			'logout': users.create_logout_url(self.request.host_url),
@@ -1160,7 +1159,7 @@ class ConversationsPage(BaseHandler):
 
 			person_keys = []
 			for name in names:
-				person = Person.query(Person.name == name).get()
+				person = models.Person.query(models.Person.name == name).get()
 				if not person:
 					raise Exception, 'the person %s does not exist.' %name
 				person_key = person.key
@@ -1186,13 +1185,13 @@ class ConversationsPage(BaseHandler):
 
 				conversation.num_unread = [0] * (len(person_keys) + 1)
 
-			message = Message()
+			message = models.Message()
 			message.content = content
 			message.owner = user.name
 			if not message.content:
 				raise Exception, 'message cannot be empty.'
-			if len(content) > MAX_STR_LEN:
-				raise Exception, 'message exceeds %d characters.' % MAX_STR_LEN
+			if len(content) > constants.MAX_STR_LEN:
+				raise Exception, 'message exceeds %d characters.' % constants.MAX_STR_LEN
 			conversation.messages.append(message)
 
 			for counter, person_key in enumerate(person_keys):
@@ -1207,7 +1206,7 @@ class ConversationsPage(BaseHandler):
 			for key in conversation.subscriber_keys:
 				subscriber = key.get()
 				if subscriber is not user:
-					mail.send_mail(sender="Admin at Maph4ck <%s>" %ADMIN_MAIL,
+					mail.send_mail(sender="Admin at Maph4ck <%s>" %constants.ADMIN_MAIL,
 									to="%s <%s>" %(subscriber.name, subscriber.email),
 									subject="New private message from %s" %user.name,
 									body="""%s has sent you a private message:\n\n%s
