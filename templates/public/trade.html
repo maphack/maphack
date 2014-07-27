@@ -1,0 +1,141 @@
+{% extends 'public/base.html' %}
+{% block content %}
+<div class="page-header">
+	<h1>trade</h1>
+</div>
+{% set trade_id = trade.key.urlsafe() %}
+{% set person_id = person.key.urlsafe() %}
+<div class="trade-block">
+	<div class="row">
+		<div class="col-md-6 trade-user">
+			<h4><a href="/user/{{ person_id }}"><img class="display-pic" src="{{ person.pic }}">{{ person.name }}</a></h4>
+		</div>
+		<div class="col-md-6">
+			<div class="trade-menu">
+				<ul>
+					<li>
+						<a class="btn btn-default" href="/user/locations/{{ person_id }}">
+							<span class="glyphicon glyphicon-map-marker"></span>
+						</a>
+					</li>
+					<li><div class="trade-date">posted {{ trade.date.strftime('%c') }}</div></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">offering</h3>
+				</div>
+				{% if own_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="55%">title</th>
+								<th width="15%">platform</th>
+								<th class="sorttable_nosort" width="15%">picture</th>
+								<th width="15%">new</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in own_games %}
+							{% set game_id = game.key.urlsafe() %}
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<td width="55%">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body trade-body">
+					<div class="alert alert-info trade-alert">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup > 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title">requesting</h3>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="55%">title</th>
+								<th width="15%">platform</th>
+								<th class="sorttable_nosort" width="15%">picture</th>
+								<th width="15%">new</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							{% set game_id = game.key.urlsafe() %}
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<td width="55%">{{ game.title }}</td>
+								<td width="15%">{{ game.platform }}</td>
+								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body trade-body">
+					<div class="alert alert-info trade-alert">
+						no games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup < 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	<h4>description</h4>
+	<p>{{ trade.description or 'none' }}</p>
+</div>
+<div id="comments" class="comment-block">
+	<h4>comments</h4>
+	{% for comment in comments %}
+	{% set owner = comment.key.parent().get() %}
+	<div class="comment">
+		<a href="/user/{{ owner.key.urlsafe() }}"><img class="display-pic" src="{{ owner.pic }}"> {{ owner.name }}</a> commented {{ comment.date.strftime('%c') }}
+		<p>{{ comment.content }}</p>
+	</div>
+	{% else %}
+	<div id="no-comments" class="alert alert-info">
+		no comments!
+	</div>
+	{% endfor %}
+</div>
+<div class="alert alert-info"><a href="{{ login }}">please sign in to comment.</a><div>
+<script>
+	window.onload = function() {
+		$.getScript('/scripts/sorttable.js');
+	}
+</script>
+{% endblock %}

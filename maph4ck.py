@@ -820,44 +820,45 @@ class TradesSearchMap(BaseHandler):
 
 class Trade(BaseHandler):
 	def get_user(self, user, **kwargs):
+		try:
+			trade_url = kwargs['trade_url']
 
-		trade_url = kwargs['trade_url']
+			trade_key = ndb.Key(urlsafe = trade_url)
+			if trade_key.kind() != 'Trade':
+				raise Exception, 'invalid key.'
 
-		trade_key = ndb.Key(urlsafe = trade_url)
-		if trade_key.kind() != 'Trade':
-			raise Exception, 'invalid key.'
+			trade = trade_key.get()
+			if trade is None:
+				raise Exception, 'no such trade.'
 
-		trade = trade_key.get()
-		if trade is None:
-			raise Exception, 'no such trade.'
+			if trade.key.parent() == user.key:
+				person = user
+				distance = 0
+			else:
+				person = trade.key.parent().get()
 
-		if trade.key.parent() == user.key:
-			person = user
-			distance = 0
-		else:
-			person = trade.key.parent().get()
+				my_locations = models.Location.query(ancestor = user.key)
+				your_locations = models.Location.query(ancestor = person.key)
+				distance = utils.min_dist(my_locations, your_locations)
 
-			my_locations = models.Location.query(ancestor = user.key)
-			your_locations = models.Location.query(ancestor = person.key)
-			distance = utils.min_dist(my_locations, your_locations)
+			own_games = ndb.get_multi(trade.own_keys)
+			seek_games = ndb.get_multi(trade.seek_keys)
+			comments = ndb.get_multi(trade.comment_keys)
 
-		own_games = ndb.get_multi(trade.own_keys)
-		seek_games = ndb.get_multi(trade.seek_keys)
-		comments = ndb.get_multi(trade.comment_keys)
-
-		template_values = {
-			'user': user,
-			'logout': users.create_logout_url(self.request.uri),
-			'trade': trade,
-			'own_games': own_games,
-			'seek_games': seek_games,
-			'person': person,
-			'comments': comments,
-			'distance': distance,
-		}
-		template = JINJA_ENVIRONMENT.get_template('user/trade.html')
-		self.response.write(template.render(template_values))
-
+			template_values = {
+				'user': user,
+				'logout': users.create_logout_url(self.request.uri),
+				'trade': trade,
+				'own_games': own_games,
+				'seek_games': seek_games,
+				'person': person,
+				'comments': comments,
+				'distance': distance,
+			}
+			template = JINJA_ENVIRONMENT.get_template('user/trade.html')
+			self.response.write(template.render(template_values))
+		except:
+			self.redirect('/dashboard')
 
 	def get_public(self, **kwargs):
 		try:
@@ -1130,7 +1131,7 @@ class UserLocations(BaseHandler):
 
 			template_values = {
 				'person': person,
-				'locations': json.dumps([ndb.Model.to_dict(location, include = ['location']) for location in my_locations], cls = utils.NdbEncoder),
+				'locations': json.dumps([ndb.Model.to_dict(location, include = ['location']) for location in locations], cls = utils.NdbEncoder),
 			}
 			template = JINJA_ENVIRONMENT.get_template('public/user_locations.html')
 			self.response.write(template.render(template_values))
