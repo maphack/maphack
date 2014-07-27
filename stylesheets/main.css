@@ -19,9 +19,10 @@
 	vertical-align: middle;
 }
 
-.table > tbody > tr > td > img {
+.table > tbody > tr > td > a > img {
 	max-height: 80px;
 	width: auto;
+	max-width: 80px;
 }
 
 .trade-menu > ul > li {
