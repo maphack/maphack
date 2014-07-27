@@ -21,8 +21,7 @@
 		<thead>
 			<tr>
 				<th width="30%">name</th>
-				<th width="30%" style="text-align: left">address</th>
-				<th width="30%" style="text-align: left">geocells</th>
+				<th width="60%" style="text-align: left">address</th>
 				<th class="sorttable_nosort" width="10%">delete</th>
 			</tr>
 		</thead>
@@ -31,8 +30,7 @@
 			{% set location_id = location.key.urlsafe() %}
 			<tr id = "{{ location_id }}">
 				<td width="30%"><a href="/locations/view/{{ location_id }}">{{ location.name }}</a></td>
-				<td width="30%" style="text-align: left">{{ location.address }}</td>
-				<td width="30%" style="text-align: left">{{ location.location_geocells }}</td>
+				<td width="60%" style="text-align: left">{{ location.address }}</td>
 				<td width="10%">
 					<button type="button" class="btn btn-default delete" value="{{ location_id }}">
 						<span class="glyphicon glyphicon-remove"></span>
