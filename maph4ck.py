@@ -106,7 +106,7 @@ class Setup(webapp2.RequestHandler):
 				else:
 					user.put()
 					mail.send_mail(
-						sender = "maph4ck admin <%s>" % constants.ADMIN_MAIL,
+						sender = "Admin at maph4ck <%s>" %constants.ADMIN_MAIL,
 						to = "%s <%s>" % (user.name, user.email),
 						subject = "Welcome to maph4ck",
 						body = """Hello, %s! Thank you for signing up at maph4ck. You can now sign in at %s using your Google Account.""" % (user.name, self.request.host_url),
@@ -916,9 +916,9 @@ class TradeComment(BaseHandler):
 				if subscriber_key != user.key:
 					subscriber = subscriber_key.get()
 					mail.send_mail(
-						sender = "maph4ck admin <%s>" % constants.ADMIN_MAIL,
+						sender = "Admin at maph4ck <%s>" %constants.ADMIN_MAIL,
 						to = "%s <%s>" % (subscriber.name, subscriber.email),
-						subject = "new comment on maph4ck",
+						subject = "New comment on maph4ck",
 						body = """Hello, %s! %s has posted a new comment at %s/trade/%s:\n\n%s""" % (subscriber.name, user.name, self.request.host_url, trade_key.urlsafe(), comment.content),
 					)
 
@@ -1206,7 +1206,7 @@ class ConversationsPage(BaseHandler):
 			for key in conversation.subscriber_keys:
 				subscriber = key.get()
 				if subscriber is not user:
-					mail.send_mail(sender="Admin at Maph4ck <%s>" %constants.ADMIN_MAIL,
+					mail.send_mail(sender="Messages at maph4ck <%s>" %constants.ADMIN_MAIL,
 									to="%s <%s>" %(subscriber.name, subscriber.email),
 									subject="New private message from %s" %user.name,
 									body="""%s has sent you a private message:\n\n%s
@@ -1282,7 +1282,7 @@ class Feedback(BaseHandler):
 			feedback.put()
 
 			mail.send_mail(
-				sender = "maph4ck admin <%s>" % constants.ADMIN_MAIL,
+				sender = "Admin at maph4ck <%s>" % constants.ADMIN_MAIL,
 				to = "maph4ck admin <%s>" % constants.ADMIN_MAIL,
 				subject = "Feedback from %s (%s)" % (user.name, user.email),
 				body = """%s""" % feedback.content,
@@ -1300,7 +1300,7 @@ class Feedback(BaseHandler):
 			feedback.put()
 
 			mail.send_mail(
-				sender = "maph4ck admin <%s>" % constants.ADMIN_MAIL,
+				sender = "Admin at maph4ck <%s>" % constants.ADMIN_MAIL,
 				to = "maph4ck admin <%s>" % constants.ADMIN_MAIL,
 				subject = "Feedback from public",
 				body = """%s""" % feedback.content,
