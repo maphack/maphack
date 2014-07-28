@@ -4,28 +4,36 @@
 	<img src="/images/map_cat.png">
 	<br>
 	<br>
-	<p>welcome back, <em><strong>{{ user.name }}</strong></em></p>
+	<p>Welcome back, <em><strong>{{ user.name }}</strong></em></p>
 </div>
 <div style="padding-top: 50px">
 	<form id="search" action="/trades/search/simple" method="post" class="form-horizontal" role="form">	
 		<div class="form-group">
-			<label for="title" class="col-sm-2 control-label">Search for a game!</label>
-			<div class="col-sm-9">
+			<label for="title" class="col-sm-2 control-label">Search for a game! I'm</label>
+			<div class="col-sm-2" style="margin-right: -60px;">
+				<div class="input-group">
+					<select id="querytype" name="querytype" class="form-control">
+						<option>offering</option>
+						<option>requesting</option>
+					</select>
+				</div>
+			</div>
+			<div class="col-sm-7" style="width: 63%">
 				<div class="input-group">
 					<span class="input-group-addon">
 						<span class="glyphicon glyphicon-search"></span>
 					</span>
-					<input id="title" name="name" type="text" class="form-control" placeholder="title here (case sensitive)">
+					<input id="title" name="name" type="text" class="form-control" placeholder="Title here (case sensitive)">
 				</div>
 			</div>
 			<div class="col-sm-1">
-				<button type="submit" class="btn btn-default">search</button>
+				<button type="submit" class="btn btn-default">Search</button>
 			</div>
 		</div>
 	</form>
 </div>
 <div class="container" style="padding-top: 40px">
-	<h3 style="text-align: center">latest trade</h3>
+	<h3 style="text-align: center">Latest Trade Posted</h3>
 	<div id="trade">
 		<div class="trade-block">
 			<div class="row">
@@ -45,16 +53,16 @@
 				<div class="col-md-6">
 					<div class="panel panel-primary">
 						<div class="panel-heading">
-							<h3 class="panel-title">offering</h3>
+							<h3 class="panel-title">Offering</h3>
 						</div>
 						{% if own_games|length %}
 						<div class="table-responsive">
 							<table class="sortable table table-bordered table-striped">
 								<thead>
 									<tr>
-										<th width="70%" style="text-align: left">title</th>
-										<th width="20%">platform</th>
-										<th class="sorttable_nosort" width="10%">picture</th>
+										<th width="70%" style="text-align: left">Title</th>
+										<th width="20%">Platform</th>
+										<th class="sorttable_nosort" width="10%">Picture</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -73,14 +81,14 @@
 						{% else %}
 						<div class="panel-body">
 							<div class="alert alert-info">
-								no games here!
+								No games here!
 							</div>
 						</div>
 						{% endif %}
 						{% if trade.topup > 0 %}
 						<div class="panel-footer trade-topup">
 							<div class="input-group">
-								<span class="input-group-addon">topup ${{ trade.topup }}</span>
+								<span class="input-group-addon">Topup ${{ trade.topup }}</span>
 							</div>
 						</div>
 						{% endif %}
@@ -89,16 +97,16 @@
 				<div class="col-md-6">
 					<div class="panel panel-primary">
 						<div class="panel-heading">
-							<h3 class="panel-title">requesting</h3>
+							<h3 class="panel-title">Requesting</h3>
 						</div>
 						{% if seek_games|length %}
 						<div class="table-responsive">
 							<table class="sortable table table-bordered table-striped">
 								<thead>
 									<tr>
-										<th width="70%" style="text-align: left">title</th>
-										<th width="20%">platform</th>
-										<th class="sorttable_nosort" width="10%">picture</th>
+										<th width="70%" style="text-align: left">Title</th>
+										<th width="20%">Platform</th>
+										<th class="sorttable_nosort" width="10%">Picture</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -117,21 +125,21 @@
 						{% else %}
 						<div class="panel-body">
 							<div class="alert alert-info">
-								no games here!
+								No games here!
 							</div>
 						</div>
 						{% endif %}
 						{% if trade.topup < 0 %}
 						<div class="panel-footer trade-topup">
 							<div class="input-group">
-								<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+								<span class="input-group-addon">Topup ${{ -trade.topup }}</span>
 							</div>
 						</div>
 						{% endif %}
 					</div>
 				</div>
 			</div>
-			<h4>description</h4>
+			<h4>Description</h4>
 			<p>{{ trade.description or 'none' }}</p>
 		</div>
 	</div>

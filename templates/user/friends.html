@@ -1,12 +1,12 @@
 {% extends 'user/base.html' %}
 {% block content %}
 <div class="page-header">
-	<h1>friends</h1>
+	<h1>Friends</h1>
 </div>
 <div id="alerts">
 	{% if not friends|length %}
 	<div class="alert alert-info">
-		no friends!
+		No friends!
 	</div>
 	{% endif %}
 </div>
@@ -35,7 +35,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append(alertBootstrap('success', 'friend removed.'));
+					$('#alerts').append(alertBootstrap('success', 'Friend removed.'));
 					alertTimeout(5000);
 
 					$('#' + person_url).remove();

@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8">
-  <title>maphack | search. trade. play.</title>
+  <title>maph4ck | Search. Trade. Play.</title>
   <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   <link href="/stylesheets/map.css" rel="stylesheet">
@@ -15,14 +15,16 @@
 <body>
   <div id="panel" class="panel panel-primary" style="width: 250px;">
     <div class="panel-heading">
-      <h1 class="panel-title">locations</h1>
+      <h1 class="panel-title">Locations</h1>
     </div>
     <div class="panel-body">
       <form id="form" role="form">
         <div id="alerts"></div>
-        <button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-        <button id="hide" type="button" class="btn btn-default">hide my locations</button>
-        <a class="btn btn-default" href="#" onclick="javascript:closeWindow();">close</a>
+        <p><img src="http://maps.google.com/mapfiles/ms/micons/red.png"> Your locations<br>
+         <img src="http://maps.google.com/mapfiles/ms/micons/blue.png"> Search results' locations</p>
+        <button id="show" type="button" class="btn btn-default" style="display: none">Show my locations</button>
+        <button id="hide" type="button" class="btn btn-default">Hide my locations</button>
+        <a class="btn btn-default" href="#" onclick="javascript:closeWindow();">Close</a>
       </form>
     </div>
   </div>
@@ -78,15 +80,15 @@
           relevanttrades[j].urlsafe + '" target="_blank"><span class="glyphicon glyphicon-link"></span></a></li>' +
            '<li style="list-style: none; float: right; padding-right: 10px; padding-top: 10px;"><div class="trade-date">posted ' + relevanttrades[j].date + 
            '</div></li></ul></div>';
-          contentString += '<div class="row"><div style="padding-left: 20px;"><h5>trade ' + (j+1) + '</h5></div>';
+          contentString += '<div class="row"><div style="padding-left: 20px;"><h5>Trade ' + (j+1) + '</h5></div>';
 
           // add the games offered
-          contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">offering ';
+          contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">Offering ';
           if (relevanttrades[j].topup > 0) {
             contentString += '$' + relevanttrades[j].topup;
           }
-          contentString += '</h4></div><table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">title</th>' +
-            '<th width="20%">platform</th></tr></thead><tbody>';
+          contentString += '</h4></div><table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">Title</th>' +
+            '<th width="20%">Platform</th></tr></thead><tbody>';
           for (var k = 0; k < relevanttrades[j].own_games.length; k++) {
             contentString += '<tr><td width="80%" style="text-align: left">' + relevanttrades[j].own_games[k].title + '</td>' +
               '<td width="20%">' + relevanttrades[j].own_games[k].platform + '</td></tr>'
@@ -95,12 +97,12 @@
           contentString += '</div></div>';
 
           // add the games requested
-          contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">requesting ';
+          contentString += '<div class="col-md-6"><div class="panel panel-primary"><div class="panel-heading"><h4 class="panel-title">Requesting ';
           if (relevanttrades[j].topup < 0) {
             contentString += '$' + (-relevanttrades[j].topup);
           }
-          contentString += '</h4></div><table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">title</th>' +
-            '<th width="20%">platform</th></tr></thead><tbody>';
+          contentString += '</h4></div><table class="sortable table table-bordered table-striped"><thead><tr><th width="80%" style="text-align: left">Title</th>' +
+            '<th width="20%">Platform</th></tr></thead><tbody>';
           for (var l = 0; l < relevanttrades[j].seek_games.length; l++) {
             contentString += '<tr><td width="80%" style="text-align: left">' + relevanttrades[j].own_games[l].title + '</td>' +
               '<td width="20%">' + relevanttrades[j].own_games[l].platform + '</td></tr>'
@@ -137,7 +139,7 @@
           map.setCenter(results[0].geometry.location);
           map.fitBounds(results[0].geometry.viewport);
         } else {
-          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>geocode was not successful for the following reason: ' + status + '</div>');
+          $('#alerts').append('<div class="alert alert-danger alert-dismissable"><button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>Geocode was not successful for the following reason: ' + status + '</div>');
         }
       });
     }

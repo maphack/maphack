@@ -3,7 +3,7 @@
 <head>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 	<meta charset="utf-8">
-	<title>maphack | search. trade. play.</title>
+	<title>maph4ck | Search. Trade. Play.</title>
 	<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 	<link href="/stylesheets/map.css" rel="stylesheet">
@@ -34,7 +34,7 @@
 			<button id="delete" type="button" class="btn btn-default">
 				<span class="glyphicon glyphicon-trash"></span>
 			</button>
-			<a class="btn btn-default" href="/locations">back</a>
+			<a class="btn btn-default" href="/locations">Back</a>
 		</div>
 	</div>
 	<div id="map-canvas"></div>
@@ -70,9 +70,9 @@
 
 			if (!new_name) {
 				$('#name').val(name);
-				$('#alerts').append(alertBootstrap('danger', 'display name cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Name cannot be empty.'));
 			} else if (new_name == name) {
-				$('#alerts').append(alertBootstrap('danger', 'name is still the same.'));
+				$('#alerts').append(alertBootstrap('danger', 'Name is still the same.'));
 			} else {
 				$.ajax({
 					type: 'POST',
@@ -83,7 +83,7 @@
 						console.log(textStatus);
 						console.log(jqXHR);
 
-						$('#alerts').append(alertBootstrap('success', 'name changed.'));
+						$('#alerts').append(alertBootstrap('success', 'Name changed.'));
 						alertTimeout(5000);
 					},
 					error: function(jqXHR, textStatus, errorThrown) {

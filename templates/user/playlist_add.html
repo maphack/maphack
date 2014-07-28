@@ -2,14 +2,14 @@
 {% block content %}
 <div class="page-header">
 	<h1>
-		add to playlist
-		<a class="btn btn-default" href="/playlist">back</a>
+		Add to Playlist
+		<a class="btn btn-default" href="/playlist">Back</a>
 	</h1>
 </div>
 <div id="alerts"></div>
 <form id="add" class="form-horizontal" role="form">
 	<div class="form-group">
-		<label for="title" class="col-sm-2 control-label">title</label>
+		<label for="title" class="col-sm-2 control-label">Title</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
@@ -20,7 +20,7 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="platform" class="col-sm-2 control-label">platform</label>
+		<label for="platform" class="col-sm-2 control-label">Platform</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
@@ -45,24 +45,24 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="pic" class="col-sm-2 control-label">picture</label>
+		<label for="pic" class="col-sm-2 control-label">Picture</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-picture"></span>
 				</span>
-				<input id="pic" type="url" class="form-control" placeholder="optional image link">
+				<input id="pic" type="url" class="form-control" placeholder="Optional image link">
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="description" class="col-sm-2 control-label">description</label>
+		<label for="description" class="col-sm-2 control-label">Description</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-list"></span>
 				</span>
-				<textarea id="description" class="form-control" maxlength="500" rows="5" placeholder="special edition, DLC, condition, etc."></textarea>
+				<textarea id="description" class="form-control" maxlength="500" rows="5" placeholder="Special edition, DLC, condition, etc."></textarea>
 			</div>
 		</div>
 	</div>
@@ -78,7 +78,7 @@
 	</div>
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button type="submit" class="btn btn-default">add</button>
+			<button type="submit" class="btn btn-default">Add</button>
 		</div>
 	</div>
 </form>
@@ -100,7 +100,7 @@
 			}
 
 			if (!title) {
-				$('#alerts').append(alertBootstrap('danger', 'title cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Title cannot be empty.'));
 			} else {
 				$.ajax({
 					type: 'POST',
@@ -111,7 +111,7 @@
 						console.log(textStatus);
 						console.log(jqXHR);
 						
-						$('#alerts').append(alertBootstrap('success', title + ' added to playlist.'));
+						$('#alerts').append(alertBootstrap('success', title + ' Added to playlist.'));
 						alertTimeout(5000);
 
 						$('#add')[0].reset();

@@ -3,7 +3,7 @@
 <head>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 	<meta charset="utf-8">
-	<title>maphack | search. trade. play.</title>
+	<title>maph4ck | Search. Trade. Play.</title>
 	<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 	<link href="/stylesheets/map.css" rel="stylesheet">
@@ -19,10 +19,10 @@
 		</div>
 		<div class="panel-body">
 			<div id="alerts"></div>
-			<p><img src="http://maps.google.com/mapfiles/ms/micons/red-dot.png"> your locations<br>
+			<p><img src="http://maps.google.com/mapfiles/ms/micons/red-dot.png"> Your locations<br>
 			   <img src="http://maps.google.com/mapfiles/ms/micons/blue-dot.png"> {{ person.name }}'s locations</p>
-			<button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-			<button id="hide" type="button" class="btn btn-default">hide my locations</button>
+			<button id="show" type="button" class="btn btn-default" style="display: none">Show my locations</button>
+			<button id="hide" type="button" class="btn btn-default">Hide my locations</button>
 		</div>
 	</div>
 	<div id="map-canvas"></div>
@@ -76,11 +76,11 @@
 						map.setCenter(results[0].geometry.location);
 						map.fitBounds(results[0].geometry.viewport);
 					} else {
-						$('#alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
+						$('#alerts').append(alertBootstrap('danger', 'Gocode was not successful for the following reason: ' + status));
 					}
 				});
 
-				$('#alerts').append(alertBootstrap('info', 'both users have not added any locations.'));
+				$('#alerts').append(alertBootstrap('info', 'Both users have not added any locations.'));
 			}
 		}
 

@@ -2,10 +2,10 @@
 {% block content %}
 
 <div name="newmessage">
-	<h3>new message</h3>
+	<h3>New Message</h3>
 	<form id="form" class="form-horizontal" role="form">
 		<div class="form-group">
-			<label for="name" class="col-sm-2 control-label">names</label>
+			<label for="name" class="col-sm-2 control-label">Names</label>
 			<div class="col-sm-10">
 				<div class="input-group">
 					<span class="input-group-addon">
@@ -23,7 +23,7 @@
 			</div>
 		</div>
 		<div class="form-group">
-			<label for="message" class="col-sm-2 control-label">message</label>
+			<label for="message" class="col-sm-2 control-label">Message</label>
 			<div class="col-sm-10">	
 				<div class="input-group">
 					<span class="input-group-addon">
@@ -35,7 +35,7 @@
 		</div>
 		<div class="form-group">
 			<div class="col-sm-offset-2 col-sm-10">
-				<button id="submit" type="button" class="btn btn-default">send</button>
+				<button id="submit" type="button" class="btn btn-default">Send</button>
 			</div>
 		</div>
 	</form>
@@ -43,13 +43,13 @@
 <div id="alerts" style="padding-bottom: 40px">
 </div>
 <div name="existing">
-	<h3>your conversations</h3><br>
+	<h3>Your Conversations</h3><br>
 	<div class="panel-group" id="accordion">
 	{% for conversation, messages, people in conversations %}
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<div class="col-md-10" style="margin-right: 15px">
-					participants: {% for person in people %}<a class="btn btn-default" href="/user/{{ person.key.urlsafe() }}">{{ person.name }}</a> {% endfor %}
+					Participants: {% for person in people %}<a class="btn btn-default" href="/user/{{ person.key.urlsafe() }}">{{ person.name }}</a> {% endfor %}
 				</div>
 				<span class="conversation-menu">
 					<a class="btn" data-toggle="collapse" data-parent="#accordion" href="#conversation{{ loop.index0 }}" style="color: #555555">
@@ -61,7 +61,7 @@
 					<span id="sub-div{{ loop.index0 }}">
 					{% endif %}
 						<button id="sub{{ loop.index0 }}" type="button" class="btn btn-default sub" value="{{ conversation.key.urlsafe() }}">
-							<span class="glyphicon glyphicon-envelope"></span> subscribe
+							<span class="glyphicon glyphicon-envelope"></span> Subscribe
 						</button>
 					</span>
 					{% if user.key not in conversation.subscriber_keys %}
@@ -70,7 +70,7 @@
 					<span id="unsub-div{{ loop.index0 }}">
 					{% endif %}
 						<button id="unsub{{ loop.index0 }}" type="button" class="btn btn-default unsub" value="{{ conversation.key.urlsafe() }}">
-							<span class="glyphicon glyphicon-remove"></span> unsubscribe
+							<span class="glyphicon glyphicon-remove"></span> Unsubscribe
 						</button>
 					</span>
 				</span>
@@ -90,7 +90,7 @@
 					{% endfor %}
 					<form id="form{{ loop.index0 }}" class="form-horizontal" role="form">
 						<div class="form-group">
-							<label for="message" class="col-sm-2 control-label">message</label>
+							<label for="message" class="col-sm-2 control-label">Message</label>
 							<div class="col-sm-10">	
 								<div class="input-group">
 									<span class="input-group-addon">
@@ -102,7 +102,7 @@
 						</div>
 						<div class="form-group">
 							<div class="col-sm-offset-2 col-sm-10">
-								<button id="submit{{ loop.index0 }}"type="button" class="btn btn-default submit" value="{{ names }}">send</button>
+								<button id="submit{{ loop.index0 }}"type="button" class="btn btn-default submit" value="{{ names }}">Send</button>
 							</div>
 						</div>
 					</form>
@@ -142,11 +142,11 @@
 		var error;
 		if (!namesraw) {
 			$('#name').val(name);
-			$('#alerts').append(alertBootstrap('danger', 'there must be at least one recipient.'));
+			$('#alerts').append(alertBootstrap('danger', 'There must be at least one recipient.'));
 			error = true;
 		} else if (!message) {
 			$('#message').val(message);
-			$('#alerts').append(alertBootstrap('danger', 'message cannot be empty.'));
+			$('#alerts').append(alertBootstrap('danger', 'Message cannot be empty.'));
 			error = true;
 		} else {
 			var message = {
@@ -165,7 +165,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append(alertBootstrap('success', 'message sent.'));
+					$('#alerts').append(alertBootstrap('success', 'Message sent.'));
 					alertTimeout(5000);
 
 					$('#form')[0].reset();
@@ -212,7 +212,7 @@
 		var error;
 		if (!message) {
 			$('#message' + index).val(message);
-			$('#alerts' + index).append(alertBootstrap('danger', 'message cannot be empty.'));
+			$('#alerts' + index).append(alertBootstrap('danger', 'Message cannot be empty.'));
 			error = true;
 		} else {
 			var message = {
@@ -231,7 +231,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts' + index).append(alertBootstrap('success', 'message sent.'));
+					$('#alerts' + index).append(alertBootstrap('success', 'Message sent.'));
 					setTimeout(function(){
 						$('#alerts' + index).children('.alert-success:first-child').fadeTo(500, 0).slideUp(500, function() {
 							$(this).remove();
@@ -281,7 +281,7 @@
 				console.log(textStatus);
 				console.log(jqXHR);
 
-				$('#alerts' + index).append(alertBootstrap('success', 'successfully subscribed to this conversation.'));
+				$('#alerts' + index).append(alertBootstrap('success', 'Successfully subscribed to this conversation.'));
 				alertTimeout(5000);
 
 				$('#sub-div' + index).hide();
@@ -320,7 +320,7 @@
 				console.log(textStatus);
 				console.log(jqXHR);
 
-				$('#alerts' + index).append(alertBootstrap('success', 'successfully unsubscribed from this conversation.'));
+				$('#alerts' + index).append(alertBootstrap('success', 'Successfully unsubscribed from this conversation.'));
 				alertTimeout(5000);
 
 				$('#sub-div' + index).show();

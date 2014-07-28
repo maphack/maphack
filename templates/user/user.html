@@ -13,7 +13,7 @@
 		<span id="friend-div">
 		{% endif %}
 			<button id="friend" type="button" class="btn btn-default" value="{{ person_id }}">
-				<span class="glyphicon glyphicon-heart"></span> friend
+				<span class="glyphicon glyphicon-heart"></span> Friend
 			</button>
 		</span>
 		{% if person.key not in user.friend_keys %}
@@ -22,21 +22,21 @@
 		<span id="unfriend-div">
 		{% endif %}
 			<button id="unfriend" type="button" class="btn btn-default" value="{{ person.key.urlsafe() }}">
-				<span class="glyphicon glyphicon-remove"></span> unfriend
+				<span class="glyphicon glyphicon-remove"></span> Unfriend
 			</button>
 		</span>
 	</h1>
 </div>
 <div class="well">
-	<p>country: {{ person.country }}</p>
-	<p>contact: {{ person.contact }}</p>
-	<p>bio: {{ person.bio or 'none' }}</p>
+	<p>Country: {{ person.country }}</p>
+	<p>Contact: {{ person.contact }}</p>
+	<p>Bio: {{ person.bio or 'None' }}</p>
 </div>
 <div id="alerts"></div>
 <div class="games-block">
 	<ul class="nav nav-tabs nav-justified" role="tablist">
-		<li class="active"><a href="#my-diff" role="tab" data-toggle="tab">your other games</a></li>
-		<li><a href="#my-match" role="tab" data-toggle="tab">your games that <img class="display-pic" src="{{ person.pic }}"> {{ person.name }} wants</a></li>
+		<li class="active"><a href="#my-diff" role="tab" data-toggle="tab">Your other games</a></li>
+		<li><a href="#my-match" role="tab" data-toggle="tab">Your games that <img class="display-pic" src="{{ person.pic }}"> {{ person.name }} wants</a></li>
 		<li><a href="#your-match" role="tab" data-toggle="tab"><img class="display-pic" src="{{ person.pic }}"> {{ person.name }}'s games that you want</a></li>
 		<li><a href="#your-diff" role="tab" data-toggle="tab"><img class="display-pic" src="{{ person.pic }}"> {{ person.name }}'s other games</a></li>
 	</ul>
@@ -46,11 +46,11 @@
 			<div class="table-responsive">
 				<table class="sortable table table-bordered table-striped">
 					<thead>
-						<th width="40%">title</th>
-						<th width="10%">platform</th>
-						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
-						<th class="sorttable_nosort" width="20%">picture</th>
-						<th width="10%">new</th>
+						<th width="40%">Title</th>
+						<th width="10%">Platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">Description</th>
+						<th class="sorttable_nosort" width="20%">Picture</th>
+						<th width="10%">New</th>
 					</thead>
 					<tbody>
 						{% for game in my_diff %}
@@ -58,9 +58,9 @@
 						<tr id="{{ game_id }}">
 							<td width="40%">{{ game.title }}</td>
 							<td width="10%">{{ game.platform }}</td>
-							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'None' }}</td>
 							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -68,7 +68,7 @@
 			</div>
 			{% else %}
 			<div class="alert alert-info">
-				you have no other games!
+				You have no other games!
 			</div>
 			{% endif %}
 		</div>
@@ -77,11 +77,11 @@
 			<div class="table-responsive">
 				<table class="sortable table table-bordered table-striped">
 					<thead>
-						<th width="40%">title</th>
-						<th width="10%">platform</th>
-						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
-						<th class="sorttable_nosort" width="20%">picture</th>
-						<th width="10%">new</th>
+						<th width="40%">Title</th>
+						<th width="10%">Platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">Description</th>
+						<th class="sorttable_nosort" width="20%">Picture</th>
+						<th width="10%">New</th>
 					</thead>
 					<tbody>
 						{% for game in my_match %}
@@ -89,9 +89,9 @@
 						<tr id="{{ game_id }}">
 							<td width="40%">{{ game.title }}</td>
 							<td width="10%">{{ game.platform }}</td>
-							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'None' }}</td>
 							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -99,7 +99,7 @@
 			</div>
 			{% else %}
 			<div class="alert alert-info">
-				you have no games that <img class="display-pic" src="{{ person.pic }}"> {{ person.name }} wants!
+				You have no games that <img class="display-pic" src="{{ person.pic }}"> {{ person.name }} wants!
 			</div>
 			{% endif %}
 		</div>
@@ -108,11 +108,11 @@
 			<div class="table-responsive">
 				<table class="sortable table table-bordered table-striped">
 					<thead>
-						<th width="40%">title</th>
-						<th width="10%">platform</th>
-						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
-						<th class="sorttable_nosort" width="20%">picture</th>
-						<th width="10%">new</th>
+						<th width="40%">Title</th>
+						<th width="10%">Platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">Description</th>
+						<th class="sorttable_nosort" width="20%">Picture</th>
+						<th width="10%">New</th>
 					</thead>
 					<tbody>
 						{% for game in your_match %}
@@ -120,9 +120,9 @@
 						<tr id="{{ game_id }}">
 							<td width="40%">{{ game.title }}</td>
 							<td width="10%">{{ game.platform }}</td>
-							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'None' }}</td>
 							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -139,11 +139,11 @@
 			<div class="table-responsive">
 				<table class="sortable table table-bordered table-striped">
 					<thead>
-						<th width="40%">title</th>
-						<th width="10%">platform</th>
-						<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
-						<th class="sorttable_nosort" width="20%">picture</th>
-						<th width="10%">new</th>
+						<th width="40%">Title</th>
+						<th width="10%">Platform</th>
+						<th class="sorttable_nosort" width="20%" style="text-align: left">Description</th>
+						<th class="sorttable_nosort" width="20%">Picture</th>
+						<th width="10%">New</th>
 					</thead>
 					<tbody>
 						{% for game in your_diff %}
@@ -151,9 +151,9 @@
 						<tr id="{{ game_id }}">
 							<td width="40%">{{ game.title }}</td>
 							<td width="10%">{{ game.platform }}</td>
-							<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+							<td width="20%" style="text-align: left">{{ game.description or 'None' }}</td>
 							<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-							<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+							<td width="10%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 						</tr>
 						{% endfor %}
 					</tbody>
@@ -168,7 +168,7 @@
 	</div>
 </div>
 <div class="trades">
-	<h3>trades</h3>
+	<h3>Trades</h3>
 	{% for trade, own_games, seek_games in trades %}
 	{% set trade_id = trade.key.urlsafe() %}
 	<div class="trade-block">
@@ -186,27 +186,27 @@
 			<div class="col-md-6">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">offering</h3>
+						<h3 class="panel-title">Offering</h3>
 					</div>
 					{% if own_games|length %}
 					<div class="table-responsive">
 						<table class="sortable table table-bordered table-striped">
 							<thead>
 								<tr>
-									<th width="55%">title</th>
-									<th width="15%">platform</th>
-									<th class="sorttable_nosort" width="15%">picture</th>
-									<th width="15%">new</th>
+									<th width="55%">Title</th>
+									<th width="15%">Platform</th>
+									<th class="sorttable_nosort" width="15%">Picture</th>
+									<th width="15%">New</th>
 								</tr>
 							</thead>
 							<tbody>
 								{% for game in own_games %}
 								{% set game_id = game.key.urlsafe() %}
-								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 									<td width="55%">{{ game.title }}</td>
 									<td width="15%">{{ game.platform }}</td>
 									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -215,14 +215,14 @@
 					{% else %}
 					<div class="panel-body trade-body">
 						<div class="alert alert-info trade-alert">
-							no games here!
+							No games here!
 						</div>
 					</div>
 					{% endif %}
 					{% if trade.topup > 0 %}
 					<div class="panel-footer trade-topup">
 						<div class="input-group">
-							<span class="input-group-addon">topup ${{ trade.topup }}</span>
+							<span class="input-group-addon">Topup ${{ trade.topup }}</span>
 						</div>
 					</div>
 					{% endif %}
@@ -231,27 +231,27 @@
 			<div class="col-md-6">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">requesting</h3>
+						<h3 class="panel-title">Requesting</h3>
 					</div>
 					{% if seek_games|length %}
 					<div class="table-responsive">
 						<table class="sortable table table-bordered table-striped">
 							<thead>
 								<tr>
-									<th width="55%">title</th>
-									<th width="15%">platform</th>
-									<th class="sorttable_nosort" width="15%">picture</th>
-									<th width="15%">new</th>
+									<th width="55%">Title</th>
+									<th width="15%">Platform</th>
+									<th class="sorttable_nosort" width="15%">Picture</th>
+									<th width="15%">New</th>
 								</tr>
 							</thead>
 							<tbody>
 								{% for game in seek_games %}
 								{% set game_id = game.key.urlsafe() %}
-								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 									<td width="55%">{{ game.title }}</td>
 									<td width="15%">{{ game.platform }}</td>
 									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -260,22 +260,22 @@
 					{% else %}
 					<div class="panel-body trade-body">
 						<div class="alert alert-info trade-alert">
-							no games here!
+							No games here!
 						</div>
 					</div>
 					{% endif %}
 					{% if trade.topup < 0 %}
 					<div class="panel-footer trade-topup">
 						<div class="input-group">
-							<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+							<span class="input-group-addon">Topup ${{ -trade.topup }}</span>
 						</div>
 					</div>
 					{% endif %}
 				</div>
 			</div>
 		</div>
-		<h4>description</h4>
-		<p>{{ trade.description or 'none' }}</p>
+		<h4>Description</h4>
+		<p>{{ trade.description or 'None' }}</p>
 	</div>
 	{% else %}
 	<div class="alert alert-info">
@@ -299,7 +299,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append(alertBootstrap('success', 'friend added.'));
+					$('#alerts').append(alertBootstrap('success', 'Friend added.'));
 					alertTimeout(5000);
 
 					$('#friend-div').hide();
@@ -330,7 +330,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append(alertBootstrap('success', 'friend removed.'));
+					$('#alerts').append(alertBootstrap('success', 'Friend removed.'));
 					alertTimeout(5000);
 
 					$('#friend-div').show();

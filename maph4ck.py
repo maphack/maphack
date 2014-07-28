@@ -821,20 +821,32 @@ class TradesSearch(BaseHandler):
 
 class TradesSearchSimple(BaseHandler):
 	def post_user(self, user):
-		game_title = self.request.get("name")
-		trades = models.Trade.query()
-		trades = trades.filter(ndb.OR(models.Trade.seek_titles == game_title,
-									  models.Trade.own_titles == game_title))
-		trades.order(-models.Trade.date)
-		trades = trades.map(utils.trade_all)
+		try:
+			game_title = self.request.get("name")
+			query_type = self.request.get("querytype")
+			trades = models.Trade.query()
 
-		template_values = {
-			'user': user,
-			'logout': users.create_logout_url(self.request.uri),
-			'trades': trades,
-		}
-		template = JINJA_ENVIRONMENT.get_template('user/trades_search_results_simple.html')
-		self.response.write(template.render(template_values))
+			if query_type == "offering":
+				trades = trades.filter(models.Trade.seek_titles == game_title)
+			elif query_type == "requesting":
+				trades = trades.filter(models.Trade.own_titles == game_title)
+			else:
+				raise Exception, 'invalid query type.'
+
+			trades.order(-models.Trade.date)
+			trades = trades.map(utils.trade_all)
+
+			template_values = {
+				'user': user,
+				'logout': users.create_logout_url(self.request.uri),
+				'trades': trades,
+			}
+			template = JINJA_ENVIRONMENT.get_template('user/trades_search_results_simple.html')
+			self.response.write(template.render(template_values))
+
+		except Exception, e:
+			self.error(403)
+			self.response.write([str(e)])
 
 class TradesSearchMap(BaseHandler):
 	def get_user(self, user, **kwargs):

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="page-header">
 	<h1>
-		playlist
+		Playlist
 		<a class="btn btn-default" href="/playlist/add">
 			<span class="glyphicon glyphicon-plus"></span>
 		</a>
@@ -11,7 +11,7 @@
 <div id="alerts">
 	{% if not playlist.count() %}
 	<div class="alert alert-info">
-		no games in your playlist! click the + button to add the games you want to trade for.
+		No games in your playlist! Click the + button to add the games you want to trade for.
 	</div>
 	{% endif %}
 </div>
@@ -19,13 +19,13 @@
 <div id="playlist" class="table-responsive">
 	<table class="sortable table table-bordered table-striped">
 		<thead>
-			<th width="20%">title</th>
-			<th width="10%">platform</th>
-			<th class="sorttable_nosort" width="20%" style="text-align: left">description</th>
-			<th class="sorttable_nosort" width="20%">picture</th>
-			<th width="10%">new</th>
-			<th class="sorttable_nosort" width="10%">search trades</th>
-			<th class="sorttable_nosort" width="10%">delete</th>
+			<th width="20%">Title</th>
+			<th width="10%">Platform</th>
+			<th class="sorttable_nosort" width="20%">Description</th>
+			<th class="sorttable_nosort" width="20%">Picture</th>
+			<th width="10%">New</th>
+			<th class="sorttable_nosort" width="10%">Search Trades</th>
+			<th class="sorttable_nosort" width="10%">Delete</th>
 		</thead>
 		<tbody>
 			{% for game in playlist %}
@@ -33,9 +33,9 @@
 			<tr id="{{ game_id }}">
 				<td width="20%">{{ game.title }}</td>
 				<td width="10%">{{ game.platform }}</td>
-				<td width="20%" style="text-align: left">{{ game.description or 'none' }}</td>
+				<td width="20%" style="text-align: left">{{ game.description or 'None' }}</td>
 				<td width="20%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-				<td width="10%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+				<td width="10%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 				<td width="10%">
 					<a class="btn btn-default" href="/trades/search?seek={{ game_id }}">
 						<span class="glyphicon glyphicon-search"></span>
@@ -68,7 +68,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append(alertBootstrap('success', 'game deleted from playlist.'));
+					$('#alerts').append(alertBootstrap('success', 'Game deleted from playlist.'));
 					alertTimeout(5000);
 
 					$('#' + game_url).remove();
@@ -77,7 +77,7 @@
 						$('#inventory').fadeTo(500, 0).slideUp(500, function() {
 							$(this).remove();
 						});
-						$('#alerts').append(alertBootstrap('info', 'no games in your playlist! click the + button to add the games you want to trade for.'));
+						$('#alerts').append(alertBootstrap('info', 'No games in your playlist! Click the + button to add the games you want to trade for.'));
 					}
 				},
 				error: function(jqXHR, textStatus, errorThrown) {

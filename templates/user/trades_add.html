@@ -2,14 +2,14 @@
 {% block content %}
 <div class="page-header">
 	<h1>
-		add trade
-		<a class="btn btn-default" href="/trades">back</a>
+		Add Trade
+		<a class="btn btn-default" href="/trades">Back</a>
 	</h1>
 </div>
 <div id="alerts">
 	{% if not inventory.count() and not playlist.count() %}
 	<div class="alert alert-info">
-		no games in your inventory and playlist! add games to your inventory/playlist before creating a trade.
+		No games in your inventory and playlist! Add games to your inventory/playlist before creating a trade.
 	</div>
 	{% endif %}
 </div>
@@ -19,7 +19,7 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">inventory</h3>
+					<h3 class="panel-title">Inventory</h3>
 				</div>
 				{% if inventory.count() %}
 				<div class="table-responsive">
@@ -27,21 +27,21 @@
 						<thead>
 							<tr>
 								<th class="sorttable_nosort" width="5%"></th>
-								<th width="50%">title</th>
-								<th width="15%">platform</th>
-								<th class="sorttable_nosort" width="15%">picture</th>
-								<th width="15%">new</th>
+								<th width="50%">Title</th>
+								<th width="15%">Platform</th>
+								<th class="sorttable_nosort" width="15%">Picture</th>
+								<th width="15%">New</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in inventory %}
 							{% set game_id = game.key.urlsafe() %}
-							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 								<td width="5"><input type="checkbox" class="own" value="{{ game_id }}"></td>
 								<td width="50%">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
 								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -50,7 +50,7 @@
 				{% else %}
 				<div class="panel-body trade-body">
 					<div class="alert alert-info trade-alert">
-						no games in your inventory!
+						No games in your inventory!
 						<a class="btn btn-default btn-sm" href="/inventory/add">
 							<span class="glyphicon glyphicon-plus"></span>
 						</a>
@@ -59,7 +59,7 @@
 				{% endif %}
 				<div id="offer" class="panel-footer trade-topup">
 					<div class="input-group">
-						<span class="input-group-addon">topup $</span>
+						<span class="input-group-addon">Topup $</span>
 						<input id="offer-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
 					</div>
 				</div>
@@ -68,7 +68,7 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">playlist</h3>
+					<h3 class="panel-title">Playlist</h3>
 				</div>
 				{% if playlist.count() %}
 				<div class="table-responsive">
@@ -76,21 +76,21 @@
 						<thead>
 							<tr>
 								<th class="sorttable_nosort" width="5%"></th>
-								<th width="50%">title</th>
-								<th width="15%">platform</th>
-								<th class="sorttable_nosort" width="15%" >picture</th>
-								<th width="15%">new</th>
+								<th width="50%">Title</th>
+								<th width="15%">Platform</th>
+								<th class="sorttable_nosort" width="15%">Picture</th>
+								<th width="15%">New</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in playlist %}
 							{% set game_id = game.key.urlsafe() %}
-							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 								<td width="5%"><input type="checkbox" class="seek" value="{{ game_id }}"></td>
 								<td width="50%">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
 								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -99,7 +99,7 @@
 				{% else %}
 				<div class="panel-body trade-body">
 					<div class="alert alert-info trade-alert">
-						no games in your playlist!
+						No games in your playlist!
 						<a class="btn btn-default btn-sm" href="/playlist/add">
 							<span class="glyphicon glyphicon-plus"></span>
 						</a>
@@ -108,7 +108,7 @@
 				{% endif %}
 				<div id="request" class="panel-footer trade-topup">
 					<div class="input-group">
-						<span class="input-group-addon">topup $</span>
+						<span class="input-group-addon">Topup $</span>
 						<input id="request-amt" type="number" class="form-control price" step="1" value="0" style="text-align: right">
 					</div>
 				</div>
@@ -116,19 +116,19 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="description" class="col-sm-2 control-label">description</label>
+		<label for="description" class="col-sm-2 control-label">Description</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-list"></span>
 				</span>
-				<textarea id="description" class="form-control" maxlength="500" rows="5" placeholder="add more info"></textarea>
+				<textarea id="description" class="form-control" maxlength="500" rows="5" placeholder="Add more info"></textarea>
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button type="submit" class="btn btn-default pull-right">add</button>
+			<button type="submit" class="btn btn-default pull-right">Add</button>
 		</div>
 	</div>
 </form>
@@ -177,17 +177,17 @@
 			});
 
 			if (isNaN(trade.offer_amt)) {
-				$('#alerts').append(alertBootstrap('danger', 'invalid offer topup amount.'));
+				$('#alerts').append(alertBootstrap('danger', 'Invalid offer topup amount.'));
 			} else if (isNaN(trade.request_amt)) {
-				$('#alerts').append(alertBootstrap('danger', 'invalid request topup amount.'));
+				$('#alerts').append(alertBootstrap('danger', 'Invalid request topup amount.'));
 			} else if (trade.offer_amt > 0 && trade.request_amt > 0) {
-				$('#alerts').append(alertBootstrap('danger', 'you cannot offer and request a topup amount at the same time.'));
+				$('#alerts').append(alertBootstrap('danger', 'You cannot offer and request a topup amount at the same time.'));
 			} else if (!trade.own_urls.length && !trade.seek_urls.length) {
-				$('#alerts').append(alertBootstrap('danger', 'trade cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Trade cannot be empty.'));
 			} else if ((trade.own_urls.length || trade.offer_amt > 0) && !trade.seek_urls.length && trade.request_amt == 0) {
-				$('#alerts').append(alertBootstrap('danger', 'add a topup amount or games you want to trade for.'));
+				$('#alerts').append(alertBootstrap('danger', 'Add a topup amount or games you want to trade for.'));
 			} else if (!trade.own_urls.length  && trade.offer_amt == 0 && (trade.seek_urls.length || trade.request_amt > 0)) {
-				$('#alerts').append(alertBootstrap('danger', 'add a topup amount or games you want to trade away.'));
+				$('#alerts').append(alertBootstrap('danger', 'Add a topup amount or games you want to trade away.'));
 			} else {
 				$.ajax({
 					type: 'POST',
@@ -199,7 +199,7 @@
 						console.log(textStatus);
 						console.log(jqXHR);
 
-						$('#alerts').append(alertBootstrap('success', 'trade added.'));
+						$('#alerts').append(alertBootstrap('success', 'Trade added.'));
 						alertTimeout(5000);
 
 						$('#add')[0].reset();

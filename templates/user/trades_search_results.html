@@ -1,6 +1,6 @@
 <div class="page-header">
-	<h1>search results
-		<a class="btn btn-default" href="/trades/search">back</a>
+	<h1>Search Results
+		<a class="btn btn-default" href="/trades/search">Back</a>
 		{% if trades|length %}
 			<a class="btn btn-default" href="#" onclick="javascript:maphack();"><b>MAPHACK!</b></a>
 		{% endif %}
@@ -13,7 +13,7 @@
 	</div>
 	{% else %}
 	<div class="alert alert-info">
-		no search results!
+		No search results!
 	</div>
 	{% endif %}
 </div>
@@ -30,7 +30,7 @@
 					<li><a class="btn btn-default" href="/trade/{{ trade.key.urlsafe() }}"><span class="glyphicon glyphicon-link"></span></a></li>
 					<li><a class="btn btn-default" href="/user/locations/{{ person.key.urlsafe() }}" target="_blank">
 						<span class="glyphicon glyphicon-map-marker"></span> ~{{ '%0.2f' % distance }} k.m. away</a></li>
-					<li><div class="trade-date">{{ trade.date.strftime('%c') }}</div></li>
+					<li><div class="trade-date">posted {{ trade.date.strftime('%c') }}</div></li>
 				</ul>
 			</div>
 		</div>
@@ -39,65 +39,21 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h1 class="panel-title">offering</h1>
+					<h1 class="panel-title">Offering</h1>
 				</div>
 				{% if own_games|length %}
 				<div class="table-responsive">
 					<table class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
-								<th width="70%" style="text-align: left">title</th>
-								<th width="20%">platform</th>
-								<th width="10%">picture</th>
+								<th width="70%" style="text-align: left">Title</th>
+								<th width="20%">Platform</th>
+								<th width="10%">Picture</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in own_games %}
-							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
-								<td width="80%" style="text-align: left">{{ game.title }}</td>
-								<td width="20%">{{ game.platform }}</td>
-								<td width="10%">
-									{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}
-								</td>
-							</tr>
-							{% endfor %}
-						</tbody>
-					</table>
-				</div>
-				{% else %}
-				<div class="panel-body">
-					<div class="alert alert-info">
-						no games here!
-					</div>
-				</div>
-				{% endif %}
-				{% if trade.topup > 0 %}
-				<div class="panel-footer trade-topup">
-					<div class="input-group">
-						<span class="input-group-addon">topup ${{ trade.topup }}</span>
-					</div>
-				</div>
-				{% endif %}
-			</div>
-		</div>
-		<div class="col-md-6">
-			<div class="panel panel-primary">
-				<div class="panel-heading">
-					<h1 class="panel-title">requesting</h1>
-				</div>
-				{% if seek_games|length %}
-				<div class="table-responsive">
-					<table class="sortable table table-bordered table-striped">
-						<thead>
-							<tr>
-								<th width="70%" style="text-align: left">title</th>
-								<th width="20%">platform</th>
-								<th width="10%">picture</th>
-							</tr>
-						</thead>
-						<tbody>
-							{% for game in seek_games %}
-							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'none' }}</p>">
+							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'None' }}</p>">
 								<td width="70%" style="text-align: left">{{ game.title }}</td>
 								<td width="20%">{{ game.platform }}</td>
 								<td width="10%">
@@ -111,14 +67,58 @@
 				{% else %}
 				<div class="panel-body">
 					<div class="alert alert-info">
-						no games here!
+						No games here!
+					</div>
+				</div>
+				{% endif %}
+				{% if trade.topup > 0 %}
+				<div class="panel-footer trade-topup">
+					<div class="input-group">
+						<span class="input-group-addon">Topup ${{ trade.topup }}</span>
+					</div>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h1 class="panel-title">Requesting</h1>
+				</div>
+				{% if seek_games|length %}
+				<div class="table-responsive">
+					<table class="sortable table table-bordered table-striped">
+						<thead>
+							<tr>
+								<th width="70%" style="text-align: left">Title</th>
+								<th width="20%">Platform</th>
+								<th width="10%">Picture</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for game in seek_games %}
+							<tr id="{{ game.key.urlsafe() }}" class="game" title="{{ game.title }}" data-content="<p>description: {{ game.description or 'None' }}</p>">
+								<td width="70%" style="text-align: left">{{ game.title }}</td>
+								<td width="20%">{{ game.platform }}</td>
+								<td width="10%">
+									{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+				{% else %}
+				<div class="panel-body">
+					<div class="alert alert-info">
+						No games here!
 					</div>
 				</div>
 				{% endif %}
 				{% if trade.topup < 0 %}
 				<div class="panel-footer trade-topup">
 					<div class="input-group">
-						<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+						<span class="input-group-addon">Topup ${{ -trade.topup }}</span>
 					</div>
 				</div>
 				{% endif %}
@@ -127,8 +127,8 @@
 	</div>
 	<div class="row">
 		<div class="col-md-12">
-			<h4>description</h4>
-			<p>{{ trade.description or 'none' }}</p>
+			<h4>Description</h4>
+			<p>{{ trade.description or 'None' }}</p>
 		</div>
 	</div>
 </div>

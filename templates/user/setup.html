@@ -1,36 +1,36 @@
 {% extends '/user/base.html' %}
 {% block content %}
 <div class="page-header">
-	<h1>setup</h1>
+	<h1>Setup</h1>
 </div>
 <div id="alerts">
-	<div id="alert-setup" class="alert alert-info" role="alert">please set up your profile before continuing to use maph4ck.</div>
+	<div id="alert-setup" class="alert alert-info" role="alert">Please set up your profile before continuing to use maph4ck.</div>
 </div>
 <form id="form" class="form-horizontal" role="form">
 	<div class="form-group">
-		<label for="name" class="col-sm-2 control-label">display name</label>
+		<label for="name" class="col-sm-2 control-label">Display name</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-user"></span>
 				</span>
-				<input id="name" type="text" maxlength="20" class="form-control" placeholder="max 20 characters" required>
+				<input id="name" type="text" maxlength="20" class="form-control" placeholder="Max 20 characters" required>
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="pic" class="col-sm-2 control-label">display picture</label>
+		<label for="pic" class="col-sm-2 control-label">Display picture</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-picture"></span>
 				</span>
-				<input id="pic" type="url" class="form-control" placeholder="optional image url">
+				<input id="pic" type="url" class="form-control" placeholder="Optional image url">
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="country" class="col-sm-2 control-label">country</label>
+		<label for="country" class="col-sm-2 control-label">Country</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
@@ -286,19 +286,19 @@
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="contact" class="col-sm-2 control-label">contact</label>
+		<label for="contact" class="col-sm-2 control-label">Contact</label>
 		<div class="col-sm-10">
 			<div class="input-group">
 				<span class="input-group-addon">
 					<span class="glyphicon glyphicon-phone"></span>
 				</span>
-				<input id="contact" type="tel" class="form-control" placeholder="mobile no.">
+				<input id="contact" type="tel" class="form-control" placeholder="Mobile no.">
 			</div>
 		</div>
 	</div>
 	<div class="form-group">
 		<div class="col-sm-offset-2 col-sm-10">
-			<button type="submit" class="btn btn-default">submit</button>
+			<button type="submit" class="btn btn-default">Submit</button>
 		</div>
 	</div>
 </form>
@@ -315,11 +315,11 @@
 			var contact = $('#contact').val().trim();
 
 			if (!name) {
-				$('#alerts').append(alertBootstrap('danger', 'display name cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Display name cannot be empty.'));
 			} else if (name.length > 20) {
-				$('#alerts').append(alertBootstrap('danger', 'display name exceeds 20 characters.'));
+				$('#alerts').append(alertBootstrap('danger', 'Display name exceeds 20 characters.'));
 			} else if (!contact) {
-				$('#alerts').append(alertBootstrap('danger', 'contact information cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Contact information cannot be empty.'));
 			} else {
 				$.ajax({
 					type: 'POST',

@@ -3,7 +3,7 @@
 <div id="search-div">
 	<div class="page-header">
 		<h1>
-			search trades
+			Search Trades
 			<a class="btn btn-default" href="/listings/add">
 				<span class="glyphicon glyphicon-plus"></span>
 			</a>
@@ -12,7 +12,7 @@
 	<div id="alerts">
 		{% if not inventory.count() and not playlist.count() %}
 		<div class="alert alert-info">
-			no games in your inventory and playlist! add games to your inventory/playlist to add them to the search.
+			No games in your inventory and playlist! Add games to your inventory/playlist to add them to the search.
 		</div>
 		{% endif %}
 	</div>
@@ -22,7 +22,7 @@
 			<div class="col-md-6">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">inventory</h3>
+						<h3 class="panel-title">Inventory</h3>
 					</div>
 					{% if inventory.count() %}
 					<div class="table-responsive">
@@ -30,21 +30,21 @@
 							<thead>
 								<tr>
 									<th class="sorttable_nosort" width="5%"></th>
-									<th width="50%">title</th>
-									<th width="15%">platform</th>
-									<th class="sorttable_nosort" width="15%">picture</th>
-									<th width="15%">new</th>
+									<th width="50%">Title</th>
+									<th width="15%">Platform</th>
+									<th class="sorttable_nosort" width="15%">Picture</th>
+									<th width="15%">New</th>
 								</tr>
 							</thead>
 							<tbody>
 								{% for game in inventory %}
 								{% set game_id = game.key.urlsafe() %}
-								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 									<td width="5"><input type="checkbox" class="own" value="{{ game_id }}"></td>
 									<td width="50%">{{ game.title }}</td>
 									<td width="15%">{{ game.platform }}</td>
 									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -53,7 +53,7 @@
 					{% else %}
 					<div class="panel-body trade-body">
 						<div class="alert alert-info trade-alert">
-							no games in your inventory!
+							No games in your inventory!
 							<a class="btn btn-default btn-sm" href="/inventory/add">
 								<span class="glyphicon glyphicon-plus"></span>
 							</a>
@@ -65,7 +65,7 @@
 			<div class="col-md-6">
 				<div class="panel panel-primary">
 					<div class="panel-heading">
-						<h3 class="panel-title">playlist</h3>
+						<h3 class="panel-title">Playlist</h3>
 					</div>
 					{% if playlist.count() %}
 					<div class="table-responsive">
@@ -73,21 +73,21 @@
 							<thead>
 								<tr>
 									<th class="sorttable_nosort" width="5%"></th>
-									<th width="50%">title</th>
-									<th width="15%">platform</th>
-									<th class="sorttable_nosort" width="15%" >picture</th>
-									<th width="15%">new</th>
+									<th width="50%">Title</th>
+									<th width="15%">Platform</th>
+									<th class="sorttable_nosort" width="15%">Picture</th>
+									<th width="15%">New</th>
 								</tr>
 							</thead>
 							<tbody>
 								{% for game in playlist %}
 								{% set game_id = game.key.urlsafe() %}
-								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+								<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 									<td width="5%"><input type="checkbox" class="seek" value="{{ game_id }}"></td>
 									<td width="50%">{{ game.title }}</td>
 									<td width="15%">{{ game.platform }}</td>
 									<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-									<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+									<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 								</tr>
 								{% endfor %}
 							</tbody>
@@ -96,7 +96,7 @@
 					{% else %}
 					<div class="panel-body trade-body">
 						<div class="alert alert-info trade-alert">
-							no games in your playlist!
+							No games in your playlist!
 							<a class="btn btn-default btn-sm" href="/playlist/add">
 								<span class="glyphicon glyphicon-plus"></span>
 							</a>
@@ -142,7 +142,7 @@
 			});
 
 			if (!trade.own_urls.length && !trade.seek_urls.length) {
-				$('#alerts').append(alertBootstrap('danger', 'trade cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Trade cannot be empty.'));
 			} else {
 				$.ajax({
 					type: 'POST',
@@ -154,7 +154,7 @@
 						console.log(textStatus);
 						console.log(jqXHR);
 
-						$('#alerts').append(alertBootstrap('success', 'trade added.'));
+						$('#alerts').append(alertBootstrap('success', 'Trade added.'));
 						alertTimeout(5000);
 
 						$('#search-div').fadeTo(500, 0).slideUp(500, function() {

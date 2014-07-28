@@ -3,7 +3,7 @@
 <head>
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
 	<meta charset="utf-8">
-	<title>maphack | search. trade. play.</title>
+	<title>maph4ck | Search. Trade. Play.</title>
 	<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 	<link href="/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 	<link href="/stylesheets/map.css" rel="stylesheet">
@@ -15,12 +15,12 @@
 <body>
 	<div id="panel" class="panel panel-primary">
 		<div class="panel-heading">
-			<h3 class="panel-title">locations</h3>
+			<h3 class="panel-title">Locations</h3>
 		</div>
 		<div class="panel-body">
 			<form id="geocode" role="form">
 				<div class="input-group">
-					<input id="address" type="text" class="form-control" placeholder="address to search">
+					<input id="address" type="text" class="form-control" placeholder="Address to search">
 					<span class="input-group-btn">
 						<button type="submit" class="btn btn-default" type="button">
 							<span class="glyphicon glyphicon-search"></span>
@@ -30,7 +30,7 @@
 			</form>
 			<form id="add" role="form">
 				<div class="input-group">
-					<input id="name" type="text" class="form-control" placeholder="name for the location">
+					<input id="name" type="text" class="form-control" placeholder="Name for the location">
 					<span class="input-group-btn">
 						<button type="submit" class="btn btn-default" type="button">
 							<span class="glyphicon glyphicon-plus"></span>
@@ -39,9 +39,9 @@
 				</div>
 			</form>
 			<div id="alerts"></div>
-			<button id="show" type="button" class="btn btn-default" style="display: none">show my locations</button>
-			<button id="hide" type="button" class="btn btn-default">hide my locations</button>
-			<a class="btn btn-default" href="/locations">back</a>
+			<button id="show" type="button" class="btn btn-default" style="display: none">Show my locations</button>
+			<button id="hide" type="button" class="btn btn-default">Hide my locations</button>
+			<a class="btn btn-default" href="/locations">Back</a>
 		</div>
 	</div>
 	<div id="map-canvas"></div>
@@ -81,7 +81,7 @@
 						map.setCenter(results[0].geometry.location);
 						map.fitBounds(results[0].geometry.viewport);
 					} else {
-						$('#alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
+						$('#alerts').append(alertBootstrap('danger', 'Geocode was not successful for the following reason: ' + status));
 					}
 				});
 			}
@@ -120,21 +120,21 @@
 			var address = $('#address').val().trim();
 
 			if (!address) {
-				$('#alerts').append(alertBootstrap('danger', 'address cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Address cannot be empty.'));
 			} else {
 				geocoder.geocode({'address': address, 'componentRestrictions': {country: country}}, function(results, status) {
 					if (status == google.maps.GeocoderStatus.OK) {
 						if(results[0].partial_match) {
-							$('#alerts').append(alertBootstrap('info', 'location may be inaccurate. drag the marker to the correct location before adding it.'));
+							$('#alerts').append(alertBootstrap('info', 'Location may be inaccurate. Drag the marker to the correct location before adding it.'));
 						} else {
-							$('#alerts').append(alertBootstrap('success', 'location found.'));
+							$('#alerts').append(alertBootstrap('success', 'Location found.'));
 							alertTimeout(5000);
 						}
 
 						placeMarker(results[0].geometry.location);
 						map.fitBounds(results[0].geometry.viewport);
 					} else {
-						$('$alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
+						$('$alerts').append(alertBootstrap('danger', 'Geocode was not successful for the following reason: ' + status));
 					}
 				});
 			}
@@ -150,9 +150,9 @@
 			var name = $('#name').val().trim();
 
 			if (!name) {
-				$('#alerts').append(alertBootstrap('danger', 'name cannot be empty.'));
+				$('#alerts').append(alertBootstrap('danger', 'Name cannot be empty.'));
 			} else if (!marker) {
-				$('#alerts').append(alertBootstrap('danger', 'please set a location.'));
+				$('#alerts').append(alertBootstrap('danger', 'Please set a location.'));
 			} else {
 				var latlng = marker.getPosition();
 
@@ -169,7 +169,7 @@
 								console.log(textStatus);
 								console.log(jqXHR);
 
-								$('#alerts').append(alertBootstrap('success', 'location added'));
+								$('#alerts').append(alertBootstrap('success', 'Location added'));
 								alertTimeout(5000);
 
 								var location_marker = new google.maps.Marker({
@@ -200,7 +200,7 @@
 							},
 						});
 					} else {
-						$('#alerts').append(alertBootstrap('danger', 'geocode was not successful for the following reason: ' + status));
+						$('#alerts').append(alertBootstrap('danger', 'Geocode was not successful for the following reason: ' + status));
 					}
 				});
 			}

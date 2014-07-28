@@ -2,7 +2,7 @@
 {% block content %}
 <div class="page-header">
 	<h1>
-		trades
+		Trades
 		<a class="btn btn-default" href="/trades/add">
 			<span class="glyphicon glyphicon-plus"></span>
 		</a>
@@ -14,7 +14,7 @@
 <div id="alerts">
 	{% if not trades|length %}
 	<div class="alert alert-info">
-		no trades! click the + button to add the trades you want to make.
+		No trades! click the + button to add the trades you want to make.
 	</div>
 	{% endif %}
 </div>
@@ -36,27 +36,27 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">offering</h3>
+					<h3 class="panel-title">Offering</h3>
 				</div>
 				{% if own_games|length %}
 				<div class="table-responsive">
 					<table class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
-								<th width="55%">title</th>
-								<th width="15%">platform</th>
-								<th class="sorttable_nosort" width="15%">picture</th>
-								<th width="15%">new</th>
+								<th width="55%">Title</th>
+								<th width="15%">Platform</th>
+								<th class="sorttable_nosort" width="15%">Picture</th>
+								<th width="15%">New</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in own_games %}
 							{% set game_id = game.key.urlsafe() %}
-							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 								<td width="55%">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
 								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -65,14 +65,14 @@
 				{% else %}
 				<div class="panel-body trade-body">
 					<div class="alert alert-info trade-alert">
-						no games here!
+						No games here!
 					</div>
 				</div>
 				{% endif %}
 				{% if trade.topup > 0 %}
 				<div class="panel-footer trade-topup">
 					<div class="input-group">
-						<span class="input-group-addon">topup ${{ trade.topup }}</span>
+						<span class="input-group-addon">Topup ${{ trade.topup }}</span>
 					</div>
 				</div>
 				{% endif %}
@@ -81,27 +81,27 @@
 		<div class="col-md-6">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<h3 class="panel-title">requesting</h3>
+					<h3 class="panel-title">Requesting</h3>
 				</div>
 				{% if seek_games|length %}
 				<div class="table-responsive">
 					<table class="sortable table table-bordered table-striped">
 						<thead>
 							<tr>
-								<th width="55%">title</th>
-								<th width="15%">platform</th>
-								<th class="sorttable_nosort" width="15%">picture</th>
-								<th width="15%">new</th>
+								<th width="55%">Title</th>
+								<th width="15%">Platform</th>
+								<th class="sorttable_nosort" width="15%">Picture</th>
+								<th width="15%">New</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for game in seek_games %}
 							{% set game_id = game.key.urlsafe() %}
-							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'none' }}</p>">
+							<tr id="{{ game_id }}" class="game" title="{{ game.title }}" data-content="<p>{{ game.description or 'None' }}</p>">
 								<td width="55%">{{ game.title }}</td>
 								<td width="15%">{{ game.platform }}</td>
 								<td width="15%">{% if game.pic %}<a href="{{ game.pic }}" target="_blank"><img src="{{ game.pic }}"></a>{% else %}-{% endif %}</td>
-								<td width="15%">{% if game.wrapped %}new{% else %}-{% endif %}</td>
+								<td width="15%">{% if game.wrapped %}New{% else %}-{% endif %}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -110,22 +110,22 @@
 				{% else %}
 				<div class="panel-body trade-body">
 					<div class="alert alert-info trade-alert">
-						no games here!
+						No games here!
 					</div>
 				</div>
 				{% endif %}
 				{% if trade.topup < 0 %}
 				<div class="panel-footer trade-topup">
 					<div class="input-group">
-						<span class="input-group-addon">topup ${{ -trade.topup }}</span>
+						<span class="input-group-addon">Topup ${{ -trade.topup }}</span>
 					</div>
 				</div>
 				{% endif %}
 			</div>
 		</div>
 	</div>
-	<h4>description</h4>
-	<p>{{ trade.description or 'none' }}</p>
+	<h4>Description</h4>
+	<p>{{ trade.description or 'None' }}</p>
 </div>
 {% endfor %}
 <script>
@@ -144,7 +144,7 @@
 					console.log(textStatus);
 					console.log(jqXHR);
 
-					$('#alerts').append(alertBootstrap('success', 'trade deleted.'));
+					$('#alerts').append(alertBootstrap('success', 'Trade deleted.'));
 					alertTimeout(5000);
 
 					$('#' + trade_url).remove();
